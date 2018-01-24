@@ -1,0 +1,4 @@
+# FreeCAD backups
+*.fcstd1
+# LibreOffice lock files
+.~lock.*#
