@@ -4,15 +4,15 @@ import "Goldistat" as Goldistat
 
 HalApplicationWindow {
     id: main
-    name: "goldibox-remote"
+    name: "autoclave-remote"
     width: 500
     height: 800
     color: "#000000"
     transformOrigin: Item.Center
-    title: qsTr("Goldibox")
+    title: qsTr("Autoclave")
 
     Item {
-        id: goldibox
+        id: autoclave
         anchors.fill: parent
 
         Image {
@@ -27,7 +27,7 @@ HalApplicationWindow {
         }
 
         Goldistat.Goldistat {
-	    /* Goldibox thermostat control */
+	    /* Autoclave thermostat control */
             id: goldistat
 
 	    // Middle layer

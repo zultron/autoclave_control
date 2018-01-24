@@ -1,10 +1,10 @@
 #!/usr/bin/python
 
 import hal, time, sys, datetime, yaml
-from goldibox import Config, Messages
+from autoclave import Config, Messages
 
 # Set up component
-h = hal.component("goldibox-control")
+h = hal.component("autoclave-control")
 
 # Inputs:
 # - Min/max/internal temp settings
@@ -31,7 +31,7 @@ h['error'] = 0
 h['switch-on'] = 0
 h['switch-heat'] = 0
 
-msg = Messages('Goldibox control')
+msg = Messages('Autoclave control')
 
 # Mark the component as 'ready'
 msg.info("Initialized")

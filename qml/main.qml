@@ -17,13 +17,13 @@ ApplicationWindow {
         color: "#fdb3c0"
 
         anchors.fill: parent
-        defaultTitle: "Goldibox"
+        defaultTitle: "Autoclave"
         //autoSelectInstance: true
         autoSelectApplication: true
         mode: "local"
         applications: [
             ApplicationDescription {
-                sourceDir: "qrc:/goldibox-remote/"
+                sourceDir: "qrc:/autoclave-remote/"
             }
         ]
         instanceFilter: ServiceDiscoveryFilter{ name: "" }

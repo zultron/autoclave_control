@@ -1,7 +1,7 @@
 #!/usr/bin/env halrun
 # ################################################
 #
-# Goldibox PocketBeagle HAL configuration
+# Autoclave PocketBeagle HAL configuration
 #
 # http://linuxcnc.org/docs/devel/html/man/man1/halcmd.1.html
 #

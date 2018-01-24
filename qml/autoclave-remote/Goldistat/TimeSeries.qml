@@ -7,7 +7,7 @@ import Machinekit.Service 1.0
 Button {
     /* Time series chart
 
-       Chart image downloaded from Goldibox; button opens browser
+       Chart image downloaded from Autoclave; button opens browser
        window to more charts
      */
     id: base
@@ -18,11 +18,11 @@ Button {
     }
 
     property string baseURL: (
-	"http://" + launcherService.hostAddress + "/goldibox/")
+	"http://" + launcherService.hostAddress + "/autoclave/")
 
     enabled: launcherService.ready
     onClicked: Qt.openUrlExternally(baseURL)
-    tooltip: "Open Goldibox charts in browser"
+    tooltip: "Open Autoclave charts in browser"
 
     style: ButtonStyle {
 	background: Image {

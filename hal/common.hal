@@ -1,29 +1,29 @@
 # ################################################
-# Goldibox control comp
+# Autoclave control comp
 # ################################################
 
 # Load userland comp
-loadusr -W goldibox-control
+loadusr -W autoclave-control
 
 # Inputs
 # - Min/max/internal temp settings
-net temp-min                        => goldibox-control.temp-min
-net temp-max                        => goldibox-control.temp-max
-net temp-int                        => goldibox-control.temp-int
+net temp-min                        => autoclave-control.temp-min
+net temp-max                        => autoclave-control.temp-max
+net temp-int                        => autoclave-control.temp-int
 # - Hysteresis
-net hysteresis                      => goldibox-control.hysteresis
+net hysteresis                      => autoclave-control.hysteresis
 # - Enable
-net enable                          => goldibox-control.enable
+net enable                          => autoclave-control.enable
 # - Shut down
-net shutdown                        => goldibox-control.shutdown
+net shutdown                        => autoclave-control.shutdown
 
 # Outputs
 # - On/off switch
-net switch-on                       <= goldibox-control.switch-on
+net switch-on                       <= autoclave-control.switch-on
 # - Heat/cool selector switch (1/0)
-net switch-heat                     <= goldibox-control.switch-heat
+net switch-heat                     <= autoclave-control.switch-heat
 # - Error
-net error                           <= goldibox-control.error
+net error                           <= autoclave-control.error
 
 
 # ################################################
@@ -68,21 +68,21 @@ net cool-on                         <= cool-on.out
 # ################################################
 
 # Load userland comp
-loadusr -W goldibox-logger
+loadusr -W autoclave-logger
 
 # Inputs
 # - Temperatures
-net temp-int                        => goldibox-logger.temp-int
-net temp-ext                        => goldibox-logger.temp-ext
-net temp-min                        => goldibox-logger.temp-min
-net temp-max                        => goldibox-logger.temp-max
+net temp-int                        => autoclave-logger.temp-int
+net temp-ext                        => autoclave-logger.temp-ext
+net temp-min                        => autoclave-logger.temp-min
+net temp-max                        => autoclave-logger.temp-max
 # - Enable/error/heat/cool
-net error                           => goldibox-logger.error
-net enable                          => goldibox-logger.enable
-net heat-on                         => goldibox-logger.cool
-net cool-on                         => goldibox-logger.heat
+net error                           => autoclave-logger.error
+net enable                          => autoclave-logger.enable
+net heat-on                         => autoclave-logger.cool
+net cool-on                         => autoclave-logger.heat
 # - Shut down
-net shutdown                        => goldibox-logger.shutdown
+net shutdown                        => autoclave-logger.shutdown
 
 
 # ################################################
@@ -98,13 +98,13 @@ net shutdown                        <= shutdown.out
 net shutdown                        => shutdown.in0
 net shutdown-button                 => shutdown.in1
 
-# Signal goldibox runner
-net shutdown                        => goldibox-run.shutdown
+# Signal autoclave runner
+net shutdown                        => autoclave-run.shutdown
 
 # ################################################
-# Goldibox remote comp
+# Autoclave remote comp
 # ################################################
-loadusr -W goldibox-remote
+loadusr -W autoclave-remote
 
 # ################################################
 # Run

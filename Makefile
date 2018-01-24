@@ -1,12 +1,12 @@
 ifndef MININSTALL
 # Service user ID
-USER = goldibox
+USER = autoclave
 # System user ID
 ROOT_USER = root
 # For saved state
-VAR_DIR = /var/lib/goldibox
+VAR_DIR = /var/lib/autoclave
 # For configuration
-ETC_DIR = /etc/goldibox
+ETC_DIR = /etc/autoclave
 # HAL configs
 HAL_DIR = $(ETC_DIR)/hal
 # Executables
@@ -16,7 +16,7 @@ PYTHON_DIR = /usr/lib/python$(shell \
     python -c \
 	'from sys import version_info as v; print "%s.%s" % (v.major, v.minor)')
 # QML files
-SHARE_DIR = /usr/share/goldibox
+SHARE_DIR = /usr/share/autoclave
 else # MININSTALL
 # Service user ID
 USER = $(SUDO_USER)
@@ -38,24 +38,24 @@ endif
 
 
 HAL_FILES = common.hal pb.hal sim.hal
-BIN_FILES = goldibox goldibox-control goldibox-logger goldibox-remote \
-	goldibox-sim-temp
-PYTHON_FILES = goldibox.py
+BIN_FILES = autoclave autoclave-control autoclave-logger autoclave-remote \
+	autoclave-sim-temp
+PYTHON_FILES = autoclave.py
 SHARE_FILES = \
 	images/icon.png \
 	launcher.ini \
-	qml/goldibox-remote/Goldistat/ExitButton.qml \
-	qml/goldibox-remote/Goldistat/Goldistat.qml \
-	qml/goldibox-remote/Goldistat/PowerButton.qml \
-	qml/goldibox-remote/Goldistat/Private/GoldistatIn.qml \
-	qml/goldibox-remote/Goldistat/Private/GoldistatOut.qml \
-	qml/goldibox-remote/Goldistat/Private/GoldistatSet.qml \
-	qml/goldibox-remote/Goldistat/TimeSeries.qml \
-	qml/goldibox-remote/assets/background.png \
-	qml/goldibox-remote/assets/locks.png \
-	qml/goldibox-remote/description.ini \
-	qml/goldibox-remote/goldibox-remote.qml \
-	qml/goldibox-remote.pro \
+	qml/autoclave-remote/Goldistat/ExitButton.qml \
+	qml/autoclave-remote/Goldistat/Goldistat.qml \
+	qml/autoclave-remote/Goldistat/PowerButton.qml \
+	qml/autoclave-remote/Goldistat/Private/GoldistatIn.qml \
+	qml/autoclave-remote/Goldistat/Private/GoldistatOut.qml \
+	qml/autoclave-remote/Goldistat/Private/GoldistatSet.qml \
+	qml/autoclave-remote/Goldistat/TimeSeries.qml \
+	qml/autoclave-remote/assets/background.png \
+	qml/autoclave-remote/assets/locks.png \
+	qml/autoclave-remote/description.ini \
+	qml/autoclave-remote/autoclave-remote.qml \
+	qml/autoclave-remote.pro \
 	qml/main.cpp \
 	qml/main.qml \
 	qml/qml.qrc
@@ -79,7 +79,7 @@ ifndef MININSTALL
 		--home $(VAR_DIR) \
 		--no-create-home \
 		--shell /usr/sbin/nologin \
-		--gecos goldibox \
+		--gecos autoclave \
 		--disabled-password \
 		$(USER) >/dev/null; \
 	fi
@@ -103,14 +103,14 @@ $(patsubst %,$(SHARE_DIR)/%,$(SHARE_FILES)): $(SHARE_DIR)/%: %
 /etc/apache2/mods-enabled/cgi.load:
 	ln -sf ../mods-available/cgi.load $@
 
-/etc/apache2/conf-available/goldibox.conf: \
+/etc/apache2/conf-available/autoclave.conf: \
 	    templates/apache.conf \
 	    /etc/apache2/mods-enabled/cgi.load
 	@mkdir -p $(dir $@)
 	sed < $< > $@ \
 	    -e 's,@VAR_DIR@,$(VAR_DIR),'
-	ln -sf ../conf-available/goldibox.conf \
-	    /etc/apache2/conf-enabled/goldibox.conf
+	ln -sf ../conf-available/autoclave.conf \
+	    /etc/apache2/conf-enabled/autoclave.conf
 
 $(VAR_DIR)/graphs/index.html: templates/index.html $(VAR_DIR)/saved_state.yaml
 	@install -d -o $(USER) $(VAR_DIR)
@@ -142,24 +142,24 @@ $(ETC_DIR)/config.yaml: templates/config.yaml
 	@chown $(ROOT_USER) $@
 
 ifneq ($(HAVE_DTC),)
-/lib/firmware/pb_goldibox-00A0.dtbo: etc/pb_goldibox.dts
+/lib/firmware/pb_autoclave-00A0.dtbo: etc/pb_autoclave.dts
 	dtc -O dtb -o $@ -b 0 -@ $<
 	if ! grep -q $@ /boot/uEnv.txt; then \
 	    echo dtb_overlay=$@ > /boot/uEnv.txt; \
 	fi
-ALL_FILES += /lib/firmware/pb_goldibox-00A0.dtbo
+ALL_FILES += /lib/firmware/pb_autoclave-00A0.dtbo
 endif
 
-/etc/systemd/system/goldibox.service: templates/goldibox.service
+/etc/systemd/system/autoclave.service: templates/autoclave.service
 	sed < $< > $@ \
 	    -e 's,@USER@,$(USER),'
-	ln -sf $@ /lib/systemd/goldibox.service
+	ln -sf $@ /lib/systemd/autoclave.service
 
 # System-installed files needed to run from source directory
 ALL_FILES += \
 	$(patsubst %,$(PYTHON_DIR)/%,$(PYTHON_FILES)) \
 	$(ETC_DIR)/config.yaml \
-	/etc/apache2/conf-available/goldibox.conf \
+	/etc/apache2/conf-available/autoclave.conf \
 	$(VAR_DIR)/graphs/index.html \
 	$(VAR_DIR)/graphs/uichart.png.cgi
 
@@ -172,7 +172,7 @@ ALL_FILES += \
 	$(patsubst %,$(SHARE_DIR)/%,$(SHARE_FILES)) \
 	$(ETC_DIR)/overlay-pb.bbio \
 	$(VAR_DIR)/saved_state.yaml \
-	/etc/systemd/system/goldibox.service
+	/etc/systemd/system/autoclave.service
 endif
 .PHONY: install
 install: add_user $(ALL_FILES)

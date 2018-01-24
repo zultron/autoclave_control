@@ -1,9 +1,9 @@
 /*
- * Goldibox PocketBeagle overlay:  configure output pins
+ * Autoclave PocketBeagle overlay:  configure output pins
 
- * sudo dtc -O dtb -o /lib/firmware/pb_goldibox-00A0.dtbo -b 0 -@ pb_goldibox.dts
+ * sudo dtc -O dtb -o /lib/firmware/pb_autoclave-00A0.dtbo -b 0 -@ pb_autoclave.dts
  * - Ignore 3x "Warning (unit_address_vs_reg)"
- * echo dtb_overlay=/lib/firmware/pb_goldibox-00A0.dtbo | sudo tee -a /boot/uEnv.txt
+ * echo dtb_overlay=/lib/firmware/pb_autoclave-00A0.dtbo | sudo tee -a /boot/uEnv.txt
  * for i in 02 04 06 08 10 12 20; do config-pin -q P1.$i; done
 
  */

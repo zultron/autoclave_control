@@ -1,7 +1,7 @@
 #!/usr/bin/env halrun
 # #######################################
 #
-# Goldibox Simulator HAL configuration
+# Autoclave Simulator HAL configuration
 #
 # http://linuxcnc.org/docs/devel/html/man/man1/halcmd.1.html
 #
@@ -11,23 +11,23 @@
 
 # ################
 # Primitive simulator comp
-loadusr -W goldibox-sim-temp
+loadusr -W autoclave-sim-temp
 # - Temp in signal
-net temp-int                        <= goldibox-sim-temp.value
+net temp-int                        <= autoclave-sim-temp.value
 # - Enable
-net enable                          => goldibox-sim-temp.p-enable
+net enable                          => autoclave-sim-temp.p-enable
 # - Peltier
-net heat-on                         => goldibox-sim-temp.heat-on
-net cool-on                         => goldibox-sim-temp.cool-on
+net heat-on                         => autoclave-sim-temp.heat-on
+net cool-on                         => autoclave-sim-temp.cool-on
 # - Fan
-net switch-on                       => goldibox-sim-temp.f-on
+net switch-on                       => autoclave-sim-temp.f-on
 # - Simulated external temp
-net temp-ext                        => goldibox-sim-temp.temp-ext
+net temp-ext                        => autoclave-sim-temp.temp-ext
 # - Effect of external temp and heat/cool on inside temp; adjustable
-net temp-ext-incr                   => goldibox-sim-temp.temp-ext-incr
-net heat-cool-incr                  => goldibox-sim-temp.heat-cool-incr
+net temp-ext-incr                   => autoclave-sim-temp.temp-ext-incr
+net heat-cool-incr                  => autoclave-sim-temp.heat-cool-incr
 # - Shutdown
-net shutdown                        => goldibox-sim-temp.shutdown
+net shutdown                        => autoclave-sim-temp.shutdown
 
 # ################
 # Threads

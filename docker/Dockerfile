@@ -43,5 +43,5 @@ ADD machinekit.ini /etc/linuxcnc/machinekit.ini
 # Fix avahi execution https://github.com/lxc/lxc/issues/25
 RUN sudo sed -i /etc/avahi/avahi-daemon.conf -e '/rlimit-nproc/ s/^/#/'
 
-# Tell Goldibox this is a sim environment
-ENV GOLDIBOX_SIM=true
+# Tell Autoclave this is a sim environment
+ENV AUTOCLAVE_SIM=true

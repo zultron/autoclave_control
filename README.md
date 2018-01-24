@@ -1,52 +1,34 @@
-# Goldibox.  Not too hot, not too cold.
+# Machinekit Autoclave control
 
-The Goldibox is an insulated box that maintains temperature using a
-thermoelectric device and a controller.  Originally conceived to
-incubate biological organisms that thrive best within a particular
-maximum/minimum temperature range, it can both heat and cool to avoid
-extremes, but still allow variability within a habitable "Goldilocks
-zone":  not too hot, not too cold, but just right.
+This project is the design for an autoclave control using Machinekit
+and a BeagleBone.  It controls a heat element and a pressure relief
+valve using thermistors for input.
 
-The Goldibox's smart controller exposes a remote, network-connected
-graphical interface for setting temperatures, checking current state,
-and viewing history through time series graphs.  Anyone may modify the
-open-source control to add new features.
+This repo is a rework of the [Goldibox][goldibox] project repo.
+
+[goldibox]: https://github.com/zultron/goldibox/
 
 ## Components
 
-![Goldibox](images/goldibox_breadboard.png)
-
-The Goldibox is built from a portable fridge with a [Peltier
-junction][wiki-peltier] that can be switched either to cool or to heat
-by reversing the input voltage.
-
-The Goldibox controller, a tiny [PocketBeagle][pocketbeagle] computer
-that runs Debian, fits in the cramped space next to the Peltier
-junction fan and heat sink.  It senses internal and external
-temperatures through a pair of thermistors attachd to its analog
-inputs, and it switches the Peltier junction and fan through an
-H-bridge and a MOSFET, respectively, connected through GPIO digital
-output pins.  See `BOM.md` for a list of hardware components, and
-`fritzing/goldibox.fzz` for connecting them.
+The autoclave controller is a BeagleBone computer running Debian.  It
+senses temperatures through a pair of thermistors attachd to its
+analog inputs, and it switches the heat element and pressure relief
+valve through two solid-state relays (SSRs) connected through GPIO
+digital output pins.  See `electronics/autoclave.fzz` for connecting
+them.
 
 The [Machinekit][machinekit] software runs the configuration in this
 repository:  some python user-space components in the `bin/`
 directory, and HAL configuration in the `hal/` directory.  The
-`goldibox-control` component decides whether to switch the Peltier
-junction to cool, heat, or off, depending on the measured temperature
-compared to the user's Goldilocks temperature settings.  The
-`goldibox-logger` component logs to a RRD database, from which time
-series charts are generated.
+`autoclave-control` component decides whether to switch the relief
+valve and burner on or off, depending on the program cycle and the
+measured temperature.  The `autoclave-logger` component logs to a RRD
+database, from which time series charts are generated.
 
-The `goldibox-control` component exposes a remote UI, used by the
+The `autoclave-control` component exposes a remote UI, used by the
 `MachinekitClient` software, which can be downloaded for Android from
 the Google Play store, and for Linux, Mac OS X and Windows directly
-from the [QtQuickVCP][qqvcp] project.  The configuration in the `qml`
-directory defines the simple user interface with thermostat controls
-for the "too hot" and "too cold" zones, readouts for internal and
-external temperature, a power control to enable and disable the
-Goldibox, and a time series chart showing temperatures over the last
-day.
+from the [QtQuickVCP][qqvcp] project.  FIXME:  configuration?
 
 # Running
 
@@ -56,18 +38,18 @@ and install a mini-SD card image with Machinekit.
 Log into the BeagleBone, clone this repository, and `cd` into the
 repository directory.
 
-On the PocketBeagle, start the Goldibox control from the command line
+On the BeagleBone, start the Autoclave control from the command line
 (load the overlay file for non-system installs):
 
     # Install minimal apache and other config
     sudo make install MININSTALL=1
     # Start control
-    bin/goldibox -o
+    bin/autoclave -o
 
-The Goldibox should now be ready for control.  Start the
-[MachinekitClient][qqvcp] and open the Goldibox app.
+The Autoclave should now be ready for control.  Start the
+[MachinekitClient][qqvcp] and open the Autoclave app.
 
-Alternatively, run a Goldibox simulated control and GUI in a Docker
+Alternatively, run an Autoclave simulated control and GUI in a Docker
 container from the command line:
 
     # Start the container
@@ -75,27 +57,26 @@ container from the command line:
     # Install minimal apache and other config
     sudo make install MININSTALL=1
     # Start control
-    bin/goldibox &
+    bin/autoclave &
     # Start GUI
     MachinekitClient &
 
-The Goldibox may be installed to the system so that it is run at every
-boot:
+The Autoclave may be installed to the system so that it is run at
+every boot:
 
     sudo make install
     sudo systemctl daemon-reload
-    sudo systemctl enable goldibox
-    sudo systemctl start goldibox
+    sudo systemctl enable autoclave
+    sudo systemctl start autoclave
 
 The `apache2` package must be installed and the web server running for
 the time-series chart to work.
 
-# Installing the PocketBeagle
+# Installing the BeagleBone
 
-See the jumble of notes in [NOTES.md](NOTES.md)
+FIXME
 
 
 [wiki-peltier]: https://en.wikipedia.org/wiki/Thermoelectric_cooling
-[pocketbeagle]: https://beagleboard.org/pocket
 [machinekit]: http://www.machinekit.io/
 [qqvcp]: https://github.com/qtquickvcp/QtQuickVcp

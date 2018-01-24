@@ -7,7 +7,7 @@ Button {
 
        Simple, round X button, quits the app when clicked
      */
-    tooltip: "Exit Goldibox Control Application"
+    tooltip: "Exit Autoclave Control Application"
     onClicked: Qt.quit()
     width: 50
     height: 50

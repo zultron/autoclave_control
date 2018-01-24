@@ -1,13 +1,13 @@
 #!/usr/bin/python
 
-rrdtool_graph_pat = "goldibox-logger.%s.png" # Fill with period, e.g. 'daily'
+rrdtool_graph_pat = "autoclave-logger.%s.png" # Fill with period, e.g. 'daily'
 rrdtool_period = 60 # Seconds between updates
 
 import rrdtool, hal, time, sys, os, datetime
-from goldibox import Config, Messages
+from autoclave import Config, Messages
 
 # Set up component
-h = hal.component("goldibox-logger")
+h = hal.component("autoclave-logger")
 
 # Inputs:
 # - Temperatures
@@ -22,7 +22,7 @@ h.newpin("heat", hal.HAL_BIT, hal.HAL_IN)
 h.newpin("cool", hal.HAL_BIT, hal.HAL_IN)
 h.newpin("shutdown", hal.HAL_BIT, hal.HAL_IN)
 
-msg = Messages('Goldibox logger')
+msg = Messages('Autoclave logger')
 config = Config()
 rrd_dir = os.path.dirname(config.rrd_file)
 rrd_image_dir = config.rrd_image_dir

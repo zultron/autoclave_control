@@ -15,9 +15,9 @@ class Config(object):
     def __init__(self, config_file=None):
         for path in (
                 config_file,
-                os.environ.get('GOLDIBOX_CONFIG',None),
+                os.environ.get('AUTOCLAVE_CONFIG',None),
                 os.path.join(os.path.dirname(__file__),'..','..','etc'),
-                '/etc/goldibox'):
+                '/etc/autoclave'):
             if path is None:
                 continue
             if os.path.isfile(path):

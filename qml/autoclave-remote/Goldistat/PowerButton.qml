@@ -14,7 +14,7 @@ Button {
 
     enabled: (pin.direction !== HalPin.In)
 
-    tooltip: "Enable/Disable Goldibox"
+    tooltip: "Enable/Disable Autoclave"
     checkable: true
 
     id: base

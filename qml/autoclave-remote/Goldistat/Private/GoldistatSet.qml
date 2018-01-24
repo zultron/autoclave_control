@@ -3,7 +3,7 @@ import QtQuick.Controls 1.1
 import Machinekit.HalRemote 1.0
 
 Item {
-    /* Goldibox thermostat zone setting
+    /* Autoclave thermostat zone setting
 
        This donut-shaped knob has independent settings for "too hot"
        and "too cold" zones, displaying them as red and blue arcs that

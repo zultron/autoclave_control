@@ -1,16 +1,16 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
-        <file>goldibox-remote/description.ini</file>
-        <file>goldibox-remote/goldibox-remote.qml</file>
-        <file>goldibox-remote/Goldistat/ExitButton.qml</file>
-        <file>goldibox-remote/Goldistat/Goldistat.qml</file>
-        <file>goldibox-remote/Goldistat/PowerButton.qml</file>
-        <file>goldibox-remote/Goldistat/Private/GoldistatIn.qml</file>
-        <file>goldibox-remote/Goldistat/Private/GoldistatOut.qml</file>
-        <file>goldibox-remote/Goldistat/Private/GoldistatSet.qml</file>
-        <file>goldibox-remote/Goldistat/TimeSeries.qml</file>
-        <file>goldibox-remote/assets/background.png</file>
-        <file>goldibox-remote/assets/locks.png</file>
+        <file>autoclave-remote/description.ini</file>
+        <file>autoclave-remote/autoclave-remote.qml</file>
+        <file>autoclave-remote/Goldistat/ExitButton.qml</file>
+        <file>autoclave-remote/Goldistat/Goldistat.qml</file>
+        <file>autoclave-remote/Goldistat/PowerButton.qml</file>
+        <file>autoclave-remote/Goldistat/Private/GoldistatIn.qml</file>
+        <file>autoclave-remote/Goldistat/Private/GoldistatOut.qml</file>
+        <file>autoclave-remote/Goldistat/Private/GoldistatSet.qml</file>
+        <file>autoclave-remote/Goldistat/TimeSeries.qml</file>
+        <file>autoclave-remote/assets/background.png</file>
+        <file>autoclave-remote/assets/locks.png</file>
     </qresource>
 </RCC>

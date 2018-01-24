@@ -1,18 +1,18 @@
 #!/usr/bin/python
 #
-# Generate one-time chart for use in Goldibox UI
+# Generate one-time chart for use in Autoclave UI
 #
 # Run on command line:
 # env QUERY_STRING='w=100&h=50&r=42' ./templates/uichart.png.cgi
 
 import cgi, cgitb, rrdtool, os, tempfile, sys
 try:
-    from goldibox import Config
+    from autoclave import Config
 except ImportError as e:
     # If running from the git tree, try adding the lib path
     path = os.path.join(os.path.dirname(__file__),'..','..','lib','python')
     sys.path.append(path)
-    from goldibox import Config
+    from autoclave import Config
 
 # Get and check form data
 form = cgi.FieldStorage()

@@ -1,17 +1,17 @@
 #!/usr/bin/python
 from machinekit import hal
-from goldibox import Config, Messages
+from autoclave import Config, Messages
 import sys, datetime, yaml, os
-persist_fname = "goldibox.conf.yaml"
+persist_fname = "autoclave.conf.yaml"
 
-msg = Messages('Goldibox remote')
+msg = Messages('Autoclave remote')
 
 
 # Read saved settings
 saved_state = Config().read_state()
 
 # Create remote component
-rcomp = hal.RemoteComponent('goldibox-remote', timer=100)
+rcomp = hal.RemoteComponent('autoclave-remote', timer=100)
 
 # Pin creation data
 data = [
