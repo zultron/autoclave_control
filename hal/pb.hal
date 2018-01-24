@@ -1,0 +1,56 @@
+#!/usr/bin/env halrun
+# ################################################
+#
+# Goldibox PocketBeagle HAL configuration
+#
+# http://linuxcnc.org/docs/devel/html/man/man1/halcmd.1.html
+#
+# ################################################
+# Load and plumb comps
+# ################################################
+
+# ################
+# Thermistor
+# - 10k thermistors with 1k pull-up resistor:  internal on AIN0, external on AIN1
+#     https://github.com/machinekit/machinekit/blob/master/src/hal/user_comps/hal_temp_bbb.py
+
+# - Load thermistor comp
+loadusr -Wn therm hal_temp_bbb -n therm -c 00:TR91,01:TR91 -b CRAMPS -r 1000
+# - Internal temp signal
+net temp-int                        <= therm.ch-00.value
+net temp-ext                        <= therm.ch-01.value
+
+# ################
+# Threads
+
+# - One slow thread
+loadrt threads name1=main-thread period1=10000000
+
+# ################
+# PocketBeagle GPIOs
+#     http://linuxcnc.org/docs/devel/html/man/man9/hal_bb_gpio.9.html
+# - pinouts
+#     http://beagleboard.org/support/bone101
+
+loadrt hal_bb_gpio board=PocketBeagle output_pins=102,104,106,108,110,112,120
+addf bb_gpio.read                   main-thread
+addf bb_gpio.write                  main-thread
+
+# - Peltier heat/cool/enable
+net heat-on                         => bb_gpio.p1.out-02
+net cool-on                         => bb_gpio.p1.out-04
+net enable                          => bb_gpio.p1.out-06
+
+# - Fan
+net switch-on                       => bb_gpio.p1.out-20
+
+# - LEDs
+net cool-on                         => bb_gpio.p1.out-08
+net enable                          => bb_gpio.p1.out-10
+net heat-on                         => bb_gpio.p1.out-12
+
+# ################################################
+# Load common HAL config
+# ################################################
+
+source $(HALDIR)/common.hal

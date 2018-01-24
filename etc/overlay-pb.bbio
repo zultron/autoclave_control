@@ -1,0 +1,24 @@
+# - Peltier
+	P1.02	low	# In2/In3	Peltier -/hot
+	P1.04	low	# In1/In4	Peltier +/cool
+	P1.06	low	# ENA/ENB	Peltier enable
+
+# - LEDs
+	P1.08	low	# LED--red	Indicator--hot
+	P1.10	low	# LED--green	Indicator--on
+	P1.12	low	# LED--blue	Indicator--cold
+#	P1.16		# GND
+
+# - Thermistors
+#	P1.17		VREFN	AIN/thermistor ground
+#	P1.18		VREFP	AIN/thermistor 1.8V REF+
+#	P1.19		AIN0	Thermistor input 0
+#	P1.21		AIN1	Thermistor input 1
+
+# - Fan
+	P1.20	low	# MOSFET S	Fan on
+
+# - Serial console
+#	P1.22		GND
+#	P1.30		UART0 TX
+#	P1.32		UART0 RX

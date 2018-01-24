@@ -1,0 +1,111 @@
+#!/usr/bin/python
+
+import hal, time, sys, datetime, random
+from goldibox import Config, Messages
+
+# Set up component
+h = hal.component("goldibox-sim-temp", timer=100)
+
+# Inputs:
+# - Peltier junction signals
+h.newpin("p-enable", hal.HAL_BIT, hal.HAL_IN)
+h.newpin("heat-on", hal.HAL_BIT, hal.HAL_IN)
+h.newpin("cool-on", hal.HAL_BIT, hal.HAL_IN)
+# - Fan signals
+h.newpin("f-enable", hal.HAL_BIT, hal.HAL_IN)
+h.newpin("f-on", hal.HAL_BIT, hal.HAL_IN)
+# - User-set pretend external temp
+h.newpin("temp-ext", hal.HAL_FLOAT, hal.HAL_IN)
+# - Incremental increase/decrease toward external temp
+h.newpin("temp-ext-incr", hal.HAL_FLOAT, hal.HAL_IN)
+# - Incremental increase/decrease when heat/cool applied
+h.newpin("heat-cool-incr", hal.HAL_FLOAT, hal.HAL_IN)
+# - Exit
+h.newpin("shutdown", hal.HAL_BIT, hal.HAL_IN)
+
+# Outputs:  
+# - Simulated temp
+h.newpin("value", hal.HAL_FLOAT, hal.HAL_OUT)
+# - Error
+h.newpin("error", hal.HAL_BIT, hal.HAL_OUT)
+
+# Init values
+h['value'] = 20 # Room temp
+h['error'] = 0
+
+msg = Messages('Goldibox sim-temp')
+
+# Mark the component as 'ready'
+msg.info("Initialized")
+h.ready()
+
+i = 0
+temp_base = h['value']
+try:
+    while True:
+        time.sleep(0.1)
+        i += 1
+
+        # Take one sample for consistency
+        # - Goldibox comp inputs
+        p_enable = h['p-enable']
+        heat_on = h['heat-on']
+        cool_on = h['cool-on']
+        f_enable = h['f-enable']
+        f_on = h['f-on']
+        # - User-defined inputs
+        temp_ext = h['temp-ext']
+        temp_ext_incr = h['temp-ext-incr']
+        heat_cool_incr = h['heat-cool-incr']
+        # - Shutdown
+        shutdown = h['shutdown']
+
+        # Exit
+        if shutdown:
+            msg.info("Got shutdown signal")
+            break
+
+        # Do some sanity checks
+        err = 0
+        if heat_on and cool_on:
+            msg.info("Error:  heat-on and cool-on")
+            err = 1
+        if heat_on and not f_on:
+            msg.info("Error:  heat-on but not f-on")
+            err = 1
+        if cool_on and not f_on:
+            msg.info("Error:  cool-on but not f-on")
+            err = 1
+        if h['error'] and not err:
+            msg.info("Error condition cleared")
+        h['error'] = err
+
+        # Set output value
+        # - If it's warmer externally, increase; otherwise decrease
+        if temp_ext > h['value']:
+            temp_base += temp_ext_incr
+        else:
+            temp_base -= temp_ext_incr
+        # - If heat is on, increase
+        if cool_on:
+            temp_base -= heat_cool_incr
+        # - If cool is on, decrease
+        if heat_on:
+            temp_base += heat_cool_incr
+        # - Add  random number btw. -0.1 and 0.1 to simulate thermistor variance
+        newval = temp_base + random.triangular(-0.1,0.1,0)
+
+        if i % 500 == 0:
+            msg.info("Status:  ext=%.2f; value=%.2f(base %.2f);" %
+                    (temp_ext, newval, temp_base))
+            msg.info("         cool=%d; heat=%d, fan=%d" %
+                    (heat_on, cool_on, f_on))
+
+        h['value'] = newval
+
+except KeyboardInterrupt:
+    msg.info("Exiting")
+    sys.exit(0)
+
+msg.info("Exiting")
+sys.exit(0)

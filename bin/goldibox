@@ -1,0 +1,160 @@
+#!/usr/bin/python
+
+import sys
+import os
+import subprocess
+import argparse
+import time, datetime
+from machinekit import launcher
+from machinekit import config
+import hal
+try:
+    from goldibox import Config, ConfigError, Messages
+except ImportError as e:
+    # If running from the git tree, try adding the lib path
+    path = os.path.join(os.path.dirname(__file__),'..','lib','python')
+    sys.path.append(path)
+    from goldibox import Config, ConfigError, Messages
+    # worked; export this for user comps
+    os.environ['PYTHONPATH'] = path
+
+parser = argparse.ArgumentParser(
+    description='Start the Goldibox')
+parser.add_argument(
+    '-nc', '--no_config',
+    help='Disables the config server', action='store_true')
+parser.add_argument(
+    '-s', '--halscope',
+    help='Starts the halscope', action='store_true')
+parser.add_argument(
+    '-m', '--halmeter',
+    help='Starts the halmeter', action='store_true')
+parser.add_argument(
+    '-r', '--run',
+    help='Run app (otherwise run launcher)', action='store_true')
+parser.add_argument(
+    '-o', '--overlay',
+    help='Load PocketBeagle overlay file', action='store_true')
+parser.add_argument(
+    '-d', '--debug',
+    help='Enable debug mode', action='store_true')
+parser.add_argument(
+    '-b', '--board',
+    help=('Select board: simulator, PocketBeagle or autodetect'),
+    default='detect', choices=('sim','pb','detect'))
+parser.add_argument(
+    '-c', '--config', action='store',
+    help=('Configuration file (default '
+          './etc/config.yaml, /etc/goldibox/config.yaml)'))
+
+args = parser.parse_args()
+
+if args.debug:
+    launcher.set_debug_level(5)
+
+msg = Messages("Goldibox run")
+
+try:
+    goldibox_config = Config(args.config)
+    os.environ['GOLDIBOX_CONFIG'] = goldibox_config.config_file
+except ConfigError as e:
+    sys.stderr.write('Error: %s\n' % e)
+    parser.print_help()
+    sys.exit(1)
+
+if args.board == 'detect':
+    if os.getenv('GOLDIBOX_SIM',False):
+        args.board = 'sim'
+    elif os.path.exists('/proc/device-tree/model'):
+        with open('/proc/device-tree/model','r') as f:  m=f.read()
+        if 'PocketBeagle' in m:
+            args.board = 'pb'
+    if args.board == 'detect':
+        parser.print_help()
+        sys.stderr.write(
+            "Error:  Unable to detect board; please specify the '-b' option\n")
+        sys.exit(1)
+
+if 'MACHINEKIT_INI' not in os.environ:  # export for package installs
+    mkconfig = config.Config()
+    os.environ['MACHINEKIT_INI'] = mkconfig.MACHINEKIT_INI
+
+
+exit_status = 0
+try:
+    if not args.run:
+        if args.board == 'sim':
+            # Start syslog, dbus and avahi services if they aren't
+            # already running in container
+            for svc in ('rsyslog', 'dbus', 'avahi-daemon', 'apache2'):
+                ret = subprocess.call(
+                    ['/usr/bin/sudo', '/etc/init.d/%s' % svc, 'status'])
+                if ret != 0:
+                    ret = subprocess.call(
+                        ['/usr/bin/sudo', '/etc/init.d/%s' % svc, 'start'])
+
+        launcher.check_installation()
+        if False:
+            # kill any running Machinekit instances
+            launcher.cleanup_session()
+
+        if args.board != 'sim' and args.overlay:
+            # load a BeagleBone universal overlay file
+            launcher.load_bbio_file(goldibox_config.pb_bbio_file)
+
+        # start Machinekit realtime environment
+        launcher.start_realtime()
+
+        # Create component to receive shutdown signal
+        h = hal.component("goldibox-run", timer=100)
+        h.newpin("shutdown", hal.HAL_BIT, hal.HAL_IN)
+        h.ready()
+        msg.info("HAL comp initialized")
+
+        # load the main HAL file
+        launcher.load_hal_file(goldibox_config.halfilepath(
+            '%s.hal' % args.board))
+
+        # enable on ctrl-C, needs to executed after HAL files
+        launcher.register_exit_handler()
+
+        # ensure mklauncher is started
+        # FIXME MK PR?
+        # launcher.ensure_mklauncher(debug=args.debug)
+        # - Be in the right directory to pick up qml files
+        msg.info("Changing to directory '%s'" % goldibox_config.share_dir)
+        os.chdir(goldibox_config.share_dir)
+        launcher.ensure_mklauncher()
+
+        if not args.no_config:
+            # start the configserver with Machineface
+            launcher.start_process(
+                "configserver -n Goldibox%s %s ." % (
+                    '-sim' if args.board == 'sim' else '',
+                    '-d' if args.debug else ''))
+    else:
+
+        if args.halscope:
+            # load scope only now - because all sigs are now defined:
+            launcher.start_process('halscope')
+        if args.halmeter:
+            launcher.start_process('halmeter')
+
+    while True:
+        if h['shutdown']:
+            msg.info("Got shutdown signal")
+            break
+        launcher.check_processes()
+        time.sleep(1)
+
+except subprocess.CalledProcessError as e:
+    sys.stderr.write("Subprocess error:  %s\n" % e)
+    exit_status = 1
+
+if not args.run:
+    time.sleep(1) # Let other comps do their stuff & exit
+    msg.info("Ending session")
+    launcher.end_session()
+    
+msg.info("Exiting status %d" % exit_status)
+sys.exit(exit_status)

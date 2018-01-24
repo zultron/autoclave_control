@@ -1,0 +1,14 @@
+[Unit]
+Description=The Goldibox
+After=syslog.target network.target
+Wants=avahi-daemon.service
+Wants=dbus.service
+Wants=apache2.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/goldibox -c /etc/goldibox/config.yaml
+User=@USER@
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,52 @@
+#!/usr/bin/env halrun
+# #######################################
+#
+# Goldibox Simulator HAL configuration
+#
+# http://linuxcnc.org/docs/devel/html/man/man1/halcmd.1.html
+#
+# ################################################
+# Load and plumb comps
+# ################################################
+
+# ################
+# Primitive simulator comp
+loadusr -W goldibox-sim-temp
+# - Temp in signal
+net temp-int                        <= goldibox-sim-temp.value
+# - Enable
+net enable                          => goldibox-sim-temp.p-enable
+# - Peltier
+net heat-on                         => goldibox-sim-temp.heat-on
+net cool-on                         => goldibox-sim-temp.cool-on
+# - Fan
+net switch-on                       => goldibox-sim-temp.f-on
+# - Simulated external temp
+net temp-ext                        => goldibox-sim-temp.temp-ext
+# - Effect of external temp and heat/cool on inside temp; adjustable
+net temp-ext-incr                   => goldibox-sim-temp.temp-ext-incr
+net heat-cool-incr                  => goldibox-sim-temp.heat-cool-incr
+# - Shutdown
+net shutdown                        => goldibox-sim-temp.shutdown
+
+# ################
+# Threads
+
+# - One slow thread
+loadrt threads name1=main-thread period1=10000000
+
+
+# ################################################
+# Load common HAL config
+# ################################################
+
+source $(HALDIR)/common.hal
+
+# ################################################
+# Set sim default values
+# ################################################
+
+sets temp-ext                       20.0
+sets temp-ext-incr                  0.002
+sets heat-cool-incr                 0.02
+sets hysteresis                     1

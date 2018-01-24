@@ -1,0 +1,40 @@
+#!/usr/bin/python
+from machinekit import hal
+from goldibox import Config, Messages
+import sys, datetime, yaml, os
+persist_fname = "goldibox.conf.yaml"
+
+msg = Messages('Goldibox remote')
+
+
+# Read saved settings
+saved_state = Config().read_state()
+
+# Create remote component
+rcomp = hal.RemoteComponent('goldibox-remote', timer=100)
+
+# Pin creation data
+data = [
+    # Controls
+    ('enable', hal.HAL_BIT, hal.HAL_OUT),
+    # ('shutdown-button', hal.HAL_BIT, hal.HAL_OUT),
+    ('temp-max', hal.HAL_FLOAT, hal.HAL_OUT),
+    ('temp-min', hal.HAL_FLOAT, hal.HAL_OUT),
+    # Readouts
+    # ('error', hal.HAL_BIT, hal.HAL_IN),
+    # ('cool-on', hal.HAL_BIT, hal.HAL_IN),
+    # ('heat-on', hal.HAL_BIT, hal.HAL_IN),
+    # ('switch-on', hal.HAL_BIT, hal.HAL_IN),
+    ('temp-int', hal.HAL_FLOAT, hal.HAL_IN),
+    ('temp-ext', hal.HAL_FLOAT, hal.HAL_IN),
+]
+
+for name, hal_type, hal_dir in data:
+    pin = rcomp.newpin(name, hal_type, hal_dir)
+    if name in saved_state:
+        hal.signals[name].set(saved_state[name])
+        msg.info("Restored setting %s = %s" % (name,saved_state[name]))
+    pin.link(hal.signals[name])
+
+rcomp.ready()
+msg.info("Initialized")

@@ -1,0 +1,41 @@
+/*
+ * Goldibox PocketBeagle overlay:  configure output pins
+
+ * sudo dtc -O dtb -o /lib/firmware/pb_goldibox-00A0.dtbo -b 0 -@ pb_goldibox.dts
+ * - Ignore 3x "Warning (unit_address_vs_reg)"
+ * echo dtb_overlay=/lib/firmware/pb_goldibox-00A0.dtbo | sudo tee -a /boot/uEnv.txt
+ * for i in 02 04 06 08 10 12 20; do config-pin -q P1.$i; done
+
+ */
+
+/dts-v1/;
+/plugin/;
+
+/{  
+    fragment@0 {
+	target = <&ocp>;
+	__overlay__ {
+	    P1_02_pinmux {
+		mode = "gpio_pd";
+	    };
+	    P1_04_pinmux {
+		mode = "gpio_pd";
+	    };
+	    P1_06_pinmux {
+		mode = "gpio_pd";
+	    };
+	    P1_08_pinmux {
+		mode = "gpio_pd";
+	    };
+	    P1_10_pinmux {
+		mode = "gpio_pd";
+	    };
+	    P1_12_pinmux {
+		mode = "gpio_pd";
+	    };
+	    P1_20_pinmux {
+		mode = "gpio_pd";
+	    };
+	};
+    };
+};

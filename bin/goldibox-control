@@ -1,0 +1,115 @@
+#!/usr/bin/python
+
+import hal, time, sys, datetime, yaml
+from goldibox import Config, Messages
+
+# Set up component
+h = hal.component("goldibox-control")
+
+# Inputs:
+# - Min/max/internal temp settings
+h.newpin("temp-min", hal.HAL_FLOAT, hal.HAL_IN)
+h.newpin("temp-max", hal.HAL_FLOAT, hal.HAL_IN)
+h.newpin("temp-int", hal.HAL_FLOAT, hal.HAL_IN)
+# - Hysteresis
+h.newpin("hysteresis", hal.HAL_FLOAT, hal.HAL_IN)
+# - Enable
+h.newpin("enable", hal.HAL_BIT, hal.HAL_IN)
+# - Exit
+h.newpin("shutdown", hal.HAL_BIT, hal.HAL_IN)
+
+# Outputs:  
+# - On/off switch
+h.newpin("switch-on", hal.HAL_BIT, hal.HAL_OUT)
+# - Heat/cool selector switch (1/0)
+h.newpin("switch-heat", hal.HAL_BIT, hal.HAL_OUT)
+# - Error
+h.newpin("error", hal.HAL_BIT, hal.HAL_OUT)
+
+# Init values
+h['error'] = 0
+h['switch-on'] = 0
+h['switch-heat'] = 0
+
+msg = Messages('Goldibox control')
+
+# Mark the component as 'ready'
+msg.info("Initialized")
+h.ready()
+
+def loop():
+    time.sleep(0.1)
+
+    # Take one sample for consistency
+    enable = h['enable']
+    shutdown = h['shutdown']
+    temp_int = h['temp-int']
+    temp_max = h['temp-max']
+    temp_min = h['temp-min']
+    hysteresis = h['hysteresis']
+    
+    # Exit
+    if shutdown:
+        msg.info("Got shutdown signal = %s" % shutdown)
+        return False
+
+    # Error condition:  temp-max <= temp-min
+    if (temp_max <= temp_min) or (hysteresis < 0) or (not enable):
+        if not h['error']:
+            if temp_max <= temp_min:
+                msg.info("ERROR:  temp_max <= temp_min")
+            if hysteresis < 0:
+                msg.info("ERROR:  hysteresis < 0")
+            if not enable:
+                msg.info("ERROR:  enable signal cleared")
+        h['switch-on'] = 0
+        h['error'] = 1
+        return True
+    else:
+        if h['error']:
+            msg.info("Recovered from error conditions")
+        h['error'] = 0
+
+    # Enable input
+    if not enable:
+        # Disable
+        h['switch-on'] = 0
+        return True
+
+
+    # On/off and heat/cool switches
+    if ((temp_int - hysteresis) > temp_max):
+        if not h['switch-on']:
+            msg.info("Turning on cool; internal temp %.1f (hyst %.1f)" %
+                    (temp_int, hysteresis))
+        h['switch-heat'] = 0
+        h['switch-on'] = 1
+    elif ((temp_int + hysteresis) < temp_min):
+        if not h['switch-on']:
+            msg.info("Turning on heat; internal temp %.1f (hyst %.1f)" %
+                    (temp_int, hysteresis))
+        h['switch-heat'] = 1
+        h['switch-on'] = 1
+    elif ((temp_int > temp_min) and (temp_int < temp_max)):
+        if h['switch-on']:
+            msg.info("Turning off; internal temp %.1f" % temp_int)
+        h['switch-on'] = 0
+
+    return True
+
+try:
+    # Run forever
+    while loop():
+        pass
+except:
+    pass
+finally:
+    # Save settings
+    msg.info("Saving settings")
+    Config().write_state(
+        temp_min=h['temp-min'], temp_max=h['temp-max'], enable=h['enable'])
+
+    # Shut things off and exit
+    msg.info("Exiting")
+    h['switch-on'] = 0
+    sys.exit(0)

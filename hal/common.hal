@@ -1,0 +1,118 @@
+# ################################################
+# Goldibox control comp
+# ################################################
+
+# Load userland comp
+loadusr -W goldibox-control
+
+# Inputs
+# - Min/max/internal temp settings
+net temp-min                        => goldibox-control.temp-min
+net temp-max                        => goldibox-control.temp-max
+net temp-int                        => goldibox-control.temp-int
+# - Hysteresis
+net hysteresis                      => goldibox-control.hysteresis
+# - Enable
+net enable                          => goldibox-control.enable
+# - Shut down
+net shutdown                        => goldibox-control.shutdown
+
+# Outputs
+# - On/off switch
+net switch-on                       <= goldibox-control.switch-on
+# - Heat/cool selector switch (1/0)
+net switch-heat                     <= goldibox-control.switch-heat
+# - Error
+net error                           <= goldibox-control.error
+
+
+# ################################################
+# Peltier and fan out signals
+# ################################################
+
+# LUTs for on/off switch and heat/cool selector logic
+newinst lut5 heat-on
+addf heat-on                        main-thread
+newinst lut5 cool-on
+addf cool-on                        main-thread
+
+# Peltier heat/cool LUT
+# http://linuxcnc.org/docs/devel/html/man/man9/lut5.9.html
+#
+# on/1	heat/0	| heat	cool	| h val | c val
+# 0	0	| 0	0	|	|
+# 0	1	| 0	0	|	|
+# 1	0	| 0	1	|	|   0x4
+# 1	1	| 1	0	|   0x8	|
+#                                 ----- | -----
+setp heat-on.function               0x8
+setp cool-on.function                       0x4
+
+# Peltier heat LUT
+# - Inputs
+net switch-on                       => heat-on.in-1
+net switch-heat                     => heat-on.in-0
+# - Output to GPIO
+net heat-on                         <= heat-on.out
+
+# Peltier cool LUT
+# - Inputs
+net switch-on                       => cool-on.in-1
+net switch-heat                     => cool-on.in-0
+# - Output to GPIO
+net cool-on                         <= cool-on.out
+
+
+# ################################################
+# Logger comp
+# ################################################
+
+# Load userland comp
+loadusr -W goldibox-logger
+
+# Inputs
+# - Temperatures
+net temp-int                        => goldibox-logger.temp-int
+net temp-ext                        => goldibox-logger.temp-ext
+net temp-min                        => goldibox-logger.temp-min
+net temp-max                        => goldibox-logger.temp-max
+# - Enable/error/heat/cool
+net error                           => goldibox-logger.error
+net enable                          => goldibox-logger.enable
+net heat-on                         => goldibox-logger.cool
+net cool-on                         => goldibox-logger.heat
+# - Shut down
+net shutdown                        => goldibox-logger.shutdown
+
+
+# ################################################
+# Shutdown plumbing
+# ################################################
+
+# Latch the momentary shutdown button to a shutdown signal
+newinst or2 shutdown
+addf shutdown                       main-thread
+
+# Shutdown latch
+net shutdown                        <= shutdown.out
+net shutdown                        => shutdown.in0
+net shutdown-button                 => shutdown.in1
+
+# Signal goldibox runner
+net shutdown                        => goldibox-run.shutdown
+
+# ################################################
+# Goldibox remote comp
+# ################################################
+loadusr -W goldibox-remote
+
+# ################################################
+# Run
+# ################################################
+
+# Start threads
+start
+
+# Start haltalk server after everything is initialized or binding the
+# remote components on the UI might fail
+loadusr -W haltalk

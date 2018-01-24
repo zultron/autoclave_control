@@ -1,0 +1,206 @@
+#!/usr/bin/python
+
+rrdtool_graph_pat = "goldibox-logger.%s.png" # Fill with period, e.g. 'daily'
+rrdtool_period = 60 # Seconds between updates
+
+import rrdtool, hal, time, sys, os, datetime
+from goldibox import Config, Messages
+
+# Set up component
+h = hal.component("goldibox-logger")
+
+# Inputs:
+# - Temperatures
+h.newpin("temp-int", hal.HAL_FLOAT, hal.HAL_IN)
+h.newpin("temp-ext", hal.HAL_FLOAT, hal.HAL_IN)
+h.newpin("temp-min", hal.HAL_FLOAT, hal.HAL_IN)
+h.newpin("temp-max", hal.HAL_FLOAT, hal.HAL_IN)
+# - Controls
+h.newpin("error", hal.HAL_BIT, hal.HAL_IN)
+h.newpin("enable", hal.HAL_BIT, hal.HAL_IN)
+h.newpin("heat", hal.HAL_BIT, hal.HAL_IN)
+h.newpin("cool", hal.HAL_BIT, hal.HAL_IN)
+h.newpin("shutdown", hal.HAL_BIT, hal.HAL_IN)
+
+msg = Messages('Goldibox logger')
+config = Config()
+rrd_dir = os.path.dirname(config.rrd_file)
+rrd_image_dir = config.rrd_image_dir
+if not os.path.isdir(rrd_dir):
+    os.mkdir(rrd_dir)
+if not os.path.isdir(rrd_image_dir):
+    os.mkdir(rrd_image_dir)
+msg.info("Changing to RRD directory '%s'" % rrd_dir)
+os.chdir(rrd_dir)
+rrdtool_db = os.path.basename(config.rrd_file)
+msg.info("RRD file '%s'" % rrdtool_db)
+
+# RRD archive parameters
+archives = dict(
+    # hourly:  60s samples for 2d = 2880
+    hourly = dict(steps = "%ds" % rrdtool_period, rows = "2d"),
+    # daily:  15m samples for 30d = 2880
+    daily  = dict(steps = "%ds" % (rrdtool_period*15), rows = "30d"),
+    # weekly: 3h samples for 1y = 2920
+    weekly = dict(steps = "%ds" % (rrdtool_period*60*3), rows = "1y"),
+)
+
+# Init rrdtool database
+# https://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
+if not os.path.exists(rrdtool_db):
+    msg.info("Creating RRD database in %s" % rrdtool_db)
+    rrdtool.create(
+        rrdtool_db,
+        "--start=0",
+        "--step=%s" % rrdtool_period,
+        "--no-overwrite", # Don't clobber existing file
+        "DS:int:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:ext:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:min:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:max:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:error:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:enable:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:heat:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:cool:GAUGE:%d:U:U" % (rrdtool_period*2),
+        *[("RRA:AVERAGE:0.5:%(steps)s:%(rows)s" % i) for i in archives.values() ])
+
+# Init vars
+error = enable = heat = cool = 0
+last_sample = time.time()
+sample_periods = 0
+
+# Mark the component as 'ready'
+msg.info("Initialized")
+h.ready()
+
+def loop():
+    time.sleep(1)
+
+    # Use globals to maintain state
+    global error
+    global enable
+    global heat
+    global cool
+    global last_sample
+    global sample_periods
+
+    # Take one sample for consistency
+    # - Temps
+    temp_int = h['temp-int']
+    temp_ext = h['temp-ext']
+    temp_min = h['temp-min']
+    temp_max = h['temp-max']
+    # - Cumulative
+    error+= h['error']
+    enable += h['enable']
+    heat += h['heat']
+    cool += h['cool']
+    # - Control
+    shutdown = h['shutdown']
+
+    # Exit
+    if shutdown:
+        msg.info("Got shutdown signal = %s" % shutdown)
+        return False
+
+    # Log
+    now = time.time()
+    if (now - last_sample) > rrdtool_period and sample_periods > 1:
+        # Time for new sample
+        # - Update RRD database
+        ret = rrdtool.update(
+            rrdtool_db,
+            '--template=int:ext:min:max:error:enable:heat:cool',
+            'N:%.1f:%.1f:%.1f:%.1f:%.2f:%.2f:%.2f:%.2f' % tuple(
+                # Temperatures
+                [temp_int, temp_ext, temp_min, temp_max] +
+                # Cumulative vars scaled to percentages
+                [float(i)/sample_periods for i in (error, enable, heat, cool)]))
+        # - Build new graphs
+        for sched, params in archives.items():
+            period = sched[0]
+            # graph(): https://oss.oetiker.ch/rrdtool/doc/rrdgraph.en.html
+            # DEF: https://oss.oetiker.ch/rrdtool/doc/rrdgraph_data.en.html
+            # LINE: https://oss.oetiker.ch/rrdtool/doc/rrdgraph_graph.en.html
+            rrdtool_graph = os.path.join(
+                rrd_image_dir, rrdtool_graph_pat % sched)
+            ret = rrdtool.graph(
+                rrdtool_graph,
+                "--start=-1%s" % period,
+                "--title=%s" % sched,
+                "--vertical-label=Deg. C",
+                # "--width=1000", "--height=500",
+                "--width=600", "--height=300",
+
+	        # Background:  stacked
+	        # - Too hot:  red (bottom); bogus value for label
+                "--color=CANVAS#ff0000",
+	        "DEF:too-hot=%s:max:AVERAGE" % (rrdtool_db),
+	        "AREA:too-hot#ff0000:Too hot",
+	        # - Goldilocks zone:  green (middle)
+                "DEF:goldilocks=%s:max:AVERAGE" % (rrdtool_db),
+                "AREA:goldilocks#00ff00:Goldilocks zone",
+	        # - Too cold:  blue (top)
+                "DEF:too-cold=%s:min:AVERAGE" % (rrdtool_db),
+                "AREA:too-cold#0000ff:Too cold",
+
+	        # Temp curves:  these rely on stacking
+	        # - External temp:  dashed black curve
+                "DEF:ext=%s:ext:AVERAGE" % (rrdtool_db),
+	        "LINE2:ext#000000:dashes:Ext. temp",
+	        # - Off:  green curve (bottom)
+                "DEF:int=%s:int:AVERAGE" % (rrdtool_db),
+                "LINE3:int#00c000:Off",
+	        # - Heat:  red curve
+	        "DEF:heat=%s:heat:AVERAGE" % (rrdtool_db),
+	        "CDEF:heat-on=heat,0.01,GT",
+	        "CDEF:int-heat=heat-on,int,UNKN,IF",
+                "LINE3:int-heat#c00000:Heat",
+	        # - Cool:  blue curve
+	        "DEF:cool=%s:cool:AVERAGE" % (rrdtool_db),
+	        "CDEF:cool-on=cool,0.01,GT",
+	        "CDEF:int-cool=cool-on,int,UNKN,IF",
+                "LINE3:int-cool#0000c0:Cool",
+	        # - Disable: black curve
+	        "DEF:enable=%s:enable:AVERAGE" % (rrdtool_db),
+	        "CDEF:disable=enable,0.01,LT",
+	        "CDEF:int-disable=disable,int,UNKN,IF",
+                "LINE5:int-disable#000000:Disabled",
+	        # - Error and enabled:  yellow area
+	        "DEF:error=%s:error:AVERAGE" % (rrdtool_db),
+	        #     ((error>0.01) - disable) > 0
+	        "CDEF:error-on=error,0.01,GT,disable,-,0,GT",
+	        "CDEF:int-error=error-on,int,UNKN,IF",
+                "AREA:int-error#ffff00:Error",
+
+                # Stats:
+                # - % time heat
+                "DEF:heat-avg=%s:heat:AVERAGE:start=-1h" % (rrdtool_db),
+                "CDEF:heat-pct=heat-avg,100,*",
+                "GPRINT:heat-pct:AVERAGE: Pct time heat %2.1lf%% ",
+                # - % time cool
+                "DEF:cool-avg=%s:cool:AVERAGE:start=-1h" % (rrdtool_db),
+                "CDEF:cool-pct=cool-avg,100,*",
+                "GPRINT:cool-pct:AVERAGE:Pct time cool %2.1lf%% ",
+            )
+        msg.info("Updated RRD DB %s" % rrdtool_db)
+        # - Reset state for next sample
+        last_sample = now
+        sample_periods = 0
+        enable = error = heat = cool = 0
+
+    sample_periods += 1
+
+    return True
+
+try:
+    while loop():
+        continue
+    msg.info("Loop ended")
+except KeyboardInterrupt:
+    msg.info("received KeyboardInterrupt")
+except Exception as e:
+    msg.error("Unknown exception:  %s" % e)
+finally:
+    msg.info("Exiting")
+    sys.exit(0)

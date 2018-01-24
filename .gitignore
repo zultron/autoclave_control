@@ -1,4 +1,18 @@
+# Build artifacts
+/build*/
+/qml/goldibox-remote.pro.user
+*.pyc
+/pb_goldibox-00A0.dtbo
+
+# Run artifacts
+/rrd/
+*.autosave
+
+# Min install artifacts
+/etc/config.yaml
+
 # FreeCAD backups
 *.fcstd1
+
 # LibreOffice lock files
 .~lock.*#
