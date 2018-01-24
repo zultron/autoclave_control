@@ -1,0 +1,26 @@
+/*
+ * Autoclave BeagleBone overlay:  configure output pins
+
+ * sudo dtc -O dtb -o /lib/firmware/bb_autoclave-00A0.dtbo -b 0 -@ bb_autoclave.dts
+ * - Ignore 3x "Warning (unit_address_vs_reg)"
+ * echo dtb_overlay=/lib/firmware/bb_autoclave-00A0.dtbo | sudo tee -a /boot/uEnv.txt
+ * for i in 18 22; do config-pin -q P9.$i; done
+
+ */
+
+/dts-v1/;
+/plugin/;
+
+/{  
+    fragment@0 {
+	target = <&ocp>;
+	__overlay__ {
+	    P9_18_pinmux {
+		mode = "gpio_pd";
+	    };
+	    P9_22_pinmux {
+		mode = "gpio_pd";
+	    };
+	};
+    };
+};
