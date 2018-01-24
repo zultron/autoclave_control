@@ -34,7 +34,7 @@ parser.add_argument(
     help='Run app (otherwise run launcher)', action='store_true')
 parser.add_argument(
     '-o', '--overlay',
-    help='Load PocketBeagle overlay file', action='store_true')
+    help='Load Beaglebone overlay file', action='store_true')
 parser.add_argument(
     '-d', '--debug',
     help='Enable debug mode', action='store_true')
