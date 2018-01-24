@@ -9,7 +9,7 @@ class Config(object):
     default_state_file = 'saved_state.yaml'
     default_rrd_file = 'logger.rrd'
     default_rrd_image_dir = 'rrd'
-    default_pb_bbio_file = 'etc/overlay-pb.bbio'
+    default_bb_bbio_file = 'etc/overlay-bb.bbio'
     default_share_dir = '.'
 
     def __init__(self, config_file=None):
@@ -106,8 +106,8 @@ class Config(object):
         return os.path.abspath(path)
     
     @property
-    def pb_bbio_file(self):
-        path = self.config.get('pb_bbio_file', self.default_pb_bbio_file)
+    def bb_bbio_file(self):
+        path = self.config.get('bb_bbio_file', self.default_bb_bbio_file)
         return os.path.abspath(path)
     
     @property

@@ -3,5 +3,5 @@ HALDIR: @HAL_DIR@
 state_file: @VAR_DIR@/saved_state.yaml
 rrd_file: @VAR_DIR@/logger.rrd
 rrd_image_dir: @VAR_DIR@/graphs
-pb_bbio_file: @ETC_DIR@/overlay-pb.bbio
+bb_bbio_file: @ETC_DIR@/overlay-bb.bbio
 share_dir: @SHARE_DIR@

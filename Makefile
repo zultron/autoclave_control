@@ -37,7 +37,7 @@ SHARE_DIR = $(PWD)
 endif
 
 
-HAL_FILES = common.hal pb.hal sim.hal
+HAL_FILES = common.hal bb.hal sim.hal
 BIN_FILES = autoclave autoclave-control autoclave-logger autoclave-remote \
 	autoclave-sim-temp
 PYTHON_FILES = autoclave.py
@@ -127,7 +127,7 @@ $(VAR_DIR)/saved_state.yaml:
 	touch $(VAR_DIR)/saved_state.yaml
 	chown $(USER) $(VAR_DIR)/saved_state.yaml
 
-$(ETC_DIR)/overlay-pb.bbio: etc/overlay-pb.bbio
+$(ETC_DIR)/overlay-bb.bbio: etc/overlay-bb.bbio
 	@install -o $(ROOT_USER) -d $(ETC_DIR)
 	install -m 644 $< $@
 
@@ -142,12 +142,12 @@ $(ETC_DIR)/config.yaml: templates/config.yaml
 	@chown $(ROOT_USER) $@
 
 ifneq ($(HAVE_DTC),)
-/lib/firmware/pb_autoclave-00A0.dtbo: etc/pb_autoclave.dts
+/lib/firmware/bb_autoclave-00A0.dtbo: etc/bb_autoclave.dts
 	dtc -O dtb -o $@ -b 0 -@ $<
 	if ! grep -q $@ /boot/uEnv.txt; then \
 	    echo dtb_overlay=$@ > /boot/uEnv.txt; \
 	fi
-ALL_FILES += /lib/firmware/pb_autoclave-00A0.dtbo
+ALL_FILES += /lib/firmware/bb_autoclave-00A0.dtbo
 endif
 
 /etc/systemd/system/autoclave.service: templates/autoclave.service
@@ -170,7 +170,7 @@ ALL_FILES += \
 	$(patsubst %,$(HAL_DIR)/%,$(HAL_FILES)) \
 	$(patsubst %,$(BIN_DIR)/%,$(BIN_FILES)) \
 	$(patsubst %,$(SHARE_DIR)/%,$(SHARE_FILES)) \
-	$(ETC_DIR)/overlay-pb.bbio \
+	$(ETC_DIR)/overlay-bb.bbio \
 	$(VAR_DIR)/saved_state.yaml \
 	/etc/systemd/system/autoclave.service
 endif

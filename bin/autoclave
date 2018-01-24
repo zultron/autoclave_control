@@ -41,7 +41,7 @@ parser.add_argument(
 parser.add_argument(
     '-b', '--board',
     help=('Select board: simulator, PocketBeagle or autodetect'),
-    default='detect', choices=('sim','pb','detect'))
+    default='detect', choices=('sim','bb','detect'))
 parser.add_argument(
     '-c', '--config', action='store',
     help=('Configuration file (default '
@@ -68,7 +68,7 @@ if args.board == 'detect':
     elif os.path.exists('/proc/device-tree/model'):
         with open('/proc/device-tree/model','r') as f:  m=f.read()
         if 'PocketBeagle' in m:
-            args.board = 'pb'
+            args.board = 'bb'
     if args.board == 'detect':
         parser.print_help()
         sys.stderr.write(
@@ -100,7 +100,7 @@ try:
 
         if args.board != 'sim' and args.overlay:
             # load a BeagleBone universal overlay file
-            launcher.load_bbio_file(autoclave_config.pb_bbio_file)
+            launcher.load_bbio_file(autoclave_config.bb_bbio_file)
 
         # start Machinekit realtime environment
         launcher.start_realtime()
