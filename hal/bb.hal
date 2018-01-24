@@ -1,7 +1,7 @@
 #!/usr/bin/env halrun
 # ################################################
 #
-# Autoclave PocketBeagle HAL configuration
+# Autoclave BeagleBone HAL configuration
 #
 # http://linuxcnc.org/docs/devel/html/man/man1/halcmd.1.html
 #
@@ -27,12 +27,12 @@ net temp-ext                        <= therm.ch-01.value
 loadrt threads name1=main-thread period1=10000000
 
 # ################
-# PocketBeagle GPIOs
+# BeagleBone GPIOs
 #     http://linuxcnc.org/docs/devel/html/man/man9/hal_bb_gpio.9.html
 # - pinouts
 #     http://beagleboard.org/support/bone101
 
-loadrt hal_bb_gpio board=PocketBeagle output_pins=102,104,106,108,110,112,120
+loadrt hal_bb_gpio board=BeagleBone output_pins=102,104,106,108,110,112,120
 addf bb_gpio.read                   main-thread
 addf bb_gpio.write                  main-thread
 
