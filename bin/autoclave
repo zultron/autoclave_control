@@ -40,7 +40,7 @@ parser.add_argument(
     help='Enable debug mode', action='store_true')
 parser.add_argument(
     '-b', '--board',
-    help=('Select board: simulator, PocketBeagle or autodetect'),
+    help=('Select board: simulator, BeagleBone or autodetect'),
     default='detect', choices=('sim','bb','detect'))
 parser.add_argument(
     '-c', '--config', action='store',
@@ -67,7 +67,7 @@ if args.board == 'detect':
         args.board = 'sim'
     elif os.path.exists('/proc/device-tree/model'):
         with open('/proc/device-tree/model','r') as f:  m=f.read()
-        if 'PocketBeagle' in m:
+        if 'BeagleBone' in m:
             args.board = 'bb'
     if args.board == 'detect':
         parser.print_help()
