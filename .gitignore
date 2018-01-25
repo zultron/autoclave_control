@@ -1,6 +1,6 @@
 # Build artifacts
 /build*/
-/qml/goldibox-remote.pro.user
+/qml/*.pro.user
 *.pyc
 /pb_goldibox-00A0.dtbo
 
