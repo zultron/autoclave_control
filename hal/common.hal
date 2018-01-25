@@ -93,11 +93,11 @@ net idle-temp                       => autoclave-control.idle-temp
 
 # Limits
 # - Maximum burner temp, deg. C:  Thermagon max stable temp
-setp temp-max-burner                200.0
+setp autoclave-control.temp-max-burner 200.0
 # - Maximum autoclave temp, deg. C:  Presto max 15 PSI = 121 deg. C
-setp temp-max-pot                   121.0
+setp autoclave-control.temp-max-pot 121.0
 # - Maximum autoclave pressure, PSI:  Presto max 15 PSI
-setp pressure-max                   15.0
+setp autoclave-control.pressure-max 15.0
 
 # Inputs
 # - Pot temperature, deg. C
@@ -170,7 +170,7 @@ net burner-duty                     <= burner-limit.out
 # ################################################
 
 # PWM generator to switch the burner SSR on and off
-newinst pwmgen output_type=0
+loadrt pwmgen output_type=0
 addf pwmgen.update                  main-thread
 addf pwmgen.make-pulses             main-thread
 

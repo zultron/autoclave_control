@@ -1,4 +1,4 @@
-import os, sys, yaml, datetime
+import os, sys, yaml, datetime, string
 
 
 class ConfigError(RuntimeError):
@@ -13,11 +13,12 @@ class Config(object):
     default_share_dir = '.'
 
     def __init__(self, config_file=None):
-        for path in (
-                config_file,
-                os.environ.get('AUTOCLAVE_CONFIG',None),
-                os.path.join(os.path.dirname(__file__),'..','..','etc'),
-                '/etc/autoclave'):
+        paths = (
+            config_file,
+            os.environ.get('AUTOCLAVE_CONFIG',None),
+            os.path.join(os.path.dirname(__file__),'..','..','etc'),
+            '/etc/autoclave')
+        for path in paths:
             if path is None:
                 continue
             if os.path.isfile(path):
@@ -29,8 +30,8 @@ class Config(object):
                 break
         if config_file is None:
             raise ConfigError(
-                "Unable to locate configuration file '%s'" %
-                self.default_base_name)
+                "Unable to locate configuration file '%s'; searched %s" %
+                (self.default_base_name, ", ".join(paths)))
 
         try:
             with open(config_file, 'r') as f:
@@ -77,13 +78,13 @@ class Config(object):
         else:
             return True
 
-    def write_state(self, temp_min=None, temp_max=None, enable=None):
+    def write_state(self, comp, param_list):
+        config = dict()
+        tr = string.maketrans("-","_")
+        for param in param_list:
+            config[param.translate(tr)] = comp[param]
         with open(self.state_file, 'w') as f:
-            state = yaml.dump({
-                'temp-min' : temp_min,
-                'temp-max' : temp_max,
-                'enable' : enable,
-            }, f)
+            state = yaml.dump(config, f)
 
     def read_state(self):
         if not self.state_file_exists():

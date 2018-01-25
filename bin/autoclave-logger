@@ -11,10 +11,10 @@ h = hal.component("autoclave-logger")
 
 # Inputs:
 # - Process settings and outputs
-h.newpin("stage", hal.HAL_INT, hal.HAL_IN)
+h.newpin("stage", hal.HAL_S32, hal.HAL_IN)
 h.newpin("temp-set", hal.HAL_FLOAT, hal.HAL_IN)
-h.newpin("time-set", hal.HAL_INT, hal.HAL_IN)
-h.newpin("burner-duty", hal.HAL_INT, hal.HAL_IN)
+h.newpin("time-set", hal.HAL_S32, hal.HAL_IN)
+h.newpin("burner-duty", hal.HAL_S32, hal.HAL_IN)
 h.newpin("valve-on", hal.HAL_BIT, hal.HAL_IN)
 # - Temperatures and pressure
 h.newpin("temp-burner", hal.HAL_FLOAT, hal.HAL_IN)

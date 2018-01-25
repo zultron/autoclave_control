@@ -18,11 +18,11 @@ h.newpin("shutdown", hal.HAL_BIT, hal.HAL_IN)
 
 # Process settings
 # - Flush time, seconds
-h.newpin("flush-time", hal.HAL_INT, hal.HAL_IN)
+h.newpin("flush-time", hal.HAL_S32, hal.HAL_IN)
 # - Sterilization temp, deg. C
 h.newpin("ster-temp", hal.HAL_FLOAT, hal.HAL_IN)
 # - Sterilization time, seconds
-h.newpin("ster-time", hal.HAL_INT, hal.HAL_IN)
+h.newpin("ster-time", hal.HAL_S32, hal.HAL_IN)
 # - Finish temp, deg. C
 h.newpin("finish-temp", hal.HAL_FLOAT, hal.HAL_IN)
 # - Idle temp, deg. C
@@ -53,11 +53,11 @@ h.newpin("time-set", hal.HAL_FLOAT, hal.HAL_OUT)
 # - Pressure relief valve on, True/False
 h.newpin("valve-on", hal.HAL_BIT, hal.HAL_OUT)
 # - Overall elapsed time, s.
-h.newpin("elapsed-time", hal.HAL_INT, hal.HAL_OUT)
+h.newpin("elapsed-time", hal.HAL_S32, hal.HAL_OUT)
 # - Current stage, ID
-h.newpin("stage", hal.HAL_INT, hal.HAL_OUT)
+h.newpin("stage", hal.HAL_S32, hal.HAL_OUT)
 # - Current stage elapsed time, s.
-h.newpin("stage-elapsed-time", hal.HAL_INT, hal.HAL_OUT)
+h.newpin("stage-elapsed-time", hal.HAL_S32, hal.HAL_OUT)
 # - Error, True/False
 h.newpin("error", hal.HAL_BIT, hal.HAL_OUT)
 
@@ -247,10 +247,11 @@ except:
 finally:
     # Save settings
     msg.info("Saving settings")
-    Config().write_state(
-        temp_min=h['temp-min'], temp_max=h['temp-max'], enable=h['enable'])
+    Config().write_state(h, ['enable', 'flush-time', 'ster-temp', 'ster-time',
+                             'finish-temp', 'idle-temp'])
 
     # Shut things off and exit
     msg.info("Exiting")
-    h['switch-on'] = 0
+    h['valve-on'] = False
+    h['temp-set'] = 0.0
     sys.exit(0)

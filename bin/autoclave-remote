@@ -19,9 +19,9 @@ data = [
     ('enable-switch', hal.HAL_BIT, hal.HAL_OUT),
     ('start', hal.HAL_BIT, hal.HAL_OUT),
     # Process settings
-    ('flush-time', hal.HAL_INT, hal.HAL_OUT),
+    ('flush-time', hal.HAL_S32, hal.HAL_OUT),
     ('ster-temp', hal.HAL_FLOAT, hal.HAL_OUT),
-    ('ster-time', hal.HAL_INT, hal.HAL_OUT),
+    ('ster-time', hal.HAL_S32, hal.HAL_OUT),
     ('finish-temp', hal.HAL_FLOAT, hal.HAL_OUT),
     ('idle-temp', hal.HAL_FLOAT, hal.HAL_OUT),
     # Status
@@ -29,15 +29,15 @@ data = [
     ('temp-set', hal.HAL_FLOAT, hal.HAL_IN),
     ('time-set', hal.HAL_FLOAT, hal.HAL_IN),
     ('valve-on', hal.HAL_BIT, hal.HAL_IN),
-    ('elapsed-time', hal.HAL_INT, hal.HAL_IN),
-    ('stage', hal.HAL_INT, hal.HAL_IN),
-    ('stage-elapsed-time', hal.HAL_INT, hal.HAL_IN),
+    ('elapsed-time', hal.HAL_S32, hal.HAL_IN),
+    ('stage', hal.HAL_S32, hal.HAL_IN),
+    ('stage-elapsed-time', hal.HAL_S32, hal.HAL_IN),
     ('error', hal.HAL_BIT, hal.HAL_IN),
     # - other
     ('estop', hal.HAL_BIT, hal.HAL_IN),
     ('temp-pot', hal.HAL_FLOAT, hal.HAL_IN),
     ('pressure', hal.HAL_FLOAT, hal.HAL_IN),
-    ('burner-pwm', hal.HAL_FLOAT, hal.HAL_IN),
+    ('burner-duty', hal.HAL_FLOAT, hal.HAL_IN),
 ]
 
 for name, hal_type, hal_dir in data:
