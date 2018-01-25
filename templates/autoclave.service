@@ -1,5 +1,5 @@
 [Unit]
-Description=The Autoclave
+Description=Machinekit Autoclave Control
 After=syslog.target network.target
 Wants=avahi-daemon.service
 Wants=dbus.service
