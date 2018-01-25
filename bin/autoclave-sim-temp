@@ -1,37 +1,90 @@
 #!/usr/bin/python
+#
+# Simulate temperatures in autoclave
+#
+# See sim-model.ods
 
-import hal, time, sys, datetime, random
+import hal, time, sys, datetime, random, math
 from autoclave import Config, Messages
 
 # Set up component
 h = hal.component("autoclave-sim-temp", timer=100)
 
 # Inputs:
-# - Peltier junction signals
-h.newpin("p-enable", hal.HAL_BIT, hal.HAL_IN)
-h.newpin("heat-on", hal.HAL_BIT, hal.HAL_IN)
-h.newpin("cool-on", hal.HAL_BIT, hal.HAL_IN)
-# - Fan signals
-h.newpin("f-enable", hal.HAL_BIT, hal.HAL_IN)
-h.newpin("f-on", hal.HAL_BIT, hal.HAL_IN)
+# - Burner SSR duty signal, 0-100%
+h.newpin("burner-duty", hal.HAL_FLOAT, hal.HAL_IN)
+# - Pressure relief valve SSR signal
+h.newpin("valve-on", hal.HAL_BIT, hal.HAL_IN)
 # - User-set pretend external temp
 h.newpin("temp-ext", hal.HAL_FLOAT, hal.HAL_IN)
-# - Incremental increase/decrease toward external temp
-h.newpin("temp-ext-incr", hal.HAL_FLOAT, hal.HAL_IN)
-# - Incremental increase/decrease when heat/cool applied
-h.newpin("heat-cool-incr", hal.HAL_FLOAT, hal.HAL_IN)
+# - Error
+h.newpin("error", hal.HAL_BIT, hal.HAL_IN)
 # - Exit
 h.newpin("shutdown", hal.HAL_BIT, hal.HAL_IN)
 
 # Outputs:  
-# - Simulated temp
-h.newpin("value", hal.HAL_FLOAT, hal.HAL_OUT)
-# - Error
-h.newpin("error", hal.HAL_BIT, hal.HAL_OUT)
+# - Simulated burner temp
+h.newpin("temp-burner", hal.HAL_FLOAT, hal.HAL_OUT)
+# - Simulated pot temp
+h.newpin("temp-pot", hal.HAL_FLOAT, hal.HAL_OUT)
+# - Simulated pot pressure
+h.newpin("pressure", hal.HAL_FLOAT, hal.HAL_OUT)
 
 # Init values
-h['value'] = 20 # Room temp
+h['temp-burner'] = 20 # Room temp
+h['temp-pot'] = 20 # Room temp
 h['error'] = 0
+
+# Other settings
+# - time increment
+time_incr = 0.1 # seconds per update
+# - time speed-up
+speed_up = 10.0 # times
+# - burner heat transfer delay distribution (totally arbitrary) (old to new)
+burner_heat_transfer_weights = [ 0.3, 0.5, 0.2 ]
+# - pot heat transfer delay distribution (totally arbitrary) (old to new)
+pot_heat_transfer_weights = [
+    0.02, 0.05, 0.1, 0.15, 0.18, 0.18, 0.15, 0.1, 0.05, 0.02]
+# - pot water volume
+water_volume_qts = 3.00 # qts.
+# - burner power
+burner_power_watts = 1500 # W
+# - burner heat capacity (totally arbitrary)
+burner_heat_cap = 500.0 # Cal./degree C
+# - pot heat leakage
+leakage_factor = 0.006 # heat loss per second
+# - Thermagon k
+thermagon_k = 3.0 # W/(mK)
+# - burner diameter
+burner_dia_inches = 7.4 # in.
+# - Thermagon thickness
+thermagon_L_inches = 0.1 # in.
+# - Thermagon max temperature
+thermagon_temp_max = 200.0 # deg. C
+
+# Conversions
+# - Calories/second to Watts
+cal_per_s_to_w = 4.1868
+# - milliliters per quart
+ml_per_qt = 946.353
+# - meters per inch
+m_per_in = 0.0254
+
+# Thermagon conductivity calculations
+# k = QL/(AΔT); Q = kAΔT/L
+# - burner area
+burner_dia = burner_dia_inches * m_per_in # m
+burner_A = math.pi * (burner_dia)**2 # m^2
+# - Thermagon thickness
+thermagon_L = thermagon_L_inches * m_per_in # m
+# - Burner heat transfer factor:  heat_transfer * temp_delta = transfer in W
+transfer_factor = thermagon_k * burner_A / thermagon_L
+
+# Other calculations
+# - Burner power
+burner_power = burner_power_watts / cal_per_s_to_w # cal/s
+# - Pot water volume
+water_volume = water_volume_qts * ml_per_qt # ml
 
 msg = Messages('Autoclave sim-temp')
 
@@ -39,24 +92,31 @@ msg = Messages('Autoclave sim-temp')
 msg.info("Initialized")
 h.ready()
 
+# State variables
 i = 0
-temp_base = h['value']
+temp_burner_base = h['temp-burner']
+temp_pot_base = h['temp-pot']
+burner_heat_transfer_ary = [0.0] * len(burner_heat_transfer_weights)
+pot_heat_transfer_ary = [0.0] * len(pot_heat_transfer_weights)
+burner_heat = 0.0
+burner_pot_transfer_calories = 0.0
+pot_heat = 0.0
+pot_heat_old = 0.0
+burner_duty_saved = 0.0
+
 try:
     while True:
-        time.sleep(0.1)
+        time.sleep(time_incr)
         i += 1
 
         # Take one sample for consistency
         # - Autoclave comp inputs
-        p_enable = h['p-enable']
-        heat_on = h['heat-on']
-        cool_on = h['cool-on']
-        f_enable = h['f-enable']
-        f_on = h['f-on']
+        burner_duty = h['burner-duty']
+        valve_on = h['valve-on']
         # - User-defined inputs
         temp_ext = h['temp-ext']
-        temp_ext_incr = h['temp-ext-incr']
-        heat_cool_incr = h['heat-cool-incr']
+        # - Error
+        error = h['error']
         # - Shutdown
         shutdown = h['shutdown']
 
@@ -67,41 +127,67 @@ try:
 
         # Do some sanity checks
         err = 0
-        if heat_on and cool_on:
-            msg.info("Error:  heat-on and cool-on")
+        if error:
+            msg.info("Error:  HAL error signal asserted")
             err = 1
-        if heat_on and not f_on:
-            msg.info("Error:  heat-on but not f-on")
-            err = 1
-        if cool_on and not f_on:
-            msg.info("Error:  cool-on but not f-on")
+        if temp_burner_base > thermagon_temp_max:
+            msg.info("Error:  Thermagon max temp exceeded:  %.1f > %.1f" %
+                     (temp_burner_base, thermagon_temp_max))
             err = 1
         if h['error'] and not err:
             msg.info("Error condition cleared")
         h['error'] = err
 
-        # Set output value
-        # - If it's warmer externally, increase; otherwise decrease
-        if temp_ext > h['value']:
-            temp_base += temp_ext_incr
-        else:
-            temp_base -= temp_ext_incr
-        # - If heat is on, increase
-        if cool_on:
-            temp_base -= heat_cool_incr
-        # - If cool is on, decrease
-        if heat_on:
-            temp_base += heat_cool_incr
-        # - Add  random number btw. -0.1 and 0.1 to simulate thermistor variance
-        newval = temp_base + random.triangular(-0.1,0.1,0)
+        # Calculations
+        # - Time passed since last update
+        update_time = time_incr * speed_up
+        # - Calories added by burner
+        burner_calories = burner_power * burner_duty * update_time
+        # - Update burner heat transfer array
+        burner_heat_transfer_ary.append(burner_calories)
+        burner_heat_transfer_ary.pop(0)
+        # - Burner calories for transfer + measurement after delay
+        burner_heat_transfer_in = sum(
+            [temp*weight for (temp,weight) in
+             zip(burner_heat_transfer_ary,burner_heat_transfer_weights)])
+        # - Burner total heat and temperature
+        burner_heat_old = burner_heat
+        burner_heat = (burner_heat_old + burner_heat_transfer
+                       + burner_pot_transfer_calories) # cal.
+        temp_burner_base = temp_ext + burner_heat / burner_heat_cap # deg. C
+        # - Calories added to pot by heat transfer
+        t_delta = temp_pot_base - temp_burner_base # deg. C
+        burner_pot_transfer_calories = (
+            t_delta * transfer_factor / cal_per_s_to_w * update_time) # cal.
+        # - Update pot heat transfer array
+        pot_heat_transfer_ary.append(transfer_calories)
+        pot_heat_transfer_ary.pop(0)
+        # Pot calories in for measurement after delay
+        pot_heat_transfer_in = sum(
+            [temp*weight for (temp,weight) in
+             zip(pot_heat_transfer_ary,pot_heat_transfer_weights)])
+        # Heat leakage from pot to outside
+        leakage = pot_heat * (leakage_factor * update_time) # cal.
+        # New pot heat
+        pot_heat_old = pot_heat # cal.
+        pot_heat = pot_heat_old + pot_heat_transfer_in - leakage # cal.
+        # New pot temperature
+        temp_pot_base = temp_ext + pot_heat/water_volume
+        # New pot pressure; assume linear increase 0-15PSI over 100-121 deg. C
+        pressure = min(temp_pot_base - 100, 0.0) * 15/21 # PSI
 
+        # Output values with +/- 0.1 deg. sensor error
+        h['temp-pot'] = temp_pot_base + random.triangular(-0.1,0.1,0)
+        h['temp-burner'] = temp_burner_base + random.triangular(-0.1,0.1,0)
+        h['pressure'] = pressure + random.triangular(-0.1,0.1,0)
+
+        # Periodically print updates
+        burner_duty_saved += burner_duty
         if i % 500 == 0:
-            msg.info("Status:  ext=%.2f; value=%.2f(base %.2f);" %
-                    (temp_ext, newval, temp_base))
-            msg.info("         cool=%d; heat=%d, fan=%d" %
-                    (heat_on, cool_on, f_on))
-
-        h['value'] = newval
+            msg.info("Status:  pot=%.1f; burner=%.1f; avg. burner duty=%.1f%%" %
+                    (temp_pot_base, temp_burner_base,
+                     burner_duty_saved/5))
+            burner_duty_saved = 0.0
 
 except KeyboardInterrupt:
     msg.info("Exiting")

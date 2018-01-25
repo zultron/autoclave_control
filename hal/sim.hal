@@ -12,20 +12,19 @@
 # ################
 # Primitive simulator comp
 loadusr -W autoclave-sim-temp
-# - Temp in signal
-net temp-int                        <= autoclave-sim-temp.value
-# - Enable
-net enable                          => autoclave-sim-temp.p-enable
-# - Peltier
-net heat-on                         => autoclave-sim-temp.heat-on
-net cool-on                         => autoclave-sim-temp.cool-on
-# - Fan
-net switch-on                       => autoclave-sim-temp.f-on
+# - Burner temp in signal
+net temp-burner                     <= autoclave-sim-temp.temp-burner
+# - Pot temp in signal
+net temp-pot                        <= autoclave-sim-temp.temp-pot
+# - Burner SSR on/off
+net burner-duty                     => autoclave-sim-temp.burner-duty
+# - Pressure relief SSR on/off
+net valve-on                        => autoclave-sim-temp.valve-on
+
 # - Simulated external temp
 net temp-ext                        => autoclave-sim-temp.temp-ext
-# - Effect of external temp and heat/cool on inside temp; adjustable
-net temp-ext-incr                   => autoclave-sim-temp.temp-ext-incr
-net heat-cool-incr                  => autoclave-sim-temp.heat-cool-incr
+# - Error
+net error                           => autoclave-sim-temp.error
 # - Shutdown
 net shutdown                        => autoclave-sim-temp.shutdown
 
@@ -47,6 +46,3 @@ source $(HALDIR)/common.hal
 # ################################################
 
 sets temp-ext                       20.0
-sets temp-ext-incr                  0.002
-sets heat-cool-incr                 0.02
-sets hysteresis                     1

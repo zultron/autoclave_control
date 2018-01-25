@@ -1,66 +1,201 @@
 # ################################################
+# E-Stop and error LUT
+# ################################################
+#
+# The E-stop is serious:  it not only disables the burner, but also
+# opens the relief valve
+#
+# Error is less serious:  it disables the burner and relief valve
+#
+# Enable is least serious, and acts like error
+
+# lut5 docs
+# http://linuxcnc.org/docs/devel/html/man/man9/lut5.9.html
+
+# - Load comp
+newinst lut5 valve
+addf valve                          main-thread
+newinst lut5 enable
+addf enable                         main-thread
+
+# - Configuration
+#
+# in-3	in-2	in-1	in-0	| out		| out
+# estop	error	en-sw	input	| valve		| enable
+# ----- ------	------	------	| ------	| ------
+# 0	0	0	0	|		|
+# 0	0	0	1	|		|
+# 0	0	1	0	|		| 0x0004 # in-0 not
+# 0	0	1	1	| 0x0008	| 0x0008 # connected
+# 0	1	0	0	|		|
+# 0	1	0	1	|		|
+# 0	1	1	0	|		|
+# 0	1	1	1	|		|
+# 1	0	0	0	| 0x0100	|
+# 1	0	0	1	| 0x0200	|
+# 1	0	1	0	| 0x0400	|
+# 1	0	1	1	| 0x0800	|
+# 1	1	0	0	| 0x1000	|
+# 1	1	0	1	| 0x2000	|
+# 1	1	1	0	| 0x4000	|
+# 1	1	1	1	| 0x8000	|
+#				| ------	| ------
+setp valve.function		  0xff08
+setp enable.function				  0x000c
+
+# Valve LUT
+# - Inputs
+net estop                           => valve.in-3
+net error                           => valve.in-2
+net enable-switch                   => valve.in-1
+net valve-on-input                  => valve.in-0
+# - Output
+net valve-on                        <= valve.out
+
+# Enable LUT
+# - Inputs
+net estop                           => enable.in-3
+net error                           => enable.in-2
+net enable                          => enable.in-1
+# - Output
+net enable                          <= enable.out
+
+
+
+# ################################################
 # Autoclave control comp
 # ################################################
 
 # Load userland comp
 loadusr -W autoclave-control
 
-# Inputs
-# - Min/max/internal temp settings
-net temp-min                        => autoclave-control.temp-min
-net temp-max                        => autoclave-control.temp-max
-net temp-int                        => autoclave-control.temp-int
-# - Hysteresis
-net hysteresis                      => autoclave-control.hysteresis
-# - Enable
+# Controls
+# - Enable, True/False
 net enable                          => autoclave-control.enable
+# - Start/stop, True/False
+net start                           => autoclave-control.start
+# - E-Stop, True/False
+net estop                           => autoclave-control.estop
 # - Shut down
 net shutdown                        => autoclave-control.shutdown
 
+# Process settings
+# - Flush time, seconds
+net flush-time                      => autoclave-control.flush-time
+# - Sterilization temp, deg. C
+net ster-temp                       => autoclave-control.ster-temp
+# - Sterilization time, seconds
+net ster-time                       => autoclave-control.ster-time
+# - Finish temp, deg. C
+net finish-temp                     => autoclave-control.finish-temp
+# - Idle temp, deg. C
+net idle-temp                       => autoclave-control.idle-temp
+
+# Limits
+# - Maximum burner temp, deg. C:  Thermagon max stable temp
+setp temp-max-burner                200.0
+# - Maximum autoclave temp, deg. C:  Presto max 15 PSI = 121 deg. C
+setp temp-max-pot                   121.0
+# - Maximum autoclave pressure, PSI:  Presto max 15 PSI
+setp pressure-max                   15.0
+
+# Inputs
+# - Pot temperature, deg. C
+net temp-pot                        => autoclave-control.temp-pot
+# - Burner temperature, deg. C
+net temp-burner                     => autoclave-control.temp-burner
+# - Pressure, PSI
+net pressure                        => autoclave-control.pressure
+
 # Outputs
-# - On/off switch
-net switch-on                       <= autoclave-control.switch-on
-# - Heat/cool selector switch (1/0)
-net switch-heat                     <= autoclave-control.switch-heat
-# - Error
+# - Current temperature setting, deg. C
+net temp-set                        <= autoclave-control.temp-set
+# - Current time setting, s.
+net time-set                        <= autoclave-control.time-set
+# - Pressure relief valve on, True/False
+net valve-on-input                  <= autoclave-control.valve-on
+# - Overall elapsed time, s.
+net elapsed-time                    <= autoclave-control.elapsed-time
+# - Current stage, ID
+net stage                           <= autoclave-control.stage
+# - Current stage elapsed time, s.
+net stage-elapsed-time              <= autoclave-control.stage-elapsed-time
+# - Error, True/False
 net error                           <= autoclave-control.error
 
 
 # ################################################
-# Peltier and fan out signals
+# Burner duty cycle PID
 # ################################################
 
-# LUTs for on/off switch and heat/cool selector logic
-newinst lut5 heat-on
-addf heat-on                        main-thread
-newinst lut5 cool-on
-addf cool-on                        main-thread
+# Load PID comp
+newinst pid burner
+addf burner.do-pid-calcs            main-thread
 
-# Peltier heat/cool LUT
-# http://linuxcnc.org/docs/devel/html/man/man9/lut5.9.html
-#
-# on/1	heat/0	| heat	cool	| h val | c val
-# 0	0	| 0	0	|	|
-# 0	1	| 0	0	|	|
-# 1	0	| 0	1	|	|   0x4
-# 1	1	| 1	0	|   0x8	|
-#                                 ----- | -----
-setp heat-on.function               0x8
-setp cool-on.function                       0x4
+# PID input
+net temp-set                        => burner.command
+# PID feedback
+net temp-pot                        => burner.feedback
+# PID parameters; see http://linuxcnc.org/docs/html/motion/pid-theory.html
+#setp burner.FF0                     0
+#setp burner.FF1                     0
+#setp burner.FF2                     0
+setp burner.Pgain                   0.30
+setp burner.Igain                   0.0
+setp burner.Dgain                   0.0
+#setp burner.maxerrorI               1.0
+#setp burner.bias                    0.5
+net enable                          => burner.enable
+net burner-duty-raw                 <= burner.output
 
-# Peltier heat LUT
-# - Inputs
-net switch-on                       => heat-on.in-1
-net switch-heat                     => heat-on.in-0
-# - Output to GPIO
-net heat-on                         <= heat-on.out
+# ################################################
+# Burner duty cycle limited
+# ################################################
 
-# Peltier cool LUT
-# - Inputs
-net switch-on                       => cool-on.in-1
-net switch-heat                     => cool-on.in-0
-# - Output to GPIO
-net cool-on                         <= cool-on.out
+# Limit PID output to non-negative values
+# - Load limit1 comp
+newinst limit1 burner-limit
+addf burner-limit                   main-thread
+# - Configure max/min PWM limit
+setp burner-limit.min               0.0
+setp burner-limit.max               1.0
+# - Input
+net burner-duty-raw                 => burner-limit.in
+# - Output
+net burner-duty                     <= burner-limit.out
+
+
+# ################################################
+# Burner SSR PWM signal
+# ################################################
+
+# PWM generator to switch the burner SSR on and off
+newinst pwmgen output_type=0
+addf pwmgen.update                  main-thread
+addf pwmgen.make-pulses             main-thread
+
+# Parameters
+# - PWM frequency:  5 second period
+setp pwmgen.0.pwm-freq              0.2
+# - Max duty cycle 100%
+setp pwmgen.0.max-dc                1.0
+# - Min duty cycle 0%
+setp pwmgen.0.min-dc                0.0
+# - Input scaling and offset
+setp pwmgen.0.scale                 1.0
+setp pwmgen.0.offset                0.0
+# - Don't dither
+setp pwmgen.0.dither-pwm            0
+
+# Inputs
+# - Enable signal
+net enable                          => pwmgen.0.enable
+# - Burner duty signal
+net burner-duty                     => pwmgen.0.value
+
+# Outputs
+# - Burner SSR on/off
+net burner-on                       <= pwmgen.0.pwm
 
 
 # ################################################
@@ -71,16 +206,20 @@ net cool-on                         <= cool-on.out
 loadusr -W autoclave-logger
 
 # Inputs
-# - Temperatures
-net temp-int                        => autoclave-logger.temp-int
-net temp-ext                        => autoclave-logger.temp-ext
-net temp-min                        => autoclave-logger.temp-min
-net temp-max                        => autoclave-logger.temp-max
-# - Enable/error/heat/cool
+# - Process settings and outputs
+net stage                           => autoclave-logger.stage
+net temp-set                        => autoclave-logger.temp-set
+net time-set                        => autoclave-logger.time-set
+net burner-duty                     => autoclave-logger.burner-duty
+net valve-on                        => autoclave-logger.valve-on
+# - Temperatures & pressure inputs
+net temp-burner                     => autoclave-logger.temp-burner
+net temp-pot                        => autoclave-logger.temp-pot
+net pressure                        => autoclave-logger.pressure
+# - Estop/enable/error
+net estop                           => autoclave-logger.estop
 net error                           => autoclave-logger.error
 net enable                          => autoclave-logger.enable
-net heat-on                         => autoclave-logger.cool
-net cool-on                         => autoclave-logger.heat
 # - Shut down
 net shutdown                        => autoclave-logger.shutdown
 

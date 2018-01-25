@@ -10,16 +10,20 @@ from autoclave import Config, Messages
 h = hal.component("autoclave-logger")
 
 # Inputs:
-# - Temperatures
-h.newpin("temp-int", hal.HAL_FLOAT, hal.HAL_IN)
-h.newpin("temp-ext", hal.HAL_FLOAT, hal.HAL_IN)
-h.newpin("temp-min", hal.HAL_FLOAT, hal.HAL_IN)
-h.newpin("temp-max", hal.HAL_FLOAT, hal.HAL_IN)
+# - Process settings and outputs
+h.newpin("stage", hal.HAL_INT, hal.HAL_IN)
+h.newpin("temp-set", hal.HAL_FLOAT, hal.HAL_IN)
+h.newpin("time-set", hal.HAL_INT, hal.HAL_IN)
+h.newpin("burner-duty", hal.HAL_INT, hal.HAL_IN)
+h.newpin("valve-on", hal.HAL_BIT, hal.HAL_IN)
+# - Temperatures and pressure
+h.newpin("temp-burner", hal.HAL_FLOAT, hal.HAL_IN)
+h.newpin("temp-pot", hal.HAL_FLOAT, hal.HAL_IN)
+h.newpin("pressure", hal.HAL_FLOAT, hal.HAL_IN)
 # - Controls
+h.newpin("estop", hal.HAL_BIT, hal.HAL_IN)
 h.newpin("error", hal.HAL_BIT, hal.HAL_IN)
 h.newpin("enable", hal.HAL_BIT, hal.HAL_IN)
-h.newpin("heat", hal.HAL_BIT, hal.HAL_IN)
-h.newpin("cool", hal.HAL_BIT, hal.HAL_IN)
 h.newpin("shutdown", hal.HAL_BIT, hal.HAL_IN)
 
 msg = Messages('Autoclave logger')
@@ -54,18 +58,21 @@ if not os.path.exists(rrdtool_db):
         "--start=0",
         "--step=%s" % rrdtool_period,
         "--no-overwrite", # Don't clobber existing file
-        "DS:int:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:ext:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:min:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:max:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:stage:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:temp-set:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:time-set:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:burner-duty:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:valve-on:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:temp-burner:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:temp-pot:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:pressure:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:estop:GAUGE:%d:U:U" % (rrdtool_period*2),
         "DS:error:GAUGE:%d:U:U" % (rrdtool_period*2),
         "DS:enable:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:heat:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:cool:GAUGE:%d:U:U" % (rrdtool_period*2),
         *[("RRA:AVERAGE:0.5:%(steps)s:%(rows)s" % i) for i in archives.values() ])
 
 # Init vars
-error = enable = heat = cool = 0
+estop = error = enable = heat = cool = 0
 last_sample = time.time()
 sample_periods = 0
 
@@ -77,6 +84,7 @@ def loop():
     time.sleep(1)
 
     # Use globals to maintain state
+    global estop
     global error
     global enable
     global heat
@@ -91,6 +99,7 @@ def loop():
     temp_min = h['temp-min']
     temp_max = h['temp-max']
     # - Cumulative
+    estop+= h['estop']
     error+= h['error']
     enable += h['enable']
     heat += h['heat']
@@ -110,12 +119,12 @@ def loop():
         # - Update RRD database
         ret = rrdtool.update(
             rrdtool_db,
-            '--template=int:ext:min:max:error:enable:heat:cool',
-            'N:%.1f:%.1f:%.1f:%.1f:%.2f:%.2f:%.2f:%.2f' % tuple(
+            '--template=int:ext:min:max:estop:error:enable:heat:cool',
+            'N:%.1f:%.1f:%.1f:%.1f:%.2f:%.2f:%.2f:%.2f:%.2f' % tuple(
                 # Temperatures
                 [temp_int, temp_ext, temp_min, temp_max] +
                 # Cumulative vars scaled to percentages
-                [float(i)/sample_periods for i in (error, enable, heat, cool)]))
+                [float(i)/sample_periods for i in (estop, error, enable, heat, cool)]))
         # - Build new graphs
         for sched, params in archives.items():
             period = sched[0]
@@ -166,9 +175,13 @@ def loop():
 	        "CDEF:disable=enable,0.01,LT",
 	        "CDEF:int-disable=disable,int,UNKN,IF",
                 "LINE5:int-disable#000000:Disabled",
+                # - Estop:  orange area
+	        "DEF:estop=%s:estop:AVERAGE" % (rrdtool_db),
+	        "CDEF:estop-on=estop,0.01,GT,disable,-,0,GT",
+	        "CDEF:int-estop=estop-on,int,UNKN,IF",
+                "AREA:int-estop#ffff00:Estop",
 	        # - Error and enabled:  yellow area
 	        "DEF:error=%s:error:AVERAGE" % (rrdtool_db),
-	        #     ((error>0.01) - disable) > 0
 	        "CDEF:error-on=error,0.01,GT,disable,-,0,GT",
 	        "CDEF:int-error=error-on,int,UNKN,IF",
                 "AREA:int-error#ffff00:Error",

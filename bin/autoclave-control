@@ -6,30 +6,78 @@ from autoclave import Config, Messages
 # Set up component
 h = hal.component("autoclave-control")
 
-# Inputs:
-# - Min/max/internal temp settings
-h.newpin("temp-min", hal.HAL_FLOAT, hal.HAL_IN)
-h.newpin("temp-max", hal.HAL_FLOAT, hal.HAL_IN)
-h.newpin("temp-int", hal.HAL_FLOAT, hal.HAL_IN)
-# - Hysteresis
-h.newpin("hysteresis", hal.HAL_FLOAT, hal.HAL_IN)
-# - Enable
+# Controls
+# - Enable, True/False
 h.newpin("enable", hal.HAL_BIT, hal.HAL_IN)
-# - Exit
+# - Start/stop, True/False
+h.newpin("start", hal.HAL_BIT, hal.HAL_IN)
+# - E-Stop, True/False
+h.newpin("estop", hal.HAL_BIT, hal.HAL_IN)
+# - Exit, True/False
 h.newpin("shutdown", hal.HAL_BIT, hal.HAL_IN)
 
+# Process settings
+# - Flush time, seconds
+h.newpin("flush-time", hal.HAL_INT, hal.HAL_IN)
+# - Sterilization temp, deg. C
+h.newpin("ster-temp", hal.HAL_FLOAT, hal.HAL_IN)
+# - Sterilization time, seconds
+h.newpin("ster-time", hal.HAL_INT, hal.HAL_IN)
+# - Finish temp, deg. C
+h.newpin("finish-temp", hal.HAL_FLOAT, hal.HAL_IN)
+# - Idle temp, deg. C
+h.newpin("idle-temp", hal.HAL_FLOAT, hal.HAL_IN)
+
+# Limits
+# - Maximum burner temp, deg. C
+h.newpin("temp-max-burner", hal.HAL_FLOAT, hal.HAL_IN)
+# - Maximum autoclave temp, deg. C
+h.newpin("temp-max-pot", hal.HAL_FLOAT, hal.HAL_IN)
+# - Maximum autoclave pressure, PSI
+h.newpin("pressure-max", hal.HAL_FLOAT, hal.HAL_IN)
+
+# Inputs
+# - Autoclave temperature, deg. C
+h.newpin("temp-pot", hal.HAL_FLOAT, hal.HAL_IN)
+# - Autoclave pressure, PSI
+h.newpin("pressure", hal.HAL_FLOAT, hal.HAL_IN)
+# - Burner temperature, deg. C
+h.newpin("temp-burner", hal.HAL_FLOAT, hal.HAL_IN)
+
+
 # Outputs:  
-# - On/off switch
-h.newpin("switch-on", hal.HAL_BIT, hal.HAL_OUT)
-# - Heat/cool selector switch (1/0)
-h.newpin("switch-heat", hal.HAL_BIT, hal.HAL_OUT)
-# - Error
+# - Current temperature setting, deg. C
+h.newpin("temp-set", hal.HAL_FLOAT, hal.HAL_OUT)
+# - Current time setting, s.
+h.newpin("time-set", hal.HAL_FLOAT, hal.HAL_OUT)
+# - Pressure relief valve on, True/False
+h.newpin("valve-on", hal.HAL_BIT, hal.HAL_OUT)
+# - Overall elapsed time, s.
+h.newpin("elapsed-time", hal.HAL_INT, hal.HAL_OUT)
+# - Current stage, ID
+h.newpin("stage", hal.HAL_INT, hal.HAL_OUT)
+# - Current stage elapsed time, s.
+h.newpin("stage-elapsed-time", hal.HAL_INT, hal.HAL_OUT)
+# - Error, True/False
 h.newpin("error", hal.HAL_BIT, hal.HAL_OUT)
 
-# Init values
-h['error'] = 0
-h['switch-on'] = 0
-h['switch-heat'] = 0
+# Zero initial values
+h['temp-set'] = 0.0
+h['time-set'] = 0.0
+h['valve-on'] = False
+h['elapsed-time'] = 0
+h['stage'] = 0
+h['stage-elapsed-time'] = 0
+h['error'] = False
+
+# Stages
+stage_name_id_map = dict(
+    idle = 0, flush = 1, heating = 2, sterilization = 3, cooldown = 4)
+stage_id_name_map = {
+    0: 'idle', 1: 'flush', 2: 'heating', 3: 'sterilization', 4: 'cooldown'}
+
+# Dict to persist state across cycles
+state = dict()
 
 msg = Messages('Autoclave control')
 
@@ -37,65 +85,158 @@ msg = Messages('Autoclave control')
 msg.info("Initialized")
 h.ready()
 
+# Convenience functions
+
+def stage_time_elapsed():
+    if h['time-set'] == 0:  # Not a timed stage
+        return False
+    return (now - h['stage-elapsed-time']) > h['time-set']
+        
+def stage_temp_reached(exceeded=True):
+    if h['time-set'] > 0:  # Not a temp stage
+        return False
+    if exceeded:
+        return h['temp-pot'] >= h['temp-set']
+    else:
+        return h['temp-pot'] <= h['temp-set']
+
+def enter_stage(stage_name, temp=0, time=-1, valve_on=False):
+    now = time.time()
+    msg.info("Exiting '%s' stage after %d seconds" %
+             (stage_id_name_map.get(h['stage']),
+              now - h['stage-elapsed-time']))
+    if stage_name == 'idle':
+        msg.info("Process ended; total elapsed time %d seconds" %
+                 now - h['elapsed-time'])
+        msg.info("Entering 'idle' state; set temperature %.1f"
+                 % temp)
+        # Process ended; reset elapsed time
+        h['elapsed-time'] = 0
+        state['elapsed-time-start'] = now
+        h['start'] = False
+    else:
+        if stage_name == 'flush':
+            msg.info("Starting process")
+            # Process starting; reset elapsed time
+            h['elapsed-time'] = 0
+            state['elapsed-time-start'] = now
+
+        if temp is not None:
+            msg.info("Entering '%s' stage; set temperature %.1f"
+                     % (stage_name, temp))
+        else:
+            msg.info("Entering '%s' stage for %d seconds"
+                     % (stage_name, time))
+    # Set state
+    state['stage'] = stage_name_id_map.get(stage_name)
+    # Reset stage timer
+    h['stage-elapsed-time'] = 0
+    state['stage-elapsed-time-start'] = now
+    # Set time, temp and valve
+    h['time-set'] = time
+    h['temp-set'] = temp
+    h['valve-on'] = valve_on
+    return True
+
+# Main loop function
+
 def loop():
     time.sleep(0.1)
 
-    # Take one sample for consistency
-    enable = h['enable']
-    shutdown = h['shutdown']
-    temp_int = h['temp-int']
-    temp_max = h['temp-max']
-    temp_min = h['temp-min']
-    hysteresis = h['hysteresis']
-    
     # Exit
-    if shutdown:
-        msg.info("Got shutdown signal = %s" % shutdown)
+    if h['shutdown']:
+        msg.info("Got shutdown signal = %s" % h['shutdown'])
         return False
 
-    # Error condition:  temp-max <= temp-min
-    if (temp_max <= temp_min) or (hysteresis < 0) or (not enable):
-        if not h['error']:
-            if temp_max <= temp_min:
-                msg.info("ERROR:  temp_max <= temp_min")
-            if hysteresis < 0:
-                msg.info("ERROR:  hysteresis < 0")
-            if not enable:
-                msg.info("ERROR:  enable signal cleared")
-        h['switch-on'] = 0
-        h['error'] = 1
+    # Handle errors:
+    #
+    # These errors are just noted here; actual handling is in the HAL
+    # file
+    error = False
+
+    # - E-Stop
+    if h['estop']:  # Actual handling in HAL file
+        if not state.get('error_seen',False):
+            msg.error("E-Stop")
+        error = True
+
+    # - Burner overheating
+    if h['temp-burner'] > h['temp-max-burner']:
+        if not state.get('error_seen',False):
+            msg.error("Burner overheating:  %.1f > %.1f" %
+                      (h['temp-burner'], h['temp-max-burner']))
+        error = True
+
+    # - Autoclave overheating
+    if h['temp-pot'] > h['temp-max-pot']:
+        if not state.get('error_seen',False):
+            msg.error("Autoclave overheating:  %.1f > %.1f" %
+                      (h['temp-pot'], h['temp-max-pot']))
+        error = True
+
+    # - Autoclave overpressure
+    if h['pressure'] > h['pressure-max']:
+        if not state.get('error_seen',False):
+            msg.error("Autoclave overpressure:  %.1f > %.1f" %
+                      (h['pressure'], h['pressure-max']))
+        error = True
+
+    # - Enable signal cleared
+    if not h['enable']:
+        if not state.get('error_seen',False):
+            msg.error("Enable signal cleared")
+        error = True
+
+    # - Wrap up error processing
+    if error:
+        # Remember we saw an error and don't spew next round
+        state['error_seen'] = True
+        # Set error signal
+        h['error'] = True
         return True
     else:
-        if h['error']:
-            msg.info("Recovered from error conditions")
-        h['error'] = 0
+        if state.get('error_seen', False):
+            msg.info("Error condition cleared; resuming")
+        state['error_seen'] = False
+        # Reset error signal
+        h['error'] = False
 
-    # Enable input
-    if not enable:
-        # Disable
-        h['switch-on'] = 0
-        return True
+    # Process state machine
+    state_name = stage_id_name_map.get(h['stage'], 'unset')
 
+    # - Enter idle state
+    if not h['start'] and state_name != 'idle':
+        return enter_stage('idle', temp=h['idle-temp'])
 
-    # On/off and heat/cool switches
-    if ((temp_int - hysteresis) > temp_max):
-        if not h['switch-on']:
-            msg.info("Turning on cool; internal temp %.1f (hyst %.1f)" %
-                    (temp_int, hysteresis))
-        h['switch-heat'] = 0
-        h['switch-on'] = 1
-    elif ((temp_int + hysteresis) < temp_min):
-        if not h['switch-on']:
-            msg.info("Turning on heat; internal temp %.1f (hyst %.1f)" %
-                    (temp_int, hysteresis))
-        h['switch-heat'] = 1
-        h['switch-on'] = 1
-    elif ((temp_int > temp_min) and (temp_int < temp_max)):
-        if h['switch-on']:
-            msg.info("Turning off; internal temp %.1f" % temp_int)
-        h['switch-on'] = 0
+    # - Idle -> steam flush
+    if h['start'] and state_name == 'idle':
+        return enter_stage('flush', time=h['flush-time'], valve_on=True,
+                           temp=temp_max_pot) # need burner PWM at 100%
 
+    # - Flush -> heating
+    if state_name == 'flush' and stage_time_elapsed():
+        return enter_stage('heating', temp=h['ster-temp'])
+
+    # - Heating -> sterilization
+    if state_name == 'heating' and stage_temp_reached():
+        return enter_stage('sterilization', time=h['ster-time'],
+                           temp=h['ster_temp'])
+
+    # - Sterilization -> cooldown
+    if state_name == 'sterilization' and stage_time_elapsed():
+        return enter_stage('cooldown', temp=h['finish-temp'])
+
+    # - Cooldown -> idle
+    if state_name == 'cooldown' and stage_temp_reached(exceeded=False):
+        return enter_stage('idle', temp=h['idle-temp'])
+
+    # No state changes; update timers and return
+    now = time.time()
+    h['elapsed-time'] = now - state['elapsed-time-start']
+    h['stage-elapsed-time'] = now - state['stage-elapsed-time-start']
     return True
+
+# Do it
 
 try:
     # Run forever

@@ -11,14 +11,21 @@
 
 # ################
 # Thermistor
-# - 10k thermistors with 1k pull-up resistor:  internal on AIN0, external on AIN1
+# - 100k thermistors with 1k pull-up resistor:  burner on AIN1, pot on
+#   AIN3
 #     https://github.com/machinekit/machinekit/blob/master/src/hal/user_comps/hal_temp_bbb.py
 
 # - Load thermistor comp
-loadusr -Wn therm hal_temp_bbb -n therm -c 00:TR91,01:TR91 -b CRAMPS -r 1000
-# - Internal temp signal
-net temp-int                        <= therm.ch-00.value
-net temp-ext                        <= therm.ch-01.value
+loadusr -Wn therm hal_temp_bbb -n therm -c 01:TR91,03:TR91 -b CRAMPS -r 1000
+# - Burner temp signal
+net temp-burner                     <= therm.ch-01.value
+# - Pot temp signal
+net temp-pot                        <= therm.ch-03.value
+
+# ################
+# Pressure sensore
+# - 5V pressure sensore on AIN5
+#   FIXME
 
 # ################
 # Threads
@@ -31,23 +38,18 @@ loadrt threads name1=main-thread period1=10000000
 #     http://linuxcnc.org/docs/devel/html/man/man9/hal_bb_gpio.9.html
 # - pinouts
 #     http://beagleboard.org/support/bone101
+# - Burner SSR on P9.18
+# - Pressure relief valve SSR on P9.22
 
-loadrt hal_bb_gpio board=BeagleBone output_pins=102,104,106,108,110,112,120
+loadrt hal_bb_gpio board=BeagleBone output_pins=918,922
 addf bb_gpio.read                   main-thread
 addf bb_gpio.write                  main-thread
 
-# - Peltier heat/cool/enable
-net heat-on                         => bb_gpio.p1.out-02
-net cool-on                         => bb_gpio.p1.out-04
-net enable                          => bb_gpio.p1.out-06
+# - Burner SSR on/off
+net burner-on                       => bb_gpio.p9.out-18
 
-# - Fan
-net switch-on                       => bb_gpio.p1.out-20
-
-# - LEDs
-net cool-on                         => bb_gpio.p1.out-08
-net enable                          => bb_gpio.p1.out-10
-net heat-on                         => bb_gpio.p1.out-12
+# - Pressure relief SSR on/off
+net valve-on                        => bb_gpio.p9.out-22
 
 # ################################################
 # Load common HAL config
