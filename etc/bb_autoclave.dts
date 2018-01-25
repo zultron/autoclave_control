@@ -21,6 +21,9 @@
 	    P9_22_pinmux {
 		mode = "gpio_pd";
 	    };
+	    P9_42_pinmux {
+		mode = "gpio_pd";
+	    };
 	};
     };
 };

@@ -41,7 +41,7 @@ loadrt threads name1=main-thread period1=10000000
 # - Burner SSR on P9.18
 # - Pressure relief valve SSR on P9.22
 
-loadrt hal_bb_gpio board=BeagleBone output_pins=918,922
+loadrt hal_bb_gpio board=BeagleBone output_pins=918,922 input_pins=942
 addf bb_gpio.read                   main-thread
 addf bb_gpio.write                  main-thread
 
@@ -50,6 +50,9 @@ net burner-on                       => bb_gpio.p9.out-18
 
 # - Pressure relief SSR on/off
 net valve-on                        => bb_gpio.p9.out-22
+
+# - E-stop
+net estop                           <= bb_gpio.p9.in-42
 
 # ################################################
 # Load common HAL config
