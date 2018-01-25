@@ -6,6 +6,7 @@
 
 # Run artifacts
 /rrd/
+/var/
 *.autosave
 
 # Min install artifacts
