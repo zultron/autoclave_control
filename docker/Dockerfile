@@ -44,4 +44,4 @@ ADD machinekit.ini /etc/linuxcnc/machinekit.ini
 RUN sudo sed -i /etc/avahi/avahi-daemon.conf -e '/rlimit-nproc/ s/^/#/'
 
 # Tell Autoclave this is a sim environment
-ENV AUTOCLAVE_SIM=true
+ENV MACHINEKIT_SIM=true

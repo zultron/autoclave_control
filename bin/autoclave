@@ -63,7 +63,7 @@ except ConfigError as e:
     sys.exit(1)
 
 if args.board == 'detect':
-    if os.getenv('AUTOCLAVE_SIM',False):
+    if os.getenv('MACHINEKIT_SIM',False):
         args.board = 'sim'
     elif os.path.exists('/proc/device-tree/model'):
         with open('/proc/device-tree/model','r') as f:  m=f.read()
