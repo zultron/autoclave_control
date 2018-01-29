@@ -3,14 +3,7 @@
         <file>main.qml</file>
         <file>autoclave-remote/description.ini</file>
         <file>autoclave-remote/autoclave-remote.qml</file>
-        <file>autoclave-remote/Goldistat/ExitButton.qml</file>
-        <file>autoclave-remote/Goldistat/Goldistat.qml</file>
-        <file>autoclave-remote/Goldistat/PowerButton.qml</file>
-        <file>autoclave-remote/Goldistat/Private/GoldistatIn.qml</file>
-        <file>autoclave-remote/Goldistat/Private/GoldistatOut.qml</file>
-        <file>autoclave-remote/Goldistat/Private/GoldistatSet.qml</file>
-        <file>autoclave-remote/Goldistat/TimeSeries.qml</file>
-        <file>autoclave-remote/assets/background.png</file>
-        <file>autoclave-remote/assets/locks.png</file>
+        <file>autoclave-remote/Autoclave/DialGauge.qml</file>
+        <file>autoclave-remote/test.qml</file>
     </qresource>
 </RCC>
