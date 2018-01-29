@@ -36,7 +36,7 @@ Item {
     property double minorGradWidth: 0.10 // width of minor graduations; %
     property double majorGradWidth: 0.30 // width of major graduations; %
     property double gradLineWidth: 3.0
-    property double handleDiameter: 45.0
+    property double handleDiameter: 25.0
     property double handleStrokeWidth: 5.0
     property double epsilon: 0.00001
     // - Min/max and direction
@@ -59,18 +59,18 @@ Item {
 
     // Computed parameters
     // - Major sizes
-    width: outerDiameter
-    height: outerDiameter
     property double outerR: outerDiameter/2
     property double innerR: innerDiameter/2
     property double centerR: (outerR+innerR)/2 // Halfway between
+    property double handleFillR: handleDiameter/2
+    property double handleStrokeR: handleStrokeWidth/2
+    property double handleR: handleFillR+handleStrokeR
     // - Ranges, scales and angles
     property double toRads: Math.PI/180.0
     property double valueRange: maxValue-minValue
     property double maxPosR: maxPos * toRads
     property double minPosR: minPos * toRads
     property double posRange: maxPosR-minPosR
-    property int posNumCircs: Math.floor(posRange / (2*Math.PI) - epsilon)
     property double posValueScale: posRange/valueRange
     property double radsPerMajorGrad: posValueScale * majorGrad
     property double radsPerMinorGrad: posValueScale * minorGrad
@@ -79,37 +79,16 @@ Item {
     property int numMajorGrads: Math.floor( // clip to <360deg. & int amount
 	valueRange/majorGrad * Math.min(Math.abs(posRange),2*Math.PI)/posRange)
 
+    // Size
+    width: outerDiameter
+    height: outerDiameter
 
-    property int setNumCircs: Math.floor(
-	setValue*posValueScale / (2*Math.PI) - epsilon)
-    property int readNumCircs: Math.floor(
-	readValue*posValueScale / (2*Math.PI) - epsilon)
 
 
     property double debug1val: -1
     property double debug2val: -1
     /* property alias debug1val: debug1.val */
     /* property alias debug2val: debug2.val */
-
-    /*
-    Rectangle {
-        // Base background circle
-        id: face
-
-        // Size circle relative to frame
-        width: base.width
-        height: base.height
-        radius: base.width/2
-
-        // Center on base and lower
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.verticalCenter: parent.verticalCenter
-	z: 0
-
-	// Background color
-	color: baseColor
-    }
-    */
 
     Canvas {
 	// Set base ring
@@ -205,8 +184,6 @@ Item {
 	    context.reset();
             context.beginPath();
 
-	    //base.debug1val = numMajorGrads;
-	    //base.debug2val = posNumCircs;
 	    // Draw graduations
 	    // - First major graduation
 	    drawGrad(context, minPosR, majorGradWidth);
@@ -230,12 +207,18 @@ Item {
 
 	// Set value arc, <360
 	id: setValArc
+	property alias value: base.setValue
+	property int numCircs: Math.floor(
+	    value*posValueScale / (2*Math.PI) - epsilon)
 	property double angle: (
-	    setValue * posValueScale - setNumCircs*2*Math.PI + minPosR)
+	    value * posValueScale - numCircs*2*Math.PI + minPosR)
 
 	// Positioning
 	anchors.fill: parent
 	z: 2.1
+
+	// Repaint canvas whenever value changes
+        onValueChanged: requestPaint()
 
 	contextType: "2d"
 	onPaint: {
@@ -254,12 +237,18 @@ Item {
     Canvas {
 	// Read value arc, <360
 	id: readValArc
+	property alias value: base.readValue
+	property int numCircs: Math.floor(
+	    value*posValueScale / (2*Math.PI) - epsilon)
 	property double angle: (
-	    readValue * posValueScale - readNumCircs*2*Math.PI + minPosR)
+	    value * posValueScale - numCircs*2*Math.PI + minPosR)
 
 	// Positioning
 	anchors.fill: parent
 	z: 2.2
+
+	// Repaint canvas whenever value changes
+        onValueChanged: requestPaint()
 
 	contextType: "2d"
 	onPaint: {
@@ -273,12 +262,12 @@ Item {
 	}
     }
 
-    function drawHandle(c, angle, radius, fillR) {
+    function drawHandle(c, dialAngle, dialRadius, radius) {
 	// Draw set value handle
 	c.beginPath();
-	c.arc(base.outerR + Math.cos(angle)*radius,
-	      base.outerR + Math.sin(angle)*radius,  // center
-	      fillR, 0, 2*Math.PI);
+	c.arc(base.outerR + Math.cos(dialAngle) * dialRadius,  // center X
+	      base.outerR + Math.sin(dialAngle) * dialRadius,  // center Y
+	      radius, 0, 2*Math.PI);
 	c.stroke();
         c.fill();
     }
@@ -286,10 +275,14 @@ Item {
     Canvas {
 	// Set value handle, <360 deg.
 	id: setValHandle
+	property alias angle: setValArc.angle
 
 	// Positioning
 	anchors.fill: parent
 	z: 9
+
+	// Repaint canvas whenever value changes
+        onAngleChanged: requestPaint()
 
 	contextType: "2d"
 	onPaint: {
@@ -299,18 +292,21 @@ Item {
             context.fillStyle = setColor;
 	    context.strokeStyle = setBGColor;
 	    context.lineWidth = handleStrokeWidth;
-	    drawHandle(context, setValArc.angle, centerR,
-		       handleDiameter/2);
+	    drawHandle(context, angle, centerR, handleFillR);
 	}
     }
 
     Canvas {
 	// Read value handle, <360 deg.
 	id: readValHandle
+	property alias angle: readValArc.angle
 
 	// Positioning
 	anchors.fill: parent
 	z: 10
+
+	// Repaint canvas whenever value changes
+        onAngleChanged: requestPaint()
 
 	contextType: "2d"
 	onPaint: {
@@ -320,38 +316,38 @@ Item {
             context.fillStyle = readColor;
 	    context.strokeStyle = readBGColor;
 	    context.lineWidth = handleStrokeWidth;
-	    drawHandle(context, readValArc.angle, centerR,
-		       handleDiameter/2);
+	    drawHandle(context, angle, centerR, handleFillR);
 	}
     }
 
     Canvas {
 	// Set value laps, >360 deg.
 	id: setValLaps
+	property alias numCircs: setValArc.numCircs
+	property color fillColor: setColor
+	property color strokeColor: setBGColor
 
 	// Positioning
 	anchors.fill: parent
 	z: 8
 
+	// Repaint canvas whenever numCircs changes
+        onNumCircsChanged: requestPaint()
+
 	contextType: "2d"
 	onPaint: {
-	    // Draw handle at end of arc, middle of its width
-	    var radius = (outerR+centerR)/2;
-	    var halfAngle = Math.asin(
-		(handleDiameter+handleStrokeWidth)/2/radius);
-	    base.debug1val = (handleDiameter/2+handleStrokeWidth);
-	    base.debug2val = setNumCircs;
-	    //base.debug2val = halfAngle/toRads;
+	    // Draw handle left of zero position, tangent with outer radius
+	    var radius = outerR-handleR;
+	    var halfAngle = Math.asin(handleR/radius);
 	    if (!context) return;
 	    context.reset();
-            context.fillStyle = setColor;
-	    context.strokeStyle = setBGColor;
+            context.fillStyle = fillColor;
+	    context.strokeStyle = strokeColor;
 	    context.lineWidth = handleStrokeWidth;
 
-	    for (var i=0; i<setNumCircs; i++) {
-		drawHandle(context, minPosR - (i*2+1) * halfAngle, radius,
-			   handleDiameter/2, base.setColor,
-			   handleStrokeWidth, base.setBGColor);
+	    for (var i=0; i<numCircs; i++) {
+		var dialAngle = minPosR - (i*2+1) * halfAngle;
+		drawHandle(context, dialAngle, radius, handleFillR);
 	    }
 	}
     }
@@ -359,29 +355,31 @@ Item {
     Canvas {
 	// Read value laps, >360 deg.
 	id: readValLaps
+	property alias numCircs: readValArc.numCircs
+	property color fillColor: readColor
+	property color strokeColor: readBGColor
 
 	// Positioning
 	anchors.fill: parent
 	z: 8
 
+	// Repaint canvas whenever numCircs changes
+        onNumCircsChanged: requestPaint()
+
 	contextType: "2d"
 	onPaint: {
-	    // Draw handle at end of arc, middle of its width
-	    var radius = (outerR+centerR)/2;
-	    var halfAngle = Math.asin(
-		(handleDiameter+handleStrokeWidth)/2/radius);
-	    base.debug1val = (handleDiameter/2+handleStrokeWidth);
-	    base.debug2val = readNumCircs;
+	    // Draw handle left of zero position, tangent with outer radius
+	    var radius = outerR-handleR;
+	    var halfAngle = Math.asin(handleR/radius);
 	    if (!context) return;
 	    context.reset();
-            context.fillStyle = readColor;
-	    context.strokeStyle = readBGColor;
+            context.fillStyle = fillColor;
+	    context.strokeStyle = strokeColor;
 	    context.lineWidth = handleStrokeWidth;
 
-	    for (var i=0; i<readNumCircs; i++) {
-		drawHandle(context, minPosR - (i*2+1) * halfAngle, radius,
-			   handleDiameter/2, base.readColor,
-			   handleStrokeWidth, base.readBGColor);
+	    for (var i=0; i<numCircs; i++) {
+		var dialAngle = minPosR - (i*2+1) * halfAngle;
+		drawHandle(context, dialAngle, radius, handleFillR);
 	    }
 	}
     }
