@@ -85,8 +85,8 @@ Item {
 
 
 
-    property double debug1val: -1
-    property double debug2val: -1
+    /* property double debug1val: -1 */
+    /* property double debug2val: -1 */
     /* property alias debug1val: debug1.val */
     /* property alias debug2val: debug2.val */
 
@@ -125,6 +125,7 @@ Item {
 	c.stroke();
     }
 
+    /*
     Label {
         // Debugging
         id: debug1
@@ -157,6 +158,7 @@ Item {
         anchors.horizontalCenter: outerR
         anchors.verticalCenter: outerR
     }
+    */
 
     Canvas {
 	// http://doc.qt.io/qt-5/qml-qtquick-context2d.html
@@ -169,8 +171,6 @@ Item {
 	function drawGrad(c,ang,w) {
 	    var gradOuterR = centerR + (outerR-centerR)*w;
 	    var gradInnerR = centerR + (innerR-centerR)*w;
-	    //base.debug1val = gradOuterR;
-	    //base.debug2val = gradInnerR;
 	    c.moveTo(Math.cos(ang)*gradOuterR + outerR,
 		     Math.sin(ang)*gradOuterR + outerR);
 	    c.lineTo(Math.cos(ang)*gradInnerR + outerR,
@@ -222,8 +222,6 @@ Item {
 
 	contextType: "2d"
 	onPaint: {
-	    //base.debug1val = setValue;
-	    //base.debug2val = setValue * posValueScale / toRads;
 	    if (!context) return;
 	    context.reset();
 	    context.strokeStyle = base.setColor;
