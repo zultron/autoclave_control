@@ -25,9 +25,9 @@ Item {
 
     // Input/output values
     // - Setting
-    property double setValue: 239.0
+    property double setValue: 15.0 // 239.0
     // - Readout
-    property double readValue: 176.0
+    property double readValue: 1 // 176.0
 
     // Display settings
     // - Size
@@ -38,7 +38,6 @@ Item {
     property double gradLineWidth: 3.0
     property double handleDiameter: 25.0
     property double handleStrokeWidth: 5.0
-    property double epsilon: 0.00001
     // - Min/max and direction
     property double minValue: 0.0
     property double maxValue: 60.0*4 // 4 hours
@@ -68,9 +67,9 @@ Item {
     // - Ranges, scales and angles
     property double toRads: Math.PI/180.0
     property double valueRange: maxValue-minValue
-    property double maxPosR: maxPos * toRads
-    property double minPosR: minPos * toRads
-    property double posRange: maxPosR-minPosR
+    property double maxPosR: maxPos * toRads // rename to maxRads
+    property double minPosR: minPos * toRads // rename to minRads
+    property double posRange: maxPosR-minPosR // rename to rangeRads
     property double posValueScale: posRange/valueRange
     property double radsPerMajorGrad: posValueScale * majorGrad
     property double radsPerMinorGrad: posValueScale * minorGrad
@@ -85,10 +84,9 @@ Item {
 
 
 
-    /* property double debug1val: -1 */
-    /* property double debug2val: -1 */
-    /* property alias debug1val: debug1.val */
-    /* property alias debug2val: debug2.val */
+    property alias debug1val: debug1.val
+    property alias debug2val: debug2.val
+    property alias debug3val: debug3.val
 
     Canvas {
 	// Set base ring
@@ -125,12 +123,13 @@ Item {
 	c.stroke();
     }
 
-    /*
     Label {
         // Debugging
         id: debug1
+	property double val: NaN
+
 	x: 0
-        y: -50
+        y: outerDiameter + 5
 	z: 10
 
         // Format float value with decimals in black text
@@ -139,14 +138,14 @@ Item {
 
         // Proportional size, centered above handle, with l/r tweak
         font.pixelSize: 20
-        anchors.horizontalCenter: outerR
-        anchors.verticalCenter: outerR
     }
 
     Label {
         // Debugging
         id: debug2
-        y: -25
+	property double val: NaN
+
+        y: outerDiameter + 30
 	z: 10
 
         // Format float value with decimals in black text
@@ -155,10 +154,24 @@ Item {
 
         // Proportional size, centered above handle, with l/r tweak
         font.pixelSize: 20
-        anchors.horizontalCenter: outerR
-        anchors.verticalCenter: outerR
     }
-    */
+
+    Label {
+        // Debugging
+        id: debug3
+	property double val: NaN
+
+	x: 0
+        y: outerDiameter + 55
+	z: 10
+
+        // Format float value with decimals in black text
+        text: "base.debug3val = " + (base.debug3val).toFixed(5)
+        color: "#000000"
+
+        // Proportional size, centered above handle, with l/r tweak
+        font.pixelSize: 20
+    }
 
     Canvas {
 	// http://doc.qt.io/qt-5/qml-qtquick-context2d.html
@@ -208,8 +221,7 @@ Item {
 	// Set value arc, <360
 	id: setValArc
 	property alias value: base.setValue
-	property int numCircs: Math.floor(
-	    value*posValueScale / (2*Math.PI) - epsilon)
+	property int numCircs: Math.floor(value*posValueScale / (2*Math.PI))
 	property double angle: (
 	    value * posValueScale - numCircs*2*Math.PI + minPosR)
 
@@ -227,7 +239,10 @@ Item {
 	    context.strokeStyle = base.setColor;
 	    context.lineWidth = outerR - innerR;
 
-	    // Draw set value outer arc
+	    // Draw value arc
+	    base.debug1val = minPosR / toRads;
+	    base.debug2val = angle / toRads;
+	    base.debug3val = numCircs;
 	    drawArc(context, (outerR+innerR)/2, minPosR, angle);
 	}
     }
@@ -236,8 +251,7 @@ Item {
 	// Read value arc, <360
 	id: readValArc
 	property alias value: base.readValue
-	property int numCircs: Math.floor(
-	    value*posValueScale / (2*Math.PI) - epsilon)
+	property int numCircs: Math.floor(value*posValueScale / (2*Math.PI))
 	property double angle: (
 	    value * posValueScale - numCircs*2*Math.PI + minPosR)
 
@@ -277,7 +291,7 @@ Item {
 
 	// Positioning
 	anchors.fill: parent
-	z: 9
+	z: 9.1
 
 	// Repaint canvas whenever value changes
         onAngleChanged: requestPaint()
@@ -301,7 +315,7 @@ Item {
 
 	// Positioning
 	anchors.fill: parent
-	z: 10
+	z: 9.2
 
 	// Repaint canvas whenever value changes
         onAngleChanged: requestPaint()
@@ -382,7 +396,100 @@ Item {
 	}
     }
 
+    MouseArea {
+	/* Invisible layer for dealing with mouse button and scroll input
 
-    
+	   When arc is clicked, the angle is computed to determine
+	   which arc, and the clicked arc and arc starting and clicked
+	   position are saved in a register.
 
+	   Then, when arc is dragged, the angle is compared with the
+	   saved angle, and applied to the arc.
+	  */
+        id: events
+	property alias numCircs: setValArc.numCircs
+	property alias value: setValArc.value
+	property alias angle: setValArc.angle
+        // Saved state of initial mouse press
+        property double angleStart: NaN // angle where mouse pressed
+
+	// Process clicks from full area, and be on top
+        anchors.fill: parent
+        z: 10 // On top
+
+        function mouseInRing(m) {
+            // Calculate if mouse position is in settings ring
+	    // - Get distance with Pythagoras
+            var d = Math.sqrt(Math.pow(m.x - outerR, 2) +
+			      Math.pow(m.y - outerR, 2));
+	    // - Check click is in ring
+	    var res = (d <= outerR) && (d >= innerR);
+	    // Debugging
+	    //base.inring = res;
+	    //base.mouseX = m.x;
+	    //base.mouseY = m.y;
+            return res;
+        }
+
+        function mouseToAngle(m, numCircs) {
+            // Get angle in radians from 0 radians (E)
+	    var angleRaw = Math.atan2(m.x - outerR, m.y - outerR);
+            var angle = angleRaw;
+	    // Debugging
+	    //base.toangle = angle;
+            return angle;
+        }
+
+        // When pressed,
+        // - If not pressed in ring, disable dragging, return.  Else,
+        // - Check which zone the press was closest to
+        // - Register the zone, original val and clicked val
+        onPressed: {
+            angleStart = NaN;
+            if (!mouseInRing(mouse))
+		// Mouse pos'n not in ring; return
+		return;
+
+            // Get val from mouse position
+            angleStart = mouseToAngle(mouse);
+        }
+        // When moved, adjust the value by the amount dragged
+        onPositionChanged: {
+        //onReleased: {
+	    if (isNaN(angleStart) || !mouseInRing(mouse))
+		// Initial or current mouse pos'n not in ring
+		return;
+
+            // Get angle delta between current and saved
+	    var angleMouse = mouseToAngle(mouse);
+            var angleDelta = (angleStart - angleMouse) % (2*Math.PI);
+	    if (angleDelta < -Math.PI) angleDelta += 2*Math.PI;
+	    else if (angleDelta > Math.PI) angleDelta -= 2*Math.PI;
+	    var valueDelta = angleDelta / posValueScale;
+	    angleStart = angleMouse;
+	    // New value
+	    var newVal = setValue + valueDelta;
+            base.setValue = Math.min(maxValue, Math.max(minValue, newVal));
+            // Debugging
+            //base.dragged = valdiff;
+
+        }
+
+	/*
+        // Mouse wheel:
+        // - If not in ring, do nothing, stop.  Else,
+        // - Check which zone mouse is closest to
+        // - Increment/decrement the zone, respecting max/min values
+        onWheel: {
+            if (!mouseInRing(wheel)) return; // Ignore out of bounds
+
+            var val = mouseToVal(wheel);
+            var newv = red.value + wheel.angleDelta.y/15 * base.stepSize;
+            if (newv > maximumValue) newv = maximumValue;
+            if (newv < blue.value + base.minGreenZone)
+                newv = blue.value + base.minGreenZone;
+            setValue = newv;
+        }
+	*/
+    }
 }
