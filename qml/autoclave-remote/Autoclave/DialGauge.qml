@@ -25,7 +25,7 @@ Item {
 
     // Input/output values
     // - Setting
-    property double setValue: 15.0 // 239.0
+    property double setValue: 105.0 // 239.0
     // - Readout
     property double readValue: 1 // 176.0
 
@@ -84,9 +84,9 @@ Item {
 
 
 
-    property alias debug1val: debug1.val
-    property alias debug2val: debug2.val
-    property alias debug3val: debug3.val
+    property alias debug1val: debug.val1
+    property alias debug2val: debug.val2
+    property alias debug3val: debug.val3
 
     Canvas {
 	// Set base ring
@@ -117,48 +117,19 @@ Item {
 
     Label {
         // Debugging
-        id: debug1
-	property double val: NaN
+        id: debug
+	property double val1: NaN
+	property double val2: NaN
+	property double val3: NaN
 
 	x: 0
         y: outerDiameter + 5
 	z: 10
 
         // Format float value with decimals in black text
-        text: "base.debug1val = " + (base.debug1val).toFixed(5)
-        color: "#000000"
-
-        // Proportional size, centered above handle, with l/r tweak
-        font.pixelSize: 20
-    }
-
-    Label {
-        // Debugging
-        id: debug2
-	property double val: NaN
-
-        y: outerDiameter + 30
-	z: 10
-
-        // Format float value with decimals in black text
-        text: "base.debug2val = " + (base.debug2val).toFixed(5)
-        color: "#000000"
-
-        // Proportional size, centered above handle, with l/r tweak
-        font.pixelSize: 20
-    }
-
-    Label {
-        // Debugging
-        id: debug3
-	property double val: NaN
-
-	x: 0
-        y: outerDiameter + 55
-	z: 10
-
-        // Format float value with decimals in black text
-        text: "base.debug3val = " + (base.debug3val).toFixed(5)
+        text: (val1.toFixed(5) + "; " +
+	       val2.toFixed(5) + "; " +
+	       val3.toFixed(5) + "; ")
         color: "#000000"
 
         // Proportional size, centered above handle, with l/r tweak
@@ -216,6 +187,7 @@ Item {
 	property int numCircs: Math.floor(value*posValueScale / (2*Math.PI))
 	property double angle: (
 	    value * posValueScale - numCircs*2*Math.PI + minPosR)
+	property color color: base.setColor
 
 	// Positioning
 	anchors.fill: parent
@@ -223,12 +195,13 @@ Item {
 
 	// Repaint canvas whenever value changes
         onValueChanged: requestPaint()
+	onColorChanged: requestPaint()
 
 	contextType: "2d"
 	onPaint: {
 	    if (!context) return;
 	    context.reset();
-	    context.strokeStyle = base.setColor;
+	    context.strokeStyle = color;
 	    context.lineWidth = outerR - innerR;
 
 	    // Draw value arc
@@ -279,6 +252,7 @@ Item {
 	property alias angleIn: setValArc.angle
 	property double anglePark: Math.asin(handleFillR / centerR)
 	property double parkRatio: 0.0
+	property alias arcColor: setValArc.color
 
 	// Positioning
 	anchors.fill: parent
@@ -303,7 +277,7 @@ Item {
 	    if (angleFrom0 < (2*Math.PI-anglePark)) {
 		// Too far away; do nothing
 		parkRatio = 0.0;
-		base.debug3val = parkRatio;
+		arcColor = base.setColor;
 		return;
 	    }
 
@@ -313,10 +287,9 @@ Item {
 	    radius = (1-parkRatio) * centerR + parkRatio * radiusParked;
 	    angle = minPosR - anglePark;
 
-	    base.debug1val = anglePark / toRads;
-	    base.debug2val = angleFrom0 / toRads;
-	    base.debug3val = parkRatio;
 	    drawHandle(context, angle, radius, handleFillR);
+	    // Make arc color transparent
+	    arcColor.a = 1 - parkRatio;
 	}
     }
 
@@ -348,6 +321,7 @@ Item {
 	// Set value laps, >360 deg.
 	id: setValLaps
 	property alias numCircs: setValArc.numCircs
+	property alias parkRatio: setValHandle.parkRatio
 	property color fillColor: setColor
 	property color strokeColor: setBGColor
 
@@ -357,6 +331,7 @@ Item {
 
 	// Repaint canvas whenever numCircs changes
         onNumCircsChanged: requestPaint()
+	onParkRatioChanged: requestPaint()
 
 	contextType: "2d"
 	onPaint: {
@@ -370,7 +345,7 @@ Item {
 	    context.lineWidth = handleStrokeWidth;
 
 	    for (var i=0; i<numCircs; i++) {
-		var dialAngle = minPosR - (i*2+1) * halfAngle;
+		var dialAngle = minPosR - (i*2+1+parkRatio*2) * halfAngle;
 		drawHandle(context, dialAngle, radius, handleFillR);
 	    }
 	}
@@ -436,10 +411,6 @@ Item {
 			      Math.pow(m.y - outerR, 2));
 	    // - Check click is in ring
 	    var res = (d <= outerR) && (d >= innerR);
-	    // Debugging
-	    //base.inring = res;
-	    //base.mouseX = m.x;
-	    //base.mouseY = m.y;
             return res;
         }
 
@@ -447,8 +418,6 @@ Item {
             // Get angle in radians from 0 radians (E)
 	    var angleRaw = Math.atan2(m.x - outerR, m.y - outerR);
             var angle = angleRaw;
-	    // Debugging
-	    //base.toangle = angle;
             return angle;
         }
 
@@ -467,7 +436,6 @@ Item {
         }
         // When moved, adjust the value by the amount dragged
         onPositionChanged: {
-        //onReleased: {
 	    if (isNaN(angleStart) || !mouseInRing(mouse))
 		// Initial or current mouse pos'n not in ring
 		return;
@@ -482,9 +450,6 @@ Item {
 	    // New value
 	    var newVal = setValue + valueDelta;
             base.setValue = Math.min(maxValue, Math.max(minValue, newVal));
-            // Debugging
-            //base.dragged = valdiff;
-
         }
 
 	/*
