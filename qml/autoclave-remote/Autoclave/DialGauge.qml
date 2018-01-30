@@ -205,7 +205,7 @@ Item {
 	    context.lineWidth = outerR - innerR;
 
 	    // Draw value arc
-	    drawArc(context, (outerR+innerR)/2, minPosR, angle);
+	    drawArc(context, centerR, minPosR, angle);
 	}
     }
 
@@ -216,6 +216,7 @@ Item {
 	property int numCircs: Math.floor(value*posValueScale / (2*Math.PI))
 	property double angle: (
 	    value * posValueScale - numCircs*2*Math.PI + minPosR)
+	property color color: base.readColor
 
 	// Positioning
 	anchors.fill: parent
@@ -228,11 +229,11 @@ Item {
 	onPaint: {
 	    if (!context) return;
 	    context.reset();
-	    context.strokeStyle = base.readColor;
+	    context.strokeStyle = color;
 	    context.lineWidth = outerR - innerR;
 
 	    // Draw read value outer arc
-	    drawArc(context, (outerR+innerR)/2, minPosR, angle);
+	    drawArc(context, centerR, minPosR, angle);
 	}
     }
 
