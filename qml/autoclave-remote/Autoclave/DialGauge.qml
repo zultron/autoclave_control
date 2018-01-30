@@ -25,9 +25,12 @@ Item {
 
     // Input/output values
     // - Setting
-    property double setValue: 105.0 // 239.0
+    //property double setValue: 105.0
+    property double setValue: 121.0
     // - Readout
-    property double readValue: 1 // 176.0
+    //property double readValue: 1.0
+    property double readValue: 80.0
+    //property alias readValue: base.setValue
 
     // Display settings
     // - Size
@@ -40,11 +43,12 @@ Item {
     property double handleStrokeWidth: 5.0
     // - Min/max and direction
     property double minValue: 0.0
-    property double maxValue: 60.0*4 // 4 hours
-    //property double minPos: 135.0  // SW
-    property double minPos: 270.0  // 12 o'clock
-    //property double maxPos: 405.0 // Clockwise 270 deg. to SE
-    property double maxPos: 360.0*4 + minPos  // 4 spins around the dial
+    //property double maxValue: 60.0*4 // 4 hours
+    property double maxValue: 130.0
+    property double minPos: 135.0  // SW
+    //property double minPos: 270.0  // 12 o'clock
+    property double maxPos: 405.0 // Clockwise 270 deg. to SE
+    //property double maxPos: 360.0*4 + minPos  // 4 spins around the dial
     // - Graduations
     property double minorGrad: 1.0 // minutes
     property double majorGrad: 5.0 // like 1..12 on clock
@@ -254,6 +258,7 @@ Item {
 	property double anglePark: Math.asin(handleFillR / centerR)
 	property double parkRatio: 0.0
 	property alias arcColor: setValArc.color
+	property alias resetColor: base.setColor
 
 	// Positioning
 	anchors.fill: parent
@@ -264,7 +269,6 @@ Item {
 
 	contextType: "2d"
 	onPaint: {
-	    // Draw handle at end of arc, middle of its width
 	    if (!context) return;
 	    context.reset();
             context.fillStyle = setColor;
@@ -278,7 +282,7 @@ Item {
 	    if (angleFrom0 < (2*Math.PI-anglePark)) {
 		// Too far away; do nothing
 		parkRatio = 0.0;
-		arcColor = base.setColor;
+		arcColor = resetColor;
 		return;
 	    }
 
@@ -297,24 +301,47 @@ Item {
     Canvas {
 	// Read value handle, <360 deg.
 	id: readValHandle
-	property alias angle: readValArc.angle
+	property alias angleIn: readValArc.angle
+	property double anglePark: Math.asin(handleFillR / centerR)
+	property double parkRatio: 0.0
+	property alias arcColor: readValArc.color
+	property alias resetColor: base.readColor
 
 	// Positioning
 	anchors.fill: parent
 	z: 9.2
 
 	// Repaint canvas whenever value changes
-        onAngleChanged: requestPaint()
+        onAngleInChanged: requestPaint()
 
 	contextType: "2d"
 	onPaint: {
-	    // Draw handle at end of arc, middle of its width
 	    if (!context) return;
 	    context.reset();
             context.fillStyle = readColor;
 	    context.strokeStyle = readBGColor;
 	    context.lineWidth = handleStrokeWidth;
-	    drawHandle(context, angle, centerR, handleFillR);
+	    // Always draw handle on arc end
+	    drawHandle(context, angleIn, centerR, handleFillR);
+	    // Animate handle parking
+	    var angle = angleIn;
+	    var angleFrom0 = (angle-minPosR) % (2*Math.PI)
+	    if (angleFrom0 < (2*Math.PI-anglePark)) {
+		// Too far away; do nothing
+		parkRatio = 0.0;
+		arcColor = resetColor;
+		return;
+	    }
+
+	    var radius = centerR;
+	    var radiusParked = outerR-handleR;
+	    parkRatio = 1 - (2*Math.PI - angleFrom0)/anglePark;
+	    radius = (1-parkRatio) * centerR + parkRatio * radiusParked;
+	    angle = minPosR - anglePark;
+
+	    drawHandle(context, angle, radius, handleFillR);
+	    // Make arc color transparent
+	    arcColor.a = 1 - parkRatio;
 	}
     }
 
@@ -328,7 +355,7 @@ Item {
 
 	// Positioning
 	anchors.fill: parent
-	z: 8
+	z: 8.1
 
 	// Repaint canvas whenever numCircs changes
         onNumCircsChanged: requestPaint()
@@ -356,15 +383,17 @@ Item {
 	// Read value laps, >360 deg.
 	id: readValLaps
 	property alias numCircs: readValArc.numCircs
+	property alias parkRatio: setValHandle.parkRatio
 	property color fillColor: readColor
 	property color strokeColor: readBGColor
 
 	// Positioning
 	anchors.fill: parent
-	z: 8
+	z: 8.2
 
 	// Repaint canvas whenever numCircs changes
         onNumCircsChanged: requestPaint()
+	onParkRatioChanged: requestPaint()
 
 	contextType: "2d"
 	onPaint: {
@@ -378,7 +407,7 @@ Item {
 	    context.lineWidth = handleStrokeWidth;
 
 	    for (var i=0; i<numCircs; i++) {
-		var dialAngle = minPosR - (i*2+1) * halfAngle;
+		var dialAngle = minPosR - (i*2+1+parkRatio*2) * halfAngle;
 		drawHandle(context, dialAngle, radius, handleFillR);
 	    }
 	}
