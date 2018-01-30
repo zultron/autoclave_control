@@ -108,14 +108,6 @@ Item {
 	}
     }
 
-    /* function moveToAng(c,ang,d) { */
-    /* 	c.moveTo(Math.cos(ang)*d, Math.sin(ang)*d); */
-    /* } */
-
-    /* function lineToAng(c,ang,d) { */
-    /* 	c.lineTo(Math.cos(ang)*d, Math.sin(ang)*d); */
-    /* } */
-
     function drawArc(c, radius, start, end) {
 	c.beginPath();
 	c.arc(outerR, outerR,   // center
@@ -240,9 +232,6 @@ Item {
 	    context.lineWidth = outerR - innerR;
 
 	    // Draw value arc
-	    base.debug1val = minPosR / toRads;
-	    base.debug2val = angle / toRads;
-	    base.debug3val = numCircs;
 	    drawArc(context, (outerR+innerR)/2, minPosR, angle);
 	}
     }
@@ -287,14 +276,16 @@ Item {
     Canvas {
 	// Set value handle, <360 deg.
 	id: setValHandle
-	property alias angle: setValArc.angle
+	property alias angleIn: setValArc.angle
+	property double anglePark: Math.asin(handleFillR / centerR)
+	property double parkRatio: 0.0
 
 	// Positioning
 	anchors.fill: parent
 	z: 9.1
 
 	// Repaint canvas whenever value changes
-        onAngleChanged: requestPaint()
+        onAngleInChanged: requestPaint()
 
 	contextType: "2d"
 	onPaint: {
@@ -304,7 +295,28 @@ Item {
             context.fillStyle = setColor;
 	    context.strokeStyle = setBGColor;
 	    context.lineWidth = handleStrokeWidth;
-	    drawHandle(context, angle, centerR, handleFillR);
+	    // Always draw handle on arc end
+	    drawHandle(context, angleIn, centerR, handleFillR);
+	    // Animate handle parking
+	    var angle = angleIn;
+	    var angleFrom0 = (angle-minPosR) % (2*Math.PI)
+	    if (angleFrom0 < (2*Math.PI-anglePark)) {
+		// Too far away; do nothing
+		parkRatio = 0.0;
+		base.debug3val = parkRatio;
+		return;
+	    }
+
+	    var radius = centerR;
+	    var radiusParked = outerR-handleR;
+	    parkRatio = 1 - (2*Math.PI - angleFrom0)/anglePark;
+	    radius = (1-parkRatio) * centerR + parkRatio * radiusParked;
+	    angle = minPosR - anglePark;
+
+	    base.debug1val = anglePark / toRads;
+	    base.debug2val = angleFrom0 / toRads;
+	    base.debug3val = parkRatio;
+	    drawHandle(context, angle, radius, handleFillR);
 	}
     }
 
