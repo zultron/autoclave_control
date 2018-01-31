@@ -25,7 +25,7 @@ Item {
 
     // Input/output values
     // - Setting
-    property double setValue: 200.0
+    property double setValue: 30.0
     //property double setValue: 121.0
     // - Readout
     //property double readValue: 1.0
@@ -181,6 +181,13 @@ Item {
 	    context.strokeStyle = base.gradColor;
 	    context.lineWidth = base.gradLineWidth;
 	    context.stroke();
+	    // Draw zero handle
+	    context.beginPath();
+            context.fillStyle = readColor;
+	    context.strokeStyle = readBGColor;
+	    context.lineWidth = handleStrokeWidth;
+	    drawHandle(context, minPosR, centerR, handleFillR);
+
 	}
     }
 
@@ -217,13 +224,44 @@ Item {
     }
 
     Canvas {
+	// Like face, but the readBGColor, fades slowly into view
+	id: readValFace
+	property color baseColor: base.readBGColor
+	property alias readVal: base.readValue
+	property alias setVal: base.setValue
+	property double colorA: Math.max(Math.min(readVal / setVal, 1.0), 0.0)
+	property color color: Qt.rgba(
+	    baseColor.r, baseColor.g, baseColor.b, colorA)
+
+	// Positioning
+	anchors.fill: parent
+	z: 0.1
+
+	// This changes transparency as the read value increases
+	onReadValChanged: requestPaint()
+
+	contextType: "2d"
+	onPaint: {
+	    if (!context) return;
+	    context.reset();
+	    context.strokeStyle = color;
+	    context.lineWidth = outerR - innerR;
+
+	    // Draw set value outer arc
+	    drawArc(context, (outerR+innerR)/2, 0, 2*Math.PI);
+	}
+    }
+
+    Canvas {
 	// Read value arc, <360
 	id: readValArc
 	property alias value: base.readValue
 	property int numCircs: Math.floor(value*posValueScale / (2*Math.PI))
 	property alias setNumCircs: setValArc.numCircs
-	property double angle: (
-	    value * posValueScale - numCircs*2*Math.PI + minPosR)
+	/* property double angle: Math.min(Math.max( */
+	/*     value * posValueScale - numCircs*2*Math.PI + minPosR, */
+	/*     base.minPos), base.maxPos) */
+	property double angle: value * posValueScale - numCircs*2*Math.PI + minPosR
 	property color color: base.readColor
 
 	// Positioning
@@ -240,16 +278,20 @@ Item {
 	    context.reset();
 	    context.strokeStyle = color;
 
-	    debug1val = numCircs;
-	    debug2val = setNumCircs;
+	    debug1val = angle;
+	    debug2val = minPosR;
+	    debug3val = maxPosR;
+
 	    // Draw previous round's arc, if applicable
 	    if (numCircs > 0) {
-		context.lineWidth = numCircs * (outerR - innerR)/(setNumCircs+1);
+		var lineWidth = numCircs * (outerR - innerR)/(setNumCircs+1);
+		context.lineWidth = Math.min(lineWidth, outerR - innerR);
 		drawArc(context, centerR, 0, 2*Math.PI);
 	    }
 
 	    // Draw read value outer arc
-	    context.lineWidth = (numCircs+1) * (outerR - innerR)/(setNumCircs+1);
+	    var lineWidth = (numCircs+1) * (outerR - innerR)/(setNumCircs+1);
+	    context.lineWidth = Math.min(lineWidth, outerR - innerR);
 	    drawArc(context, centerR, minPosR, angle);
 	}
     }
@@ -285,31 +327,32 @@ Item {
             context.fillStyle = setColor;
 	    context.strokeStyle = setBGColor;
 	    context.lineWidth = handleStrokeWidth;
+
 	    // Draw extra, overlapping handles to represent laps, on bottom
-	    for (var i=numCircs; i > 0; i--) {
-		if (i == numCircs) {
+	    for (var i=numCircs-1; i >= 0; i--) {
+		if (i == numCircs-1) {
 		    // Animate new handle appearance
 		    // - Figure out how far from zero
 		    var angleFromZero = angleIn % (2*Math.PI) - minPosR;
 		    if (angleFromZero < 0) angleFromZero += 2*Math.PI;
 		    // - Decide what to do
-		    if (angleFromZero < (numCircs-1)*angleOverlap
+		    if (angleFromZero < (numCircs-2)*angleOverlap
 			|| angleFromZero >= 2*Math.PI-0.0001)
 			// Too early to draw
 			;
-		    else if (angleFromZero < numCircs*angleOverlap)
+		    else if (angleFromZero < (numCircs-1)*angleOverlap)
 			// Just passed zero; draw at zero
 			drawHandle(context, minPosR, centerR, handleFillR);
 		    else
 			// Draw normally
-			drawHandle(context, angleIn-angleOverlap*numCircs,
+			drawHandle(context, angleIn-angleOverlap*(numCircs-1),
 				   centerR, handleFillR);
 		} else
+		    // Animate other handles
 		    drawHandle(context, angleIn-angleOverlap*i,
 			       centerR, handleFillR);
 	    }
-	    // Draw top handle on arc end
-	    drawHandle(context, angleIn, centerR, handleFillR);
+
 	    // Draw set line
 	    context.beginPath();
 	    drawGrad(context, angleIn, 1.0);
@@ -340,32 +383,31 @@ Item {
             context.fillStyle = readColor;
 	    context.strokeStyle = readBGColor;
 	    context.lineWidth = handleStrokeWidth;
+
 	    // Draw extra, overlapping handles to represent laps, on bottom
-	    for (var i=numCircs; i > 0; i--) {
-		if (i == numCircs) {
+	    for (var i=numCircs-1; i >= 0; i--) {
+		if (i == numCircs-1) {
 		    // Animate new handle appearance
 		    // - Figure out how far from zero
 		    var angleFromZero = angleIn % (2*Math.PI) - minPosR;
 		    if (angleFromZero < 0) angleFromZero += 2*Math.PI;
 		    // - Decide what to do
-		    if (angleFromZero < (numCircs-1)*angleOverlap
+		    if (angleFromZero < (numCircs-2)*angleOverlap
 			|| angleFromZero >= 2*Math.PI-0.0001)
 			// Too early to draw
 			;
-		    else if (angleFromZero < numCircs*angleOverlap)
+		    else if (angleFromZero < (numCircs-1)*angleOverlap)
 			// Just passed zero; draw at zero
 			drawHandle(context, minPosR, centerR, handleFillR);
 		    else
 			// Draw normally
-			drawHandle(context, angleIn-angleOverlap*numCircs,
+			drawHandle(context, angleIn-angleOverlap*(numCircs-1),
 				   centerR, handleFillR);
 		} else
 		    // Animate other handles
 		    drawHandle(context, angleIn-angleOverlap*i,
 			       centerR, handleFillR);
 	    }
-	    // Draw top handle on arc end
-	    drawHandle(context, angleIn, centerR, handleFillR);
 	}
     }
 
@@ -380,12 +422,12 @@ Item {
 	   saved angle, and applied to the arc.
 	  */
         id: events
-	//property alias numCircs: setValArc.numCircs
-	property alias numCircs: readValArc.numCircs
-	//property alias value: setValArc.value
-	property alias value: readValArc.value
-	//property alias angle: setValArc.angle
-	property alias angle: readValArc.angle
+	property alias numCircs: setValArc.numCircs
+	//property alias numCircs: readValArc.numCircs
+	property alias value: setValArc.value
+	//property alias value: readValArc.value
+	property alias angle: setValArc.angle
+	//property alias angle: readValArc.angle
         // Saved state of initial mouse press
         property double angleStart: NaN // angle where mouse pressed
 
