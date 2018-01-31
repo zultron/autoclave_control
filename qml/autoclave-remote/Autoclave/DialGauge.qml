@@ -25,11 +25,11 @@ Item {
 
     // Input/output values
     // - Setting
-    property double setValue: 105.0
+    property double setValue: 200.0
     //property double setValue: 121.0
     // - Readout
     //property double readValue: 1.0
-    property double readValue: 80.0
+    property double readValue: 5.0
     //property alias readValue: base.setValue
 
     // Display settings
@@ -41,6 +41,8 @@ Item {
     property double gradLineWidth: 3.0
     property double handleDiameter: 25.0
     property double handleStrokeWidth: 5.0
+    property double handleOverlap: 0.50 // pct
+    property double setLineWidth: 4.0
     // - Min/max and direction
     property double minValue: 0.0
     property double maxValue: 60.0*4 // 4 hours
@@ -140,6 +142,15 @@ Item {
         font.pixelSize: 20
     }
 
+    function drawGrad(c,ang,w) {
+	var gradOuterR = centerR + (outerR-centerR)*w;
+	var gradInnerR = centerR + (innerR-centerR)*w;
+	c.moveTo(Math.cos(ang)*gradOuterR + outerR,
+		 Math.sin(ang)*gradOuterR + outerR);
+	c.lineTo(Math.cos(ang)*gradInnerR + outerR,
+		 Math.sin(ang)*gradInnerR + outerR);
+    }
+
     Canvas {
 	// http://doc.qt.io/qt-5/qml-qtquick-context2d.html
 
@@ -147,15 +158,6 @@ Item {
 	id: faceGrads
 	anchors.fill: parent
 	z: 3
-
-	function drawGrad(c,ang,w) {
-	    var gradOuterR = centerR + (outerR-centerR)*w;
-	    var gradInnerR = centerR + (innerR-centerR)*w;
-	    c.moveTo(Math.cos(ang)*gradOuterR + outerR,
-		     Math.sin(ang)*gradOuterR + outerR);
-	    c.lineTo(Math.cos(ang)*gradInnerR + outerR,
-		     Math.sin(ang)*gradInnerR + outerR);
-	}
 
 	contextType: "2d"
 	onPaint: {
@@ -185,12 +187,13 @@ Item {
     Canvas {
 	// http://doc.qt.io/qt-5/qml-qtquick-context2d.html
 
-	// Set value arc, <360
+	// Set value arc
 	id: setValArc
 	property alias value: base.setValue
 	property int numCircs: Math.floor(value*posValueScale / (2*Math.PI))
-	property double angle: (
-	    value * posValueScale - numCircs*2*Math.PI + minPosR)
+	/* property double angle: ( */
+	/*     value * posValueScale - numCircs*2*Math.PI + minPosR) */
+	property double angle: (value * posValueScale + minPosR)
 	property color color: base.setColor
 
 	// Positioning
@@ -218,6 +221,7 @@ Item {
 	id: readValArc
 	property alias value: base.readValue
 	property int numCircs: Math.floor(value*posValueScale / (2*Math.PI))
+	property alias setNumCircs: setValArc.numCircs
 	property double angle: (
 	    value * posValueScale - numCircs*2*Math.PI + minPosR)
 	property color color: base.readColor
@@ -228,15 +232,24 @@ Item {
 
 	// Repaint canvas whenever value changes
         onValueChanged: requestPaint()
+	onSetNumCircsChanged: requestPaint() // FIXME
 
 	contextType: "2d"
 	onPaint: {
 	    if (!context) return;
 	    context.reset();
 	    context.strokeStyle = color;
-	    context.lineWidth = outerR - innerR;
+
+	    debug1val = numCircs;
+	    debug2val = setNumCircs;
+	    // Draw previous round's arc, if applicable
+	    if (numCircs > 0) {
+		context.lineWidth = numCircs * (outerR - innerR)/(setNumCircs+1);
+		drawArc(context, centerR, 0, 2*Math.PI);
+	    }
 
 	    // Draw read value outer arc
+	    context.lineWidth = (numCircs+1) * (outerR - innerR)/(setNumCircs+1);
 	    drawArc(context, centerR, minPosR, angle);
 	}
     }
@@ -255,10 +268,8 @@ Item {
 	// Set value handle, <360 deg.
 	id: setValHandle
 	property alias angleIn: setValArc.angle
-	property double anglePark: Math.asin(handleFillR / centerR)
-	property double parkRatio: 0.0
-	property alias arcColor: setValArc.color
-	property alias resetColor: base.setColor
+	property double angleOverlap: Math.asin(handleR*handleOverlap / centerR)
+	property alias numCircs: setValArc.numCircs
 
 	// Positioning
 	anchors.fill: parent
@@ -274,27 +285,37 @@ Item {
             context.fillStyle = setColor;
 	    context.strokeStyle = setBGColor;
 	    context.lineWidth = handleStrokeWidth;
-	    // Always draw handle on arc end
-	    drawHandle(context, angleIn, centerR, handleFillR);
-	    // Animate handle parking
-	    var angle = angleIn;
-	    var angleFrom0 = (angle-minPosR) % (2*Math.PI)
-	    if (angleFrom0 < (2*Math.PI-anglePark)) {
-		// Too far away; do nothing
-		parkRatio = 0.0;
-		arcColor = resetColor;
-		return;
+	    // Draw extra, overlapping handles to represent laps, on bottom
+	    for (var i=numCircs; i > 0; i--) {
+		if (i == numCircs) {
+		    // Animate new handle appearance
+		    // - Figure out how far from zero
+		    var angleFromZero = angleIn % (2*Math.PI) - minPosR;
+		    if (angleFromZero < 0) angleFromZero += 2*Math.PI;
+		    // - Decide what to do
+		    if (angleFromZero < (numCircs-1)*angleOverlap
+			|| angleFromZero >= 2*Math.PI-0.0001)
+			// Too early to draw
+			;
+		    else if (angleFromZero < numCircs*angleOverlap)
+			// Just passed zero; draw at zero
+			drawHandle(context, minPosR, centerR, handleFillR);
+		    else
+			// Draw normally
+			drawHandle(context, angleIn-angleOverlap*numCircs,
+				   centerR, handleFillR);
+		} else
+		    drawHandle(context, angleIn-angleOverlap*i,
+			       centerR, handleFillR);
 	    }
-
-	    var radius = centerR;
-	    var radiusParked = outerR-handleR;
-	    parkRatio = 1 - (2*Math.PI - angleFrom0)/anglePark;
-	    radius = (1-parkRatio) * centerR + parkRatio * radiusParked;
-	    angle = minPosR - anglePark;
-
-	    drawHandle(context, angle, radius, handleFillR);
-	    // Make arc color transparent
-	    arcColor.a = 1 - parkRatio;
+	    // Draw top handle on arc end
+	    drawHandle(context, angleIn, centerR, handleFillR);
+	    // Draw set line
+	    context.beginPath();
+	    drawGrad(context, angleIn, 1.0);
+	    context.strokeStyle = base.gradColor;
+	    context.lineWidth = base.setLineWidth;
+	    context.stroke();
 	}
     }
 
@@ -302,10 +323,8 @@ Item {
 	// Read value handle, <360 deg.
 	id: readValHandle
 	property alias angleIn: readValArc.angle
-	property double anglePark: Math.asin(handleFillR / centerR)
-	property double parkRatio: 0.0
-	property alias arcColor: readValArc.color
-	property alias resetColor: base.readColor
+	property double angleOverlap: Math.asin(handleR*handleOverlap / centerR)
+	property alias numCircs: readValArc.numCircs
 
 	// Positioning
 	anchors.fill: parent
@@ -321,95 +340,32 @@ Item {
             context.fillStyle = readColor;
 	    context.strokeStyle = readBGColor;
 	    context.lineWidth = handleStrokeWidth;
-	    // Always draw handle on arc end
+	    // Draw extra, overlapping handles to represent laps, on bottom
+	    for (var i=numCircs; i > 0; i--) {
+		if (i == numCircs) {
+		    // Animate new handle appearance
+		    // - Figure out how far from zero
+		    var angleFromZero = angleIn % (2*Math.PI) - minPosR;
+		    if (angleFromZero < 0) angleFromZero += 2*Math.PI;
+		    // - Decide what to do
+		    if (angleFromZero < (numCircs-1)*angleOverlap
+			|| angleFromZero >= 2*Math.PI-0.0001)
+			// Too early to draw
+			;
+		    else if (angleFromZero < numCircs*angleOverlap)
+			// Just passed zero; draw at zero
+			drawHandle(context, minPosR, centerR, handleFillR);
+		    else
+			// Draw normally
+			drawHandle(context, angleIn-angleOverlap*numCircs,
+				   centerR, handleFillR);
+		} else
+		    // Animate other handles
+		    drawHandle(context, angleIn-angleOverlap*i,
+			       centerR, handleFillR);
+	    }
+	    // Draw top handle on arc end
 	    drawHandle(context, angleIn, centerR, handleFillR);
-	    // Animate handle parking
-	    var angle = angleIn;
-	    var angleFrom0 = (angle-minPosR) % (2*Math.PI)
-	    if (angleFrom0 < (2*Math.PI-anglePark)) {
-		// Too far away; do nothing
-		parkRatio = 0.0;
-		arcColor = resetColor;
-		return;
-	    }
-
-	    var radius = centerR;
-	    var radiusParked = outerR-handleR;
-	    parkRatio = 1 - (2*Math.PI - angleFrom0)/anglePark;
-	    radius = (1-parkRatio) * centerR + parkRatio * radiusParked;
-	    angle = minPosR - anglePark;
-
-	    drawHandle(context, angle, radius, handleFillR);
-	    // Make arc color transparent
-	    arcColor.a = 1 - parkRatio;
-	}
-    }
-
-    Canvas {
-	// Set value laps, >360 deg.
-	id: setValLaps
-	property alias numCircs: setValArc.numCircs
-	property alias parkRatio: setValHandle.parkRatio
-	property color fillColor: setColor
-	property color strokeColor: setBGColor
-
-	// Positioning
-	anchors.fill: parent
-	z: 8.1
-
-	// Repaint canvas whenever numCircs changes
-        onNumCircsChanged: requestPaint()
-	onParkRatioChanged: requestPaint()
-
-	contextType: "2d"
-	onPaint: {
-	    // Draw handle left of zero position, tangent with outer radius
-	    var radius = outerR-handleR;
-	    var halfAngle = Math.asin(handleR/radius);
-	    if (!context) return;
-	    context.reset();
-            context.fillStyle = fillColor;
-	    context.strokeStyle = strokeColor;
-	    context.lineWidth = handleStrokeWidth;
-
-	    for (var i=0; i<numCircs; i++) {
-		var dialAngle = minPosR - (i*2+1+parkRatio*2) * halfAngle;
-		drawHandle(context, dialAngle, radius, handleFillR);
-	    }
-	}
-    }
-
-    Canvas {
-	// Read value laps, >360 deg.
-	id: readValLaps
-	property alias numCircs: readValArc.numCircs
-	property alias parkRatio: setValHandle.parkRatio
-	property color fillColor: readColor
-	property color strokeColor: readBGColor
-
-	// Positioning
-	anchors.fill: parent
-	z: 8.2
-
-	// Repaint canvas whenever numCircs changes
-        onNumCircsChanged: requestPaint()
-	onParkRatioChanged: requestPaint()
-
-	contextType: "2d"
-	onPaint: {
-	    // Draw handle left of zero position, tangent with outer radius
-	    var radius = outerR-handleR;
-	    var halfAngle = Math.asin(handleR/radius);
-	    if (!context) return;
-	    context.reset();
-            context.fillStyle = fillColor;
-	    context.strokeStyle = strokeColor;
-	    context.lineWidth = handleStrokeWidth;
-
-	    for (var i=0; i<numCircs; i++) {
-		var dialAngle = minPosR - (i*2+1+parkRatio*2) * halfAngle;
-		drawHandle(context, dialAngle, radius, handleFillR);
-	    }
 	}
     }
 
@@ -424,9 +380,12 @@ Item {
 	   saved angle, and applied to the arc.
 	  */
         id: events
-	property alias numCircs: setValArc.numCircs
-	property alias value: setValArc.value
-	property alias angle: setValArc.angle
+	//property alias numCircs: setValArc.numCircs
+	property alias numCircs: readValArc.numCircs
+	//property alias value: setValArc.value
+	property alias value: readValArc.value
+	//property alias angle: setValArc.angle
+	property alias angle: readValArc.angle
         // Saved state of initial mouse press
         property double angleStart: NaN // angle where mouse pressed
 
@@ -478,8 +437,8 @@ Item {
 	    var valueDelta = angleDelta / posValueScale;
 	    angleStart = angleMouse;
 	    // New value
-	    var newVal = setValue + valueDelta;
-            base.setValue = Math.min(maxValue, Math.max(minValue, newVal));
+	    var newVal = value + valueDelta;
+            value = Math.min(maxValue, Math.max(minValue, newVal));
         }
 
 	/*
