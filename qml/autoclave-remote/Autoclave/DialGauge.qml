@@ -25,8 +25,8 @@ Item {
 
     // Input/output values
     // - Setting
-    //property double setValue: 105.0
-    property double setValue: 121.0
+    property double setValue: 105.0
+    //property double setValue: 121.0
     // - Readout
     //property double readValue: 1.0
     property double readValue: 80.0
@@ -43,12 +43,12 @@ Item {
     property double handleStrokeWidth: 5.0
     // - Min/max and direction
     property double minValue: 0.0
-    //property double maxValue: 60.0*4 // 4 hours
-    property double maxValue: 130.0
-    property double minPos: 135.0  // SW
-    //property double minPos: 270.0  // 12 o'clock
-    property double maxPos: 405.0 // Clockwise 270 deg. to SE
-    //property double maxPos: 360.0*4 + minPos  // 4 spins around the dial
+    property double maxValue: 60.0*4 // 4 hours
+    //property double maxValue: 130.0
+    property double minPos: 270.0  // 12 o'clock
+    //property double minPos: 135.0  // SW
+    property double maxPos: 360.0*4 + minPos  // 4 spins around the dial
+    //property double maxPos: 405.0 // Clockwise 270 deg. to SE
     // - Graduations
     property double minorGrad: 1.0 // minutes
     property double majorGrad: 5.0 // like 1..12 on clock
