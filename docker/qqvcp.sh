@@ -55,8 +55,7 @@ run() {
 	 ${IMAGE} "$@"
 }
 
-if test "$1" = build; then
-    shift
+if $BUILD; then
     cd "$TOPDIR/docker"
     set -x
     exec docker build -t $IMAGE "$@" .
