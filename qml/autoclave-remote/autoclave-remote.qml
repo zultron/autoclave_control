@@ -1,107 +1,135 @@
 import QtQuick 2.0
 import Machinekit.HalRemote.Controls 1.0
-import "Goldistat" as Goldistat
+import "Autoclave" as Autoclave
+import QtQuick.Layouts 1.3
 
 HalApplicationWindow {
     id: main
     name: "autoclave-remote"
-    width: 500
-    height: 800
-    color: "#000000"
+    width: 960
+    height: 600
     transformOrigin: Item.Center
     title: qsTr("Autoclave")
+
+    Autoclave.Pins {
+	id: pins
+    }
 
     Item {
         id: autoclave
         anchors.fill: parent
 
-        Image {
-	    /* Fridge background image */
-            id: fridge
-            source: "assets/background.png"
+        Autoclave.DialGauge {
+            id: idle
+            x: 82
+            y: 332
+            outerDiameter: 200.0
+            setValue: pins.idle_temp
+            readValue: pins.temp_pot
+            minValue: 0.0
+            maxValue: 130.0
+            minPos: 135.0 // SW
+            maxPos: 405.0
 
-            // Scale to fit window, keeping aspect, on bottom
-            anchors.fill: parent
-            fillMode: Image.PreserveAspectFit
-	    z: 0
+     Image {
+         id: image
+         x: 50
+         y: 50
+         width: 100
+         height: 100
+         source: "assets/p0-idle-green.png"
+     } // SE
         }
 
-        Goldistat.Goldistat {
-	    /* Autoclave thermostat control */
-            id: goldistat
+        Autoclave.DialGauge {
+            id: flush
+            x: 220
+            y: 102
+	    outerDiameter: 200.0
+        setValue: pins.flush_time
+        minValue: 0.0
+        maxValue: 60
+        minPos: -90 // 12 o'clock
+        maxPos: 360 + minPos // one hour
+        property double majorGrad: 5.0
 
-	    // Middle layer
-	    z: 5
-
-	    // Relative sizing hell:  Constants determined empirically
-            width: fridge.paintedWidth * 0.62
-            anchors.horizontalCenter: fridge.horizontalCenter
-            anchors.horizontalCenterOffset: fridge.paintedHeight * -0.04
-            anchors.verticalCenter: fridge.verticalCenter
-            anchors.verticalCenterOffset: fridge.paintedWidth * 0.42
-            rotation: 55
-
+     Image {
+         id: image1
+         x: 50
+         y: 50
+         width: 100
+         height: 100
+         source: "assets/p1-flush-blue.png"
+     } // like 1..12 on clock
         }
 
-        Image {
-	    // Goldilocks wig
-            id: locks
-	    // - From image
-            source: "assets/locks.png"
-            // - Scale relative to fridge area; share top and left edges
-            anchors.fill: parent
-	    // - Let bottom and right hang off edge of fridge painted area
-            anchors.bottomMargin: -36.663/800 * fridge.paintedHeight
-            anchors.rightMargin: -25.349/500 * fridge.paintedWidth
-	    // - Keep aspect, even though fridge drawn in unkown aspect ratio
-            fillMode: Image.PreserveAspectFit
-	    // - On top
-            z: 6
+        Autoclave.DialGauge {
+            id: heat
+            x: 380
+            y: 332
+            outerDiameter: 200.0
+            setValue: pins.ster_temp
+            readValue: pins.temp_pot
+            minValue: 0.0
+            maxValue: 130.0
+            minPos: 135.0 // SW
+            maxPos: 405.0
 
+     Image {
+         id: image2
+         x: 50
+         y: 50
+         width: 100
+         height: 100
+         source: "assets/p2-heat-blue.png"
+     } // SE
         }
 
-        Goldistat.TimeSeries {
-	    // Time series chart
-            id: timeSeries
+        Autoclave.DialGauge {
+            id: sterilize
+            x: 532
+            y: 108
+	    outerDiameter: 200.0
+	    setValue: pins.ster_time
+        minValue: 0.0
+        maxValue: 4*60 // four hours
+        minPos: -90 // 12 o'clock
+        maxPos: 4*360 + minPos // four hours
+        property double majorGrad: 5.0
 
-            // - Center on fridge
-            anchors.horizontalCenter: fridge.horizontalCenter
-            anchors.horizontalCenterOffset: fridge.paintedWidth * -0.09
-            anchors.verticalCenter: fridge.verticalCenter
-            anchors.verticalCenterOffset: fridge.paintedHeight * -0.285
-	    // - Size relative to fridge
-	    width: fridge.paintedWidth * 0.43
-	    height: fridge.paintedHeight * 0.125
-	    // - On top
-            z: 7
-
+     Image {
+         id: image3
+         x: 50
+         y: 50
+         width: 100
+         height: 100
+         source: "assets/p3-sterilize-blue.png"
+     } // like 1..12 on clock
         }
 
-        Goldistat.PowerButton {
-            id: powerButton
+        Autoclave.DialGauge {
+            id: cool
+            x: 670
+            y: 332
+            outerDiameter: 200.0
+            setValue: pins.finish_temp
+            readValue: pins.temp_pot
+            minValue: 0.0
+            maxValue: 130.0
+            minPos: 135.0 // SW
+            maxPos: 405.0
 
-	    // Geometry
-	    width: fridge.paintedWidth * 0.12
-            height: fridge.paintedWidth * 0.12
-            anchors.horizontalCenter: fridge.horizontalCenter
-            anchors.horizontalCenterOffset: fridge.paintedWidth * 0.28
-            anchors.verticalCenter: fridge.verticalCenter
-            anchors.verticalCenterOffset: fridge.paintedHeight * -0.28
+     Image {
+         id: image4
+         x: 50
+         y: 50
+         width: 100
+         height: 100
+         source: "assets/p4-cool-blue.png"
+     } // SE
         }
 
-        Goldistat.ExitButton {
-            id: exitButton
-
-	    // Geometry
-	    width: fridge.paintedWidth * 0.12
-            height: fridge.paintedWidth * 0.12
-            anchors.horizontalCenter: fridge.horizontalCenter
-            anchors.horizontalCenterOffset: fridge.paintedWidth * -0.41
-            anchors.verticalCenter: fridge.verticalCenter
-            anchors.verticalCenterOffset: fridge.paintedHeight * -0.44
-        }
 
     }
-
 }
 

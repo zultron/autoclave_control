@@ -25,35 +25,36 @@ Item {
 
     // Input/output values
     // - Setting
-    property double setValue: 30.0
+    property double setValue: 200.0
     //property double setValue: 121.0
     // - Readout
     //property double readValue: 1.0
-    property double readValue: 5.0
+    property double readValue: 150.0
     //property alias readValue: base.setValue
 
     // Display settings
     // - Size
     property double outerDiameter: 400.0
-    property double innerDiameter: 200.0
+    property double innerDiameter: outerDiameter/2
     property double minorGradWidth: 0.10 // width of minor graduations; %
     property double majorGradWidth: 0.30 // width of major graduations; %
-    property double gradLineWidth: 3.0
-    property double handleDiameter: 25.0
-    property double handleStrokeWidth: 5.0
+    property double gradLineWidth: outerDiameter * 3.0/400
+    property double handleDiameter: outerDiameter * 25.0/400
+    property double handleStrokeWidth: outerDiameter * 5.0/400
     property double handleOverlap: 0.50 // pct
-    property double setLineWidth: 4.0
+    property double setLineWidth: outerDiameter * 4.0/400
     // - Min/max and direction
     property double minValue: 0.0
-    property double maxValue: 60.0*4 // 4 hours
-    //property double maxValue: 130.0
-    property double minPos: 270.0  // 12 o'clock
-    //property double minPos: 135.0  // SW
-    property double maxPos: 360.0*4 + minPos  // 4 spins around the dial
-    //property double maxPos: 405.0 // Clockwise 270 deg. to SE
+    //property double maxValue: 60.0*4 // 4 hours
+    property double maxValue: 130.0
+    //property double minPos: 270.0  // 12 o'clock
+    property double minPos: 135.0  // SW
+    //property double maxPos: 360.0*4 + minPos  // 4 spins around the dial
+    property double maxPos: 405.0 // Clockwise 270 deg. to SE
     // - Graduations
     property double minorGrad: 1.0 // minutes
-    property double majorGrad: 5.0 // like 1..12 on clock
+    //property double majorGrad: 5.0 // like 1..12 on clock
+    property double majorGrad: 10.0
     // - Colors
     property color baseColor: "#ff00ff"
     property color gradColor: "#000000"
@@ -90,9 +91,11 @@ Item {
 
 
 
+    /*
     property alias debug1val: debug.val1
     property alias debug2val: debug.val2
     property alias debug3val: debug.val3
+    */
 
     Canvas {
 	// Set base ring
@@ -121,6 +124,7 @@ Item {
 	c.stroke();
     }
 
+    /*
     Label {
         // Debugging
         id: debug
@@ -141,6 +145,7 @@ Item {
         // Proportional size, centered above handle, with l/r tweak
         font.pixelSize: 20
     }
+    */
 
     function drawGrad(c,ang,w) {
 	var gradOuterR = centerR + (outerR-centerR)*w;
