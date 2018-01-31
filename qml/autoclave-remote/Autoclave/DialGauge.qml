@@ -258,9 +258,6 @@ Item {
 	property alias value: base.readValue
 	property int numCircs: Math.floor(value*posValueScale / (2*Math.PI))
 	property alias setNumCircs: setValArc.numCircs
-	/* property double angle: Math.min(Math.max( */
-	/*     value * posValueScale - numCircs*2*Math.PI + minPosR, */
-	/*     base.minPos), base.maxPos) */
 	property double angle: value * posValueScale - numCircs*2*Math.PI + minPosR
 	property color color: base.readColor
 
@@ -270,17 +267,12 @@ Item {
 
 	// Repaint canvas whenever value changes
         onValueChanged: requestPaint()
-	onSetNumCircsChanged: requestPaint() // FIXME
 
 	contextType: "2d"
 	onPaint: {
 	    if (!context) return;
 	    context.reset();
 	    context.strokeStyle = color;
-
-	    debug1val = angle;
-	    debug2val = minPosR;
-	    debug3val = maxPosR;
 
 	    // Draw previous round's arc, if applicable
 	    if (numCircs > 0) {
