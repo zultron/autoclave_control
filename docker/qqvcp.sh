@@ -9,7 +9,7 @@ usage() {
     {
 	test -z "$ERRMSG" || echo "ERROR:  $ERRMSG"
 	echo "Usage:"
-	echo "    $0 -b                Build the Docker container image"
+	echo "    $0 -b [ ARGS ... ]   Build (with ARGS) Docker image"
 	echo "    $0                   Run interactive shell in container"
 	echo "    $0 CMD [ ARGS ... ]  Run CMD in container"
 	echo "    $0 -h                Use host networking" \
@@ -24,7 +24,7 @@ usage() {
 
 while getopts bh? ARG; do
     case $ARG in
-	b) BUILD=true ;;
+	b) BUILD=true; break ;;
 	h) NETWORK_ARGS="--hostname=$(hostname) --net=host" ;;
 	i) IMAGE=$OPTARG ;;
 	?) usage ;;
