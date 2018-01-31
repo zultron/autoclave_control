@@ -27,7 +27,7 @@ data = [
     # Status
     # - control comp
     ('temp-set', hal.HAL_FLOAT, hal.HAL_IN),
-    ('time-set', hal.HAL_FLOAT, hal.HAL_IN),
+    ('time-set', hal.HAL_S32, hal.HAL_IN),
     ('valve-on', hal.HAL_BIT, hal.HAL_IN),
     ('elapsed-time', hal.HAL_S32, hal.HAL_IN),
     ('stage', hal.HAL_S32, hal.HAL_IN),

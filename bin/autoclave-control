@@ -49,7 +49,7 @@ h.newpin("temp-burner", hal.HAL_FLOAT, hal.HAL_IN)
 # - Current temperature setting, deg. C
 h.newpin("temp-set", hal.HAL_FLOAT, hal.HAL_OUT)
 # - Current time setting, s.
-h.newpin("time-set", hal.HAL_FLOAT, hal.HAL_OUT)
+h.newpin("time-set", hal.HAL_S32, hal.HAL_OUT)
 # - Pressure relief valve on, True/False
 h.newpin("valve-on", hal.HAL_BIT, hal.HAL_OUT)
 # - Overall elapsed time, s.
