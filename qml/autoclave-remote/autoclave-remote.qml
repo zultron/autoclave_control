@@ -12,124 +12,93 @@ HalApplicationWindow {
     title: qsTr("Autoclave")
 
     Autoclave.Pins {
-	id: pins
+        id: pins
     }
 
     Item {
         id: autoclave
         anchors.fill: parent
 
-        Autoclave.DialGauge {
+        Text {
+            id: stage
+            x: 0
+            y: 25
+            z: 10
+
+            // Format float value with decimals in black text
+            text: pins.stage
+            color: "#000000"
+
+            // Proportional size, centered above handle, with l/r tweak
+            font.pixelSize: 20
+        }
+
+        Autoclave.TempStage {
             id: idle
             x: 82
             y: 332
             outerDiameter: 200.0
-            setValue: pins.idle_temp
-            readValue: pins.temp_pot
-            minValue: 0.0
-            maxValue: 130.0
-            minPos: 135.0 // SW
-            maxPos: 405.0
-
-     Image {
-         id: image
-         x: 50
-         y: 50
-         width: 100
-         height: 100
-         source: "assets/p0-idle-green.png"
-     } // SE
+            width: 200
+            height: 200
+            setPinName: "idle-temp"
+            readPinName: "temp-pot"
+	    readVisible: true
+            centerImage: "assets/p0-idle-green.png"
         }
 
-        Autoclave.DialGauge {
+        Autoclave.TimeStage {
             id: flush
             x: 220
             y: 102
-	    outerDiameter: 200.0
-        setValue: pins.flush_time
-        minValue: 0.0
-        maxValue: 60
-        minPos: -90 // 12 o'clock
-        maxPos: 360 + minPos // one hour
-        property double majorGrad: 5.0
-
-     Image {
-         id: image1
-         x: 50
-         y: 50
-         width: 100
-         height: 100
-         source: "assets/p1-flush-blue.png"
-     } // like 1..12 on clock
+            outerDiameter: 200.0
+            width: 200
+            height: 200
+            setPinName: "flush-time"
+            readPinName: "stage-elapsed-time"
+	    readVisible: pins.stage >= 1
+            centerImage: "assets/p1-flush-blue.png"
         }
 
-        Autoclave.DialGauge {
+        Autoclave.TempStage {
             id: heat
             x: 380
             y: 332
             outerDiameter: 200.0
-            setValue: pins.ster_temp
-            readValue: pins.temp_pot
-            minValue: 0.0
-            maxValue: 130.0
-            minPos: 135.0 // SW
-            maxPos: 405.0
-
-     Image {
-         id: image2
-         x: 50
-         y: 50
-         width: 100
-         height: 100
-         source: "assets/p2-heat-blue.png"
-     } // SE
+            width: 200
+            height: 200
+            setPinName: "ster-temp"
+            readPinName: "temp-pot"
+	    readVisible: pins.stage >= 2
+            centerImage: "assets/p2-heat-blue.png"
         }
 
-        Autoclave.DialGauge {
+        Autoclave.TimeStage {
             id: sterilize
             x: 532
-            y: 108
-	    outerDiameter: 200.0
-	    setValue: pins.ster_time
-        minValue: 0.0
-        maxValue: 4*60 // four hours
-        minPos: -90 // 12 o'clock
-        maxPos: 4*360 + minPos // four hours
-        property double majorGrad: 5.0
-
-     Image {
-         id: image3
-         x: 50
-         y: 50
-         width: 100
-         height: 100
-         source: "assets/p3-sterilize-blue.png"
-     } // like 1..12 on clock
+            y: 102
+            outerDiameter: 200.0
+            width: 200
+            height: 200
+            setPinName: "ster-time"
+            readPinName: "stage-elapsed-time"
+	    readVisible: pins.stage >= 3
+            centerImage: "assets/p3-sterilize-blue.png"
         }
 
-        Autoclave.DialGauge {
+        Autoclave.TempStage {
             id: cool
             x: 670
             y: 332
             outerDiameter: 200.0
-            setValue: pins.finish_temp
-            readValue: pins.temp_pot
-            minValue: 0.0
-            maxValue: 130.0
-            minPos: 135.0 // SW
-            maxPos: 405.0
-
-     Image {
-         id: image4
-         x: 50
-         y: 50
-         width: 100
-         height: 100
-         source: "assets/p4-cool-blue.png"
-     } // SE
+            width: 200
+            height: 200
+            setPinName: "finish-temp"
+            readPinName: "temp-pot"
+	    readVisible: pins.stage >= 4
+            centerImage: "assets/p4-cool-blue.png"
         }
 
-
     }
+
 }
 

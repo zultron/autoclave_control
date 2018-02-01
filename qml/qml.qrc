@@ -26,5 +26,7 @@
         <file>autoclave-remote/Autoclave/assets/s3-time.png</file>
         <file>autoclave-remote/Autoclave/assets/s4-pressure.png</file>
         <file>autoclave-remote/Autoclave/Pins.qml</file>
+        <file>autoclave-remote/Autoclave/TempStage.qml</file>
+        <file>autoclave-remote/Autoclave/TimeStage.qml</file>
     </qresource>
 </RCC>
