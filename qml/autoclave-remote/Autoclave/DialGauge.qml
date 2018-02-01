@@ -25,14 +25,16 @@ Item {
 
     // Input/output values
     // - Setting
-    property double setValue: 200.0
-    //property double setValue: 121.0
+    //property double setValue: 200.0
+    property double setValue: 121.0
     // - Readout
-    //property double readValue: 1.0
-    property double readValue: 150.0
+    //property double readValue: 150.0
+    property double readValue: 1.0
     //property alias readValue: base.setValue
 
     // Display settings
+    // - Visibility
+    property bool readVisible: false // read value visible/invisible
     // - Size
     property double outerDiameter: 400.0
     property double innerDiameter: outerDiameter/2
@@ -238,9 +240,10 @@ Item {
 	property color color: Qt.rgba(
 	    baseColor.r, baseColor.g, baseColor.b, colorA)
 
-	// Positioning
+	// Positioning & visibility
 	anchors.fill: parent
 	z: 0.1
+	visible: base.readVisible
 
 	// This changes transparency as the read value increases
 	onReadValChanged: requestPaint()
@@ -266,9 +269,10 @@ Item {
 	property double angle: value * posValueScale - numCircs*2*Math.PI + minPosR
 	property color color: base.readColor
 
-	// Positioning
+	// Positioning & visibility
 	anchors.fill: parent
 	z: 2.2
+	visible: base.readVisible
 
 	// Repaint canvas whenever value changes
         onValueChanged: requestPaint()
@@ -366,9 +370,10 @@ Item {
 	property double angleOverlap: Math.asin(handleR*handleOverlap / centerR)
 	property alias numCircs: readValArc.numCircs
 
-	// Positioning
+	// Positioning & visibility
 	anchors.fill: parent
 	z: 9.2
+	visible: base.readVisible
 
 	// Repaint canvas whenever value changes
         onAngleInChanged: requestPaint()
