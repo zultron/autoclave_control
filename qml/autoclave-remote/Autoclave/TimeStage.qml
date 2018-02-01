@@ -39,7 +39,13 @@ Item {
     property alias readBGColor: gauge.readBGColor
     // Center image properties
     property string centerImage: "assets/p1-flush-blue.png"
+    // Type icon properties
+    property string typeIconSource: "assets/l3-timer.png"
+    property color readTextColor: "#000000"
+    property color setTextColor: "#000000"
 
+    width: 400
+    height: 450
 
     HalPin {
 	id: setPin
@@ -79,8 +85,42 @@ Item {
 	value: readPin.synced;
     }
 
+    Image {
+        id: typeIcon
+	width: parent.height-parent.width
+	height: parent.height-parent.width
+        source: parent.typeIconSource
+        anchors.horizontalCenter: parent.horizontalCenter
+    }
+    
+    Text {
+        id: readText
+        color: time.readTextColor
+	property int minutes: Math.floor(gauge.readValue/60)
+	property int seconds: gauge.readValue%60
+        text: minutes + ":" + (seconds<10 ? "0":"") + seconds
+        anchors.right: typeIcon.left
+        anchors.verticalCenter: typeIcon.verticalCenter
+        horizontalAlignment: Text.AlignRight
+        font.pixelSize: typeIcon.height * 0.7
+    }
+
+    Text {
+        id: setText
+        color: time.setTextColor
+	property int minutes: Math.floor(gauge.setValue/60)
+	property int seconds: gauge.setValue%60
+        text: minutes + ":" + (seconds<10 ? "0":"") + seconds
+        anchors.left: typeIcon.right
+        anchors.verticalCenter: typeIcon.verticalCenter
+        font.pixelSize: typeIcon.height * 0.7
+    }
+
     DialGauge {
         id: gauge
+	width: parent.width
+	height: parent.width
+
 	setValue: 30.0
 	readValue: 10.0
         minValue: 0.0
@@ -89,6 +129,8 @@ Item {
         maxPos: 2*360 + minPos
 	minorGrad: 1.0
 	majorGrad: 5.0 // Like 1..12 on clock
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: typeIcon.bottom
     }
 
     Image {
@@ -97,8 +139,7 @@ Item {
         height: gauge.innerDiameter
         anchors.horizontalCenter: gauge.horizontalCenter
         anchors.verticalCenter: gauge.verticalCenter
-        source: time.centerImage
+        source: parent.centerImage
     }
-    
 
 }

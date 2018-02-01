@@ -39,11 +39,12 @@ HalApplicationWindow {
             y: 332
             outerDiameter: 200.0
             width: 200
-            height: 200
+            height: 225
             setPinName: "idle-temp"
             readPinName: "temp-pot"
 	    readVisible: true
             centerImage: "assets/p0-idle-green.png"
+	    typeIconSource: "assets/l1-heat.png"
         }
 
         Autoclave.TimeStage {
@@ -52,11 +53,12 @@ HalApplicationWindow {
             y: 102
             outerDiameter: 200.0
             width: 200
-            height: 200
+            height: 225
             setPinName: "flush-time"
             readPinName: "stage-elapsed-time"
 	    readVisible: pins.stage >= 1
             centerImage: "assets/p1-flush-blue.png"
+	    typeIconSource: "assets/l3-timer.png"
         }
 
         Autoclave.TempStage {
@@ -65,11 +67,12 @@ HalApplicationWindow {
             y: 332
             outerDiameter: 200.0
             width: 200
-            height: 200
+            height: 225
             setPinName: "ster-temp"
             readPinName: "temp-pot"
 	    readVisible: pins.stage >= 2
             centerImage: "assets/p2-heat-blue.png"
+	    typeIconSource: "assets/l1-heat.png"
         }
 
         Autoclave.TimeStage {
@@ -78,11 +81,12 @@ HalApplicationWindow {
             y: 102
             outerDiameter: 200.0
             width: 200
-            height: 200
+            height: 225
             setPinName: "ster-time"
             readPinName: "stage-elapsed-time"
 	    readVisible: pins.stage >= 3
             centerImage: "assets/p3-sterilize-blue.png"
+	    typeIconSource: "assets/l3-timer.png"
         }
 
         Autoclave.TempStage {
@@ -91,11 +95,12 @@ HalApplicationWindow {
             y: 332
             outerDiameter: 200.0
             width: 200
-            height: 200
+            height: 225
             setPinName: "finish-temp"
             readPinName: "temp-pot"
 	    readVisible: pins.stage >= 4
             centerImage: "assets/p4-cool-blue.png"
+	    typeIconSource: "assets/l2-cool.png"
         }
 
     }

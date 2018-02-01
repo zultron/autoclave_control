@@ -39,6 +39,13 @@ Item {
     property alias readBGColor: gauge.readBGColor
     // Center image properties
     property string centerImage: "assets/p0-idle-green.png"
+    // Type icon properties
+    property string typeIconSource: "assets/l1-heat.png"
+    property color readTextColor: "#000000"
+    property color setTextColor: "#000000"
+
+    width: 400
+    height: 450
 
 
     HalPin {
@@ -79,14 +86,46 @@ Item {
 	value: readPin.synced;
     }
 
+    Image {
+        id: typeIcon
+	width: parent.height-parent.width
+	height: parent.height-parent.width
+        source: parent.typeIconSource
+        anchors.horizontalCenter: parent.horizontalCenter
+    }
+    
+    Text {
+        id: readText
+        color: temp.readTextColor
+        text: gauge.readValue.toFixed(1) + "°C"
+        anchors.right: typeIcon.left
+        anchors.verticalCenter: typeIcon.verticalCenter
+        horizontalAlignment: Text.AlignRight
+        font.pixelSize: typeIcon.height * 0.7
+    }
+
+    Text {
+        id: setText
+        color: temp.setTextColor
+        text: gauge.setValue.toFixed(1) + "°C"
+        anchors.left: typeIcon.right
+        anchors.verticalCenter: typeIcon.verticalCenter
+        font.pixelSize: typeIcon.height * 0.7
+    }
+
     DialGauge {
         id: gauge
+	width: parent.width
+	height: parent.width
+
 	setValue: 121.0
 	readValue: 20.0
         minValue: 0.0
         maxValue: 130.0
         minPos: 135.0 // SW
         maxPos: 405.0 // SE
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: typeIcon.bottom
     }
 
     Image {
