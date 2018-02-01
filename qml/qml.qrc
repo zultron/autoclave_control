@@ -5,26 +5,26 @@
         <file>autoclave-remote/autoclave-remote.qml</file>
         <file>autoclave-remote/Autoclave/DialGauge.qml</file>
         <file>autoclave-remote/test.qml</file>
-        <file>autoclave-remote/assets/c0-power.png</file>
-        <file>autoclave-remote/assets/c1-start.png</file>
-        <file>autoclave-remote/assets/c2-close.png</file>
-        <file>autoclave-remote/assets/l1-heat.png</file>
-        <file>autoclave-remote/assets/l2-cool.png</file>
-        <file>autoclave-remote/assets/l3-timer.png</file>
-        <file>autoclave-remote/assets/p0-idle-green.png</file>
-        <file>autoclave-remote/assets/p1-flush-blue.png</file>
-        <file>autoclave-remote/assets/p1-flush-green.png</file>
-        <file>autoclave-remote/assets/p2-heat-blue.png</file>
-        <file>autoclave-remote/assets/p2-heat-green.png</file>
-        <file>autoclave-remote/assets/p3-sterilize-blue.png</file>
-        <file>autoclave-remote/assets/p3-sterilize-green.png</file>
-        <file>autoclave-remote/assets/p4-cool-blue.png</file>
-        <file>autoclave-remote/assets/p4-cool-green.png</file>
-        <file>autoclave-remote/assets/s0-burner.png</file>
-        <file>autoclave-remote/assets/s1-error.png</file>
-        <file>autoclave-remote/assets/s2-steam.png</file>
-        <file>autoclave-remote/assets/s3-time.png</file>
-        <file>autoclave-remote/assets/s4-pressure.png</file>
+        <file>autoclave-remote/Autoclave/assets/c0-power.png</file>
+        <file>autoclave-remote/Autoclave/assets/c1-start.png</file>
+        <file>autoclave-remote/Autoclave/assets/c2-close.png</file>
+        <file>autoclave-remote/Autoclave/assets/l1-heat.png</file>
+        <file>autoclave-remote/Autoclave/assets/l2-cool.png</file>
+        <file>autoclave-remote/Autoclave/assets/l3-timer.png</file>
+        <file>autoclave-remote/Autoclave/assets/p0-idle-green.png</file>
+        <file>autoclave-remote/Autoclave/assets/p1-flush-blue.png</file>
+        <file>autoclave-remote/Autoclave/assets/p1-flush-green.png</file>
+        <file>autoclave-remote/Autoclave/assets/p2-heat-blue.png</file>
+        <file>autoclave-remote/Autoclave/assets/p2-heat-green.png</file>
+        <file>autoclave-remote/Autoclave/assets/p3-sterilize-blue.png</file>
+        <file>autoclave-remote/Autoclave/assets/p3-sterilize-green.png</file>
+        <file>autoclave-remote/Autoclave/assets/p4-cool-blue.png</file>
+        <file>autoclave-remote/Autoclave/assets/p4-cool-green.png</file>
+        <file>autoclave-remote/Autoclave/assets/s0-burner.png</file>
+        <file>autoclave-remote/Autoclave/assets/s1-error.png</file>
+        <file>autoclave-remote/Autoclave/assets/s2-steam.png</file>
+        <file>autoclave-remote/Autoclave/assets/s3-time.png</file>
+        <file>autoclave-remote/Autoclave/assets/s4-pressure.png</file>
         <file>autoclave-remote/Autoclave/Pins.qml</file>
     </qresource>
 </RCC>
