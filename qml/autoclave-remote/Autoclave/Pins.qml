@@ -4,21 +4,6 @@ import Machinekit.HalRemote 1.0
 Item {
     id: pins
     
-
-    // Test
-    property double test_pin: 42.5
-    HalPin {
-	id: test_pin
-	name: "test-pin"
-	type: HalPin.Float
-	direction: HalPin.Out
-    }
-    Binding {
-	target: pins
-	property: "test_pin"
-	value: test_pin.value
-    }
-
     // Remote controls
     property alias enable: enable.value
     property alias start: start.value

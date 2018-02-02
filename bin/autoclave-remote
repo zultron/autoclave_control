@@ -63,8 +63,5 @@ for name, hal_type, hal_dir, save in pin_data:
         msg.info("Restored setting %s = %s" % (name,val))
     pin.link(hal.signals[name])
 
-pin = rcomp.newpin("test-pin", hal.HAL_FLOAT, hal.HAL_OUT)
-pin.set(42.42)
-
 rcomp.ready()
 msg.info("Initialized")

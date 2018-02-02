@@ -427,7 +427,7 @@ Item {
         id: events
 	property alias numCircs: setValArc.numCircs
 	//property alias numCircs: readValArc.numCircs
-	property alias value: setValArc.value
+	property alias value: base.setValue
 	//property alias value: readValArc.value
 	property alias angle: setValArc.angle
 	//property alias angle: readValArc.angle

@@ -108,9 +108,9 @@ Item {
 	}
 
 	Binding {
-	    target: gauge;
-	    property: "setValue";
-	    value: setPin.value;
+            target: setPin;
+            property: "value";
+            value: gauge.setValue;
 	}
 
 	Binding {
