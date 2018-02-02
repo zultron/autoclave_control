@@ -141,9 +141,10 @@ try:
             launcher.start_process('halmeter')
 
     while True:
-        if h['shutdown']:
-            msg.info("Got shutdown signal")
-            break
+        if not args.run:
+            if h['shutdown']:
+                msg.info("Got shutdown signal")
+                break
         launcher.check_processes()
         time.sleep(1)
 
