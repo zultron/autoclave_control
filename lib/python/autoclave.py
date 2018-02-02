@@ -1,4 +1,4 @@
-import os, sys, yaml, datetime, string
+import os, sys, yaml, datetime
 
 
 class ConfigError(RuntimeError):
@@ -79,12 +79,13 @@ class Config(object):
             return True
 
     def write_state(self, comp, param_list):
-        config = dict()
-        tr = string.maketrans("-","_")
+        config = self.read_state()
+        Messages.info("Read state %s" % (config,))
         for param in param_list:
-            config[param.translate(tr)] = comp[param]
+            config[param] = comp[param]
         with open(self.state_file, 'w') as f:
-            state = yaml.dump(config, f)
+            Messages.info("Writing state %s" % (config,))
+            yaml.dump(config, f, default_flow_style=False)
 
     def read_state(self):
         if not self.state_file_exists():
@@ -94,6 +95,9 @@ class Config(object):
         with open(self.state_file, 'r') as f:
             Messages.info("Using state file '%s'" % self.state_file)
             state = yaml.load(f)
+            if not state:
+                state = {}
+        Messages.info("Read state %s" % (state,))
         return state
 
     @property
@@ -128,6 +132,14 @@ class Messages(object):
     def info(cls, msg):
         sys.stderr.write(
             "%s %s:  %s\n" %
+            (str(datetime.datetime.now()),
+             cls.config.get('name','Unknown'),
+             msg))
+
+    @classmethod
+    def warning(cls, msg):
+        sys.stderr.write(
+            "%s %s WARNING:  %s\n" %
             (str(datetime.datetime.now()),
              cls.config.get('name','Unknown'),
              msg))

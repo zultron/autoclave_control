@@ -4,13 +4,16 @@ import Machinekit.HalRemote 1.0
 Item {
     id: temp
     // Pins & values
-    property alias setValue: setPin.value
-    property alias readValue: readPin.value
-    property string setPinName: "set-pin"
-    property string readPinName: "read-pin"
-    property bool setSynced
-    property bool readSynced
-    property bool synced: setSynced && readSynced
+    property alias setPinName:  gauge.setPinName
+    property alias setValue:    gauge.setValue
+    property alias setSynced:   gauge.setSynced
+    property alias readPinName: gauge.readPinName
+    property alias readValue:   gauge.readValue
+    property alias readSynced:  gauge.readSynced
+    property alias timeValue:   timeReadout.value
+    property alias timePinName: timeReadout.name
+    property alias timeSynced:  timeReadout.synced
+    property bool  synced: setSynced && readSynced && timeSynced
     // Gauge properties
     property alias readVisible: gauge.readVisible
     property alias outerDiameter: gauge.outerDiameter
@@ -48,84 +51,98 @@ Item {
     height: 450
 
 
-    HalPin {
-	id: setPin
-	name: temp.setPinName
-	type: HalPin.Float
-        direction: HalPin.Out
-    }
-
-    Binding {
-	target: gauge;
-	property: "setValue";
-	value: setPin.value;
-    }
-
-    Binding {
-	target: temp;
-	property: "setSynced";
-	value: setPin.synced;
-    }
-
-    HalPin {
-	id: readPin
-	name: temp.readPinName
-	type: HalPin.Float
-        direction: HalPin.In
-    }
-
-    Binding {
-	target: gauge;
-	property: "readValue";
-	value: readPin.value;
-    }
-
-    Binding {
-	target: temp;
-	property: "readSynced";
-	value: readPin.synced;
-    }
-
     Image {
         id: typeIcon
-	width: parent.height-parent.width
-	height: parent.height-parent.width
+        width: parent.height-parent.width
+        height: parent.height-parent.width
         source: parent.typeIconSource
         anchors.horizontalCenter: parent.horizontalCenter
     }
     
-    Text {
-        id: readText
+    TempReadout {
+        id: setTemp
+	value: gauge.setValue
+        color: temp.setTextColor
+        anchors.left: typeIcon.right
+        anchors.verticalCenter: typeIcon.verticalCenter
+        horizontalAlignment: Text.AlignLeft
+        font.pixelSize: typeIcon.height * 0.7
+    }
+
+    TempReadout {
+        id: readTemp
+	value: gauge.readValue
         color: temp.readTextColor
-        text: gauge.readValue.toFixed(1) + "°C"
         anchors.right: typeIcon.left
         anchors.verticalCenter: typeIcon.verticalCenter
         horizontalAlignment: Text.AlignRight
         font.pixelSize: typeIcon.height * 0.7
     }
 
-    Text {
-        id: setText
-        color: temp.setTextColor
-        text: gauge.setValue.toFixed(1) + "°C"
-        anchors.left: typeIcon.right
-        anchors.verticalCenter: typeIcon.verticalCenter
-        font.pixelSize: typeIcon.height * 0.7
-    }
-
     DialGauge {
         id: gauge
-	width: parent.width
-	height: parent.width
+        width: parent.width
+        height: parent.width
 
 	setValue: 121.0
-	readValue: 20.0
+	readValue: 80.0
+
+	// HAL pins
+	property string setPinName: "set-pin"
+	property bool setSynced
+	property string readPinName: "read-pin"
+	property bool readSynced
+	property bool synced: setSynced && readSynced
+
         minValue: 0.0
         maxValue: 130.0
         minPos: 135.0 // SW
         maxPos: 405.0 // SE
+	minorGrad: 1.0
+	majorGrad: 10.0
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: typeIcon.bottom
+
+	// set pin
+        HalPin {
+            id: setPin
+            name: gauge.setPinName
+            type: HalPin.Float
+            direction: HalPin.Out
+	}
+
+	Binding {
+            target: gauge;
+            property: "setValue";
+            value: setPin.value;
+	}
+
+	Binding {
+            target: gauge;
+            property: "setSynced";
+            value: setPin.synced;
+	}
+
+	// read pin
+        HalPin {
+            id: readPin
+            name: gauge.readPinName
+            type: HalPin.Float
+            direction: HalPin.In
+	}
+
+	Binding {
+            target: gauge;
+            property: "readValue";
+            value: readPin.value;
+	}
+
+	Binding {
+            target: gauge;
+            property: "readSynced";
+            value: readPin.synced;
+	}
+
     }
 
     Image {
@@ -136,6 +153,18 @@ Item {
         anchors.verticalCenter: gauge.verticalCenter
         source: temp.centerImage
     }
-    
 
+    HALTimeReadout {
+        id: timeReadout
+	name: "time-pin"
+	value: 12*60 + 37
+	dir_in: true
+
+	// Size and position
+        anchors.bottom: gauge.bottom
+        anchors.bottomMargin: temp.outerDiameter * 0.01
+        anchors.horizontalCenter: gauge.horizontalCenter
+        horizontalAlignment: Text.AlignHCenter
+        font.pixelSize: typeIcon.height * 0.7
+    }
 }

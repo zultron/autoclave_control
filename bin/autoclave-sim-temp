@@ -33,7 +33,6 @@ h.newpin("pressure", hal.HAL_FLOAT, hal.HAL_OUT)
 # Init values
 h['temp-burner'] = 20 # Room temp
 h['temp-pot'] = 20 # Room temp
-h['error'] = 0
 
 # Other settings
 # - time increment
@@ -103,6 +102,7 @@ burner_pot_transfer_calories = 0.0
 pot_heat = 0.0
 pot_heat_old = 0.0
 burner_duty_saved = 0.0
+error_seen = False
 
 try:
     while True:
@@ -127,16 +127,18 @@ try:
 
         # Do some sanity checks
         err = 0
-        if error:
+        if error and not error_seen:
             msg.info("Error:  HAL error signal asserted")
             err = 1
-        if temp_burner_base > thermagon_temp_max:
+            error_seen = True
+        if temp_burner_base > thermagon_temp_max and not error_seen:
             msg.info("Error:  Thermagon max temp exceeded:  %.1f > %.1f" %
                      (temp_burner_base, thermagon_temp_max))
             err = 1
-        if h['error'] and not err:
+            error_seen = True
+        if error_seen and not error:
             msg.info("Error condition cleared")
-        h['error'] = err
+            error_seen = False
 
         # Calculations
         # - Time passed since last update

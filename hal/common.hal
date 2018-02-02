@@ -69,59 +69,60 @@ net enable                          <= enable.out
 # Load userland comp
 loadusr -W autoclave-control
 
-# Controls
+# Remote controls
 # - Enable, True/False
 net enable                          => autoclave-control.enable
 # - Start/stop, True/False
 net start                           => autoclave-control.start
+
+# Process stage settings and status
+# - Current stage, ID
+net stage                           <= autoclave-control.stage
+# - Idle stage:  heat
+net idle-temp-set                   => autoclave-control.idle-temp-set
+net idle-temp                       <= autoclave-control.idle-temp
+net idle-time                       <= autoclave-control.idle-time
+# - Flush stage:  timer
+net flush-time-set                  => autoclave-control.flush-time-set
+net flush-time                      <= autoclave-control.flush-time
+# - Heat stage:  heat
+net heat-temp-set                   => autoclave-control.heat-temp-set
+net heat-temp                       <= autoclave-control.heat-temp
+net heat-time                       <= autoclave-control.heat-time
+# - Sterilize stage:  timer
+net ster-time-set                   => autoclave-control.ster-time-set
+net ster-time                       <= autoclave-control.ster-time
+# - Cool stage:  cool
+net cool-temp-set                   => autoclave-control.cool-temp-set
+net cool-temp                       <= autoclave-control.cool-temp
+net cool-time                       <= autoclave-control.cool-time
+
+# Controls out
+# - Burner temp
+net temp-set                        <= autoclave-control.temp-set
+# - Pressure relief valve
+net valve-on-input                  <= autoclave-control.valve-on
+
+# Sensors in/limits out
+# - Pressure
+net pressure                        => autoclave-control.pressure
+net pressure-max                    <= autoclave-control.pressure-max
+# - Pot temperature, deg. C
+net temp-pot                        => autoclave-control.temp-pot
+net temp-pot-max                    <= autoclave-control.temp-pot-max
+# - Burner temperature, deg. C
+net temp-burner                     => autoclave-control.temp-burner
+net temp-burner-max                 <= autoclave-control.temp-burner-max
+
+# Other status
+# - Overall elapsed time, s.
+net time-elapsed                    <= autoclave-control.time-elapsed
+# - Error, True/False
+net error                           <= autoclave-control.error
 # - E-Stop, True/False
 net estop                           => autoclave-control.estop
 # - Shut down
 net shutdown                        => autoclave-control.shutdown
-
-# Process settings
-# - Flush time, seconds
-net flush-time                      => autoclave-control.flush-time
-# - Sterilization temp, deg. C
-net ster-temp                       => autoclave-control.ster-temp
-# - Sterilization time, seconds
-net ster-time                       => autoclave-control.ster-time
-# - Finish temp, deg. C
-net finish-temp                     => autoclave-control.finish-temp
-# - Idle temp, deg. C
-net idle-temp                       => autoclave-control.idle-temp
-
-# Limits
-# - Maximum burner temp, deg. C:  Thermagon max stable temp
-setp autoclave-control.temp-max-burner 200.0
-# - Maximum autoclave temp, deg. C:  Presto max 15 PSI = 121 deg. C
-setp autoclave-control.temp-max-pot 121.0
-# - Maximum autoclave pressure, PSI:  Presto max 15 PSI
-setp autoclave-control.pressure-max 15.0
-
-# Inputs
-# - Pot temperature, deg. C
-net temp-pot                        => autoclave-control.temp-pot
-# - Burner temperature, deg. C
-net temp-burner                     => autoclave-control.temp-burner
-# - Pressure, PSI
-net pressure                        => autoclave-control.pressure
-
-# Outputs
-# - Current temperature setting, deg. C
-net temp-set                        <= autoclave-control.temp-set
-# - Current time setting, s.
-net time-set                        <= autoclave-control.time-set
-# - Pressure relief valve on, True/False
-net valve-on-input                  <= autoclave-control.valve-on
-# - Overall elapsed time, s.
-net elapsed-time                    <= autoclave-control.elapsed-time
-# - Current stage, ID
-net stage                           <= autoclave-control.stage
-# - Current stage elapsed time, s.
-net stage-elapsed-time              <= autoclave-control.stage-elapsed-time
-# - Error, True/False
-net error                           <= autoclave-control.error
 
 
 # ################################################
@@ -202,26 +203,26 @@ net burner-on                       <= pwmgen.0.pwm
 # Logger comp
 # ################################################
 
-# Load userland comp
-loadusr -W autoclave-logger
+# # Load userland comp
+# loadusr -W autoclave-logger
 
-# Inputs
-# - Process settings and outputs
-net stage                           => autoclave-logger.stage
-net temp-set                        => autoclave-logger.temp-set
-net time-set                        => autoclave-logger.time-set
-net burner-duty                     => autoclave-logger.burner-duty
-net valve-on                        => autoclave-logger.valve-on
-# - Temperatures & pressure inputs
-net temp-burner                     => autoclave-logger.temp-burner
-net temp-pot                        => autoclave-logger.temp-pot
-net pressure                        => autoclave-logger.pressure
-# - Estop/enable/error
-net estop                           => autoclave-logger.estop
-net error                           => autoclave-logger.error
-net enable                          => autoclave-logger.enable
-# - Shut down
-net shutdown                        => autoclave-logger.shutdown
+# # Inputs
+# # - Process settings and outputs
+# net stage                           => autoclave-logger.stage
+# net temp-set                        => autoclave-logger.temp-set
+# net time-set                        => autoclave-logger.time-set
+# net burner-duty                     => autoclave-logger.burner-duty
+# net valve-on                        => autoclave-logger.valve-on
+# # - Temperatures & pressure inputs
+# net temp-burner                     => autoclave-logger.temp-burner
+# net temp-pot                        => autoclave-logger.temp-pot
+# net pressure                        => autoclave-logger.pressure
+# # - Estop/enable/error
+# net estop                           => autoclave-logger.estop
+# net error                           => autoclave-logger.error
+# net enable                          => autoclave-logger.enable
+# # - Shut down
+# net shutdown                        => autoclave-logger.shutdown
 
 
 # ################################################
@@ -229,13 +230,13 @@ net shutdown                        => autoclave-logger.shutdown
 # ################################################
 
 # Latch the momentary shutdown button to a shutdown signal
-newinst or2 shutdown
-addf shutdown                       main-thread
+newinst or2 shutdown-latch
+addf shutdown-latch                 main-thread
 
 # Shutdown latch
-net shutdown                        <= shutdown.out
-net shutdown                        => shutdown.in0
-net shutdown-button                 => shutdown.in1
+net shutdown-button                 => shutdown-latch.in0
+net shutdown                        => shutdown-latch.in1 # (feedback)
+net shutdown                        <= shutdown-latch.out
 
 # Signal autoclave runner
 net shutdown                        => autoclave-run.shutdown

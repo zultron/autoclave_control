@@ -6,6 +6,48 @@ persist_fname = "autoclave.conf.yaml"
 
 msg = Messages('Autoclave remote')
 
+# Pin creation data
+# (name, hal_type, hal_dir, save)
+pin_data = [
+    # Controls
+    ('enable-switch',		hal.HAL_BIT,	hal.HAL_OUT,	True),
+    ('start',			hal.HAL_BIT,	hal.HAL_OUT,	False),
+    # Process stages
+    ('stage',			hal.HAL_S32,	hal.HAL_IN,	False),
+    # - Idle
+    ('idle-temp-set',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
+    ('idle-temp',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
+    ('idle-time',		hal.HAL_S32,	hal.HAL_IN,	False),
+    # - Flush
+    ('flush-time-set',		hal.HAL_S32,	hal.HAL_OUT,	True),
+    ('flush-time',		hal.HAL_S32,	hal.HAL_IN,	False),
+    # - Heat
+    ('heat-temp-set',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
+    ('heat-temp',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
+    ('heat-time',		hal.HAL_S32,	hal.HAL_IN,	False),
+    # - Sterilize
+    ('ster-time-set',		hal.HAL_S32,	hal.HAL_OUT,	True),
+    ('ster-time',		hal.HAL_S32,	hal.HAL_IN,	False),
+    # - Cool
+    ('cool-temp-set',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
+    ('cool-temp',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
+    ('cool-time',		hal.HAL_S32,	hal.HAL_IN,	False),
+    # Controls in
+    ('temp-set',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
+    ('valve-on',		hal.HAL_BIT,	hal.HAL_IN,	False),
+    ('burner-duty',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
+    # Sensors in/limits out
+    ('pressure',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
+    ('pressure-max',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
+    ('temp-pot',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
+    ('temp-pot-max',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
+    ('temp-burner',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
+    ('temp-burner-max',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
+    # Other status
+    ('time-elapsed',		hal.HAL_S32,	hal.HAL_IN,	False),
+    ('error',			hal.HAL_BIT,	hal.HAL_IN,	False),
+    ('estop',			hal.HAL_BIT,	hal.HAL_IN,	False),
+]
 
 # Read saved settings
 saved_state = Config().read_state()
@@ -13,39 +55,16 @@ saved_state = Config().read_state()
 # Create remote component
 rcomp = hal.RemoteComponent('autoclave-remote', timer=100)
 
-# Pin creation data
-data = [
-    # Controls
-    ('enable-switch', hal.HAL_BIT, hal.HAL_OUT),
-    ('start', hal.HAL_BIT, hal.HAL_OUT),
-    # Process settings
-    ('flush-time', hal.HAL_S32, hal.HAL_OUT),
-    ('ster-temp', hal.HAL_FLOAT, hal.HAL_OUT),
-    ('ster-time', hal.HAL_S32, hal.HAL_OUT),
-    ('finish-temp', hal.HAL_FLOAT, hal.HAL_OUT),
-    ('idle-temp', hal.HAL_FLOAT, hal.HAL_OUT),
-    # Status
-    # - control comp
-    ('temp-set', hal.HAL_FLOAT, hal.HAL_IN),
-    ('time-set', hal.HAL_S32, hal.HAL_IN),
-    ('valve-on', hal.HAL_BIT, hal.HAL_IN),
-    ('elapsed-time', hal.HAL_S32, hal.HAL_IN),
-    ('stage', hal.HAL_S32, hal.HAL_IN),
-    ('stage-elapsed-time', hal.HAL_S32, hal.HAL_IN),
-    ('error', hal.HAL_BIT, hal.HAL_IN),
-    # - other
-    ('estop', hal.HAL_BIT, hal.HAL_IN),
-    ('temp-pot', hal.HAL_FLOAT, hal.HAL_IN),
-    ('pressure', hal.HAL_FLOAT, hal.HAL_IN),
-    ('burner-duty', hal.HAL_FLOAT, hal.HAL_IN),
-]
-
-for name, hal_type, hal_dir in data:
+for name, hal_type, hal_dir, save in pin_data:
     pin = rcomp.newpin(name, hal_type, hal_dir)
-    if name in saved_state:
-        hal.signals[name].set(saved_state[name])
-        msg.info("Restored setting %s = %s" % (name,saved_state[name]))
+    if save:
+        val = saved_state.get(name, 0)
+        hal.signals[name].set(val)
+        msg.info("Restored setting %s = %s" % (name,val))
     pin.link(hal.signals[name])
+
+pin = rcomp.newpin("test-pin", hal.HAL_FLOAT, hal.HAL_OUT)
+pin.set(42.42)
 
 rcomp.ready()
 msg.info("Initialized")

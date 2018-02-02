@@ -2,22 +2,46 @@ import QtQuick 2.0
 import Machinekit.HalRemote 1.0
 
 Item {
+    id: pins
+    
 
+    // Test
+    property double test_pin: 42.5
+    HalPin {
+	id: test_pin
+	name: "test-pin"
+	type: HalPin.Float
+	direction: HalPin.Out
+    }
+    Binding {
+	target: pins
+	property: "test_pin"
+	value: test_pin.value
+    }
+
+    // Remote controls
     property alias enable: enable.value
     property alias start: start.value
-    property alias temp_set: temp_set.value
-    property alias time_set: time_set.value
-    property alias valve_on: valve_on.value
-    property alias elapsed_time: elapsed_time.value
+    // Process stage settings and status
+    // (others taken care of in TimeStage and TempStage objects)
     property alias stage: stage.value
-    property alias stage_elapsed_time: stage_elapsed_time.value
+    // Controls in
+    property alias temp_set: temp_set.value
+    property alias burner_duty: burner_duty.value
+    property alias valve_on: valve_on.value
+    // Sensors/limits
+    property alias pressure: pressure.value
+    property alias pressure_max: pressure_max.value
+    property alias temp_pot: temp_pot.value
+    property alias temp_pot_max: temp_pot_max.value
+    property alias temp_burner: temp_burner.value
+    property alias temp_burner_max: temp_burner_max.value
+    // Other status
+    property alias time_elapsed: time_elapsed.value
     property alias error: error.value
     property alias estop: estop.value
-    property alias temp_pot: temp_pot.value
-    property alias pressure: pressure.value
-    property alias burner_duty: burner_duty.value
 
-    // Buttons
+    // Remote controls
     Item {
 	id: enable
 	property bool checked
@@ -66,9 +90,35 @@ Item {
 	}
     }
 
-    // Status
+    // Process stage settings and status
 
-    // - control comp
+    Item {
+	id: stage
+	property int value
+	property bool synced
+
+	HalPin {
+            id: stage_pin
+            name: "stage"
+            type: HalPin.S32
+            direction: HalPin.In
+	}
+
+	Binding {
+	    target: stage;
+	    property: "value";
+	    value: stage_pin.value;
+	}
+
+	Binding {
+	    target: stage;
+	    property: "synced";
+	    value: stage_pin.synced;
+	}
+    }
+
+    // Controls in
+
     Item {
 	id: temp_set
 	property double value
@@ -95,27 +145,27 @@ Item {
     }
 
     Item {
-	id: time_set
-	property int value
+	id: burner_duty
+	property double value
 	property bool synced
 
 	HalPin {
-            id: time_set_pin
-            name: "time-set"
-            type: HalPin.S32
+            id: burner_duty_pin
+            name: "burner-duty"
+            type: HalPin.Float
             direction: HalPin.In
 	}
 
 	Binding {
-	    target: time_set;
+	    target: burner_duty;
 	    property: "value";
-	    value: time_set_pin.value;
+	    value: burner_duty_pin.value;
 	}
 
 	Binding {
-	    target: time_set;
+	    target: burner_duty;
 	    property: "synced";
-	    value: time_set_pin.synced;
+	    value: burner_duty_pin.synced;
 	}
     }
 
@@ -143,78 +193,182 @@ Item {
 	}
     }
 
+    // Sensors/limits
+
     Item {
-	id: elapsed_time
-	property int value
+	id: pressure
+	property double value
 	property bool synced
 
 	HalPin {
-            id: elapsed_time_pin
-            name: "elapsed-time"
-            type: HalPin.S32
+            id: pressure_pin
+            name: "pressure"
+            type: HalPin.Float
             direction: HalPin.In
 	}
 
 	Binding {
-	    target: elapsed_time;
+	    target: pressure;
 	    property: "value";
-	    value: elapsed_time_pin.value;
+	    value: pressure_pin.value;
 	}
 
 	Binding {
-	    target: elapsed_time;
+	    target: pressure;
 	    property: "synced";
-	    value: elapsed_time_pin.synced;
+	    value: pressure_pin.synced;
 	}
     }
 
     Item {
-	id: stage
-	property int value
+	id: pressure_max
+	property double value
 	property bool synced
 
 	HalPin {
-            id: stage_pin
-            name: "stage"
-            type: HalPin.S32
+            id: pressure_max_pin
+            name: "pressure-max"
+            type: HalPin.Float
             direction: HalPin.In
 	}
 
 	Binding {
-	    target: stage;
+	    target: pressure_max;
 	    property: "value";
-	    value: stage_pin.value;
+	    value: pressure_max_pin.value;
 	}
 
 	Binding {
-	    target: stage;
+	    target: pressure_max;
 	    property: "synced";
-	    value: stage_pin.synced;
+	    value: pressure_max_pin.synced;
 	}
     }
 
     Item {
-	id: stage_elapsed_time
+	id: temp_pot
+	property double value
+	property bool synced
+
+	HalPin {
+            id: temp_pot_pin
+            name: "temp-pot"
+            type: HalPin.Float
+            direction: HalPin.In
+	}
+
+	Binding {
+	    target: temp_pot;
+	    property: "value";
+	    value: temp_pot_pin.value;
+	}
+
+	Binding {
+	    target: temp_pot;
+	    property: "synced";
+	    value: temp_pot_pin.synced;
+	}
+    }
+
+    Item {
+	id: temp_pot_max
+	property double value
+	property bool synced
+
+	HalPin {
+            id: temp_pot_max_pin
+            name: "temp-pot-max"
+            type: HalPin.Float
+            direction: HalPin.In
+	}
+
+	Binding {
+	    target: temp_pot_max;
+	    property: "value";
+	    value: temp_pot_max_pin.value;
+	}
+
+	Binding {
+	    target: temp_pot_max;
+	    property: "synced";
+	    value: temp_pot_max_pin.synced;
+	}
+    }
+
+    Item {
+	id: temp_burner
+	property double value
+	property bool synced
+
+	HalPin {
+            id: temp_burner_pin
+            name: "temp-burner"
+            type: HalPin.Float
+            direction: HalPin.In
+	}
+
+	Binding {
+	    target: temp_burner;
+	    property: "value";
+	    value: temp_burner_pin.value;
+	}
+
+	Binding {
+	    target: temp_burner;
+	    property: "synced";
+	    value: temp_burner_pin.synced;
+	}
+    }
+
+    Item {
+	id: temp_burner_max
+	property double value
+	property bool synced
+
+	HalPin {
+            id: temp_burner_max_pin
+            name: "temp-burner-max"
+            type: HalPin.Float
+            direction: HalPin.In
+	}
+
+	Binding {
+	    target: temp_burner_max;
+	    property: "value";
+	    value: temp_burner_max_pin.value;
+	}
+
+	Binding {
+	    target: temp_burner_max;
+	    property: "synced";
+	    value: temp_burner_max_pin.synced;
+	}
+    }
+
+    // Other status
+
+    Item {
+	id: time_elapsed
 	property int value
 	property bool synced
 
 	HalPin {
-            id: stage_elapsed_time_pin
-            name: "stage-elapsed-time"
+            id: time_elapsed_pin
+            name: "time-elapsed"
             type: HalPin.S32
             direction: HalPin.In
 	}
 
 	Binding {
-	    target: stage_elapsed_time;
+	    target: time_elapsed;
 	    property: "value";
-	    value: stage_elapsed_time_pin.value;
+	    value: time_elapsed_pin.value;
 	}
 
 	Binding {
-	    target: stage_elapsed_time;
+	    target: time_elapsed;
 	    property: "synced";
-	    value: stage_elapsed_time_pin.synced;
+	    value: time_elapsed_pin.synced;
 	}
     }
 
@@ -265,81 +419,6 @@ Item {
 	    target: estop;
 	    property: "value";
 	    value: estop_pin.checked;
-	}
-    }
-
-    Item {
-	id: temp_pot
-	property double value
-	property bool synced
-
-	HalPin {
-            id: temp_pot_pin
-            name: "temp-pot"
-            type: HalPin.Float
-            direction: HalPin.In
-	}
-
-	Binding {
-	    target: temp_pot;
-	    property: "value";
-	    value: temp_pot_pin.value;
-	}
-
-	Binding {
-	    target: temp_pot;
-	    property: "synced";
-	    value: temp_pot_pin.synced;
-	}
-    }
-
-    Item {
-	id: pressure
-	property double value
-	property bool synced
-
-	HalPin {
-            id: pressure_pin
-            name: "pressure"
-            type: HalPin.Float
-            direction: HalPin.In
-	}
-
-	Binding {
-	    target: pressure;
-	    property: "value";
-	    value: pressure_pin.value;
-	}
-
-	Binding {
-	    target: pressure;
-	    property: "synced";
-	    value: pressure_pin.synced;
-	}
-    }
-
-    Item {
-	id: burner_duty
-	property double value
-	property bool synced
-
-	HalPin {
-            id: burner_duty_pin
-            name: "burner-duty"
-            type: HalPin.Float
-            direction: HalPin.In
-	}
-
-	Binding {
-	    target: burner_duty;
-	    property: "value";
-	    value: burner_duty_pin.value;
-	}
-
-	Binding {
-	    target: burner_duty;
-	    property: "synced";
-	    value: burner_duty_pin.synced;
 	}
     }
 }

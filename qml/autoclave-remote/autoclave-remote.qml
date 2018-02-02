@@ -40,8 +40,9 @@ HalApplicationWindow {
             outerDiameter: 200.0
             width: 200
             height: 225
-            setPinName: "idle-temp"
-            readPinName: "temp-pot"
+            setPinName: "idle-temp-set"
+            readPinName: "idle-temp"
+	    timePinName: "idle-time"
 	    readVisible: true
             centerImage: "assets/p0-idle-green.png"
 	    typeIconSource: "assets/l1-heat.png"
@@ -54,8 +55,8 @@ HalApplicationWindow {
             outerDiameter: 200.0
             width: 200
             height: 225
-            setPinName: "flush-time"
-            readPinName: "stage-elapsed-time"
+            setPinName: "flush-time-set"
+            readPinName: "flush-time"
 	    readVisible: pins.stage >= 1
             centerImage: "assets/p1-flush-blue.png"
 	    typeIconSource: "assets/l3-timer.png"
@@ -68,22 +69,23 @@ HalApplicationWindow {
             outerDiameter: 200.0
             width: 200
             height: 225
-            setPinName: "ster-temp"
-            readPinName: "temp-pot"
+            setPinName: "heat-temp-set"
+            readPinName: "heat-temp"
+	    timePinName: "heat-time"
 	    readVisible: pins.stage >= 2
             centerImage: "assets/p2-heat-blue.png"
 	    typeIconSource: "assets/l1-heat.png"
         }
 
         Autoclave.TimeStage {
-            id: sterilize
+            id: ster
             x: 532
             y: 102
             outerDiameter: 200.0
             width: 200
             height: 225
-            setPinName: "ster-time"
-            readPinName: "stage-elapsed-time"
+            setPinName: "ster-time-set"
+            readPinName: "ster-time"
 	    readVisible: pins.stage >= 3
             centerImage: "assets/p3-sterilize-blue.png"
 	    typeIconSource: "assets/l3-timer.png"
@@ -96,8 +98,9 @@ HalApplicationWindow {
             outerDiameter: 200.0
             width: 200
             height: 225
-            setPinName: "finish-temp"
-            readPinName: "temp-pot"
+            setPinName: "cool-temp-set"
+            readPinName: "cool-temp"
+	    timePinName: "cool-time"
 	    readVisible: pins.stage >= 4
             centerImage: "assets/p4-cool-blue.png"
 	    typeIconSource: "assets/l2-cool.png"

@@ -34,7 +34,7 @@ Item {
 
     // Display settings
     // - Visibility
-    property bool readVisible: false // read value visible/invisible
+    property bool readVisible: true // read value visible/invisible
     // - Size
     property double outerDiameter: 400.0
     property double innerDiameter: outerDiameter/2
@@ -247,6 +247,7 @@ Item {
 
 	// This changes transparency as the read value increases
 	onReadValChanged: requestPaint()
+	onSetValChanged: requestPaint()
 
 	contextType: "2d"
 	onPaint: {

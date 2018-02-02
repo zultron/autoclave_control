@@ -3,139 +3,124 @@
 import hal, time, sys, datetime, yaml
 from autoclave import Config, Messages
 
-# Set up component
-h = hal.component("autoclave-control")
+##################################################################
+# Control data
 
-# Controls
-# - Enable, True/False
-h.newpin("enable", hal.HAL_BIT, hal.HAL_IN)
-# - Start/stop, True/False
-h.newpin("start", hal.HAL_BIT, hal.HAL_IN)
-# - E-Stop, True/False
-h.newpin("estop", hal.HAL_BIT, hal.HAL_IN)
-# - Exit, True/False
-h.newpin("shutdown", hal.HAL_BIT, hal.HAL_IN)
-
-# Process settings
-# - Flush time, seconds
-h.newpin("flush-time", hal.HAL_S32, hal.HAL_IN)
-# - Sterilization temp, deg. C
-h.newpin("ster-temp", hal.HAL_FLOAT, hal.HAL_IN)
-# - Sterilization time, seconds
-h.newpin("ster-time", hal.HAL_S32, hal.HAL_IN)
-# - Finish temp, deg. C
-h.newpin("finish-temp", hal.HAL_FLOAT, hal.HAL_IN)
-# - Idle temp, deg. C
-h.newpin("idle-temp", hal.HAL_FLOAT, hal.HAL_IN)
-
-# Limits
-# - Maximum burner temp, deg. C
-h.newpin("temp-max-burner", hal.HAL_FLOAT, hal.HAL_IN)
-# - Maximum autoclave temp, deg. C
-h.newpin("temp-max-pot", hal.HAL_FLOAT, hal.HAL_IN)
-# - Maximum autoclave pressure, PSI
-h.newpin("pressure-max", hal.HAL_FLOAT, hal.HAL_IN)
-
-# Inputs
-# - Autoclave temperature, deg. C
-h.newpin("temp-pot", hal.HAL_FLOAT, hal.HAL_IN)
-# - Autoclave pressure, PSI
-h.newpin("pressure", hal.HAL_FLOAT, hal.HAL_IN)
-# - Burner temperature, deg. C
-h.newpin("temp-burner", hal.HAL_FLOAT, hal.HAL_IN)
-
-
-# Outputs:  
-# - Current temperature setting, deg. C
-h.newpin("temp-set", hal.HAL_FLOAT, hal.HAL_OUT)
-# - Current time setting, s.
-h.newpin("time-set", hal.HAL_S32, hal.HAL_OUT)
-# - Pressure relief valve on, True/False
-h.newpin("valve-on", hal.HAL_BIT, hal.HAL_OUT)
-# - Overall elapsed time, s.
-h.newpin("elapsed-time", hal.HAL_S32, hal.HAL_OUT)
-# - Current stage, ID
-h.newpin("stage", hal.HAL_S32, hal.HAL_OUT)
-# - Current stage elapsed time, s.
-h.newpin("stage-elapsed-time", hal.HAL_S32, hal.HAL_OUT)
-# - Error, True/False
-h.newpin("error", hal.HAL_BIT, hal.HAL_OUT)
-
-# Zero initial values
-h['temp-set'] = 0.0
-h['time-set'] = 0.0
-h['valve-on'] = False
-h['elapsed-time'] = 0
-h['stage'] = 0
-h['stage-elapsed-time'] = 0
-h['error'] = False
-
-# Stages
+# Map stage name to ID and back
 stage_name_id_map = dict(
-    idle = 0, flush = 1, heating = 2, sterilization = 3, cooldown = 4)
-stage_id_name_map = {
-    0: 'idle', 1: 'flush', 2: 'heating', 3: 'sterilization', 4: 'cooldown'}
+    idle = 0, flush = 1, heat = 2, sterilize = 3, cool = 4)
+stage_id_name_map = dict(zip(
+    stage_name_id_map.values(), stage_name_id_map.keys()))
+timed_stages = ('flush', 'sterilize')
+valve_on_stages = ('flush')
+max_burner_stages = ('flush') # Need PWM at 100% during flush
 
-# Dict to persist state across cycles
-state = dict()
+# Pin creation data
+# (name, hal_type, hal_dir, save)
+pin_data = [
+    # Remote controls
+    ('enable',			hal.HAL_BIT,	hal.HAL_IN,	True),
+    ('start',			hal.HAL_BIT,	hal.HAL_IN,	False),
+    # Process stage settings and status
+    # - Current stage ID
+    ('stage',			hal.HAL_S32,	hal.HAL_OUT,	False),
+    # - Idle stage:  heat
+    ('idle-temp-set',		hal.HAL_FLOAT,	hal.HAL_IN,	True),
+    ('idle-temp',		hal.HAL_FLOAT,	hal.HAL_OUT,	False),
+    ('idle-time',		hal.HAL_S32,	hal.HAL_OUT,	False),
+    # - Flush stage: timer
+    ('flush-time-set',		hal.HAL_S32,	hal.HAL_IN,	True),
+    ('flush-time',		hal.HAL_S32,	hal.HAL_OUT,	False),
+    # - Heat
+    ('heat-temp-set',		hal.HAL_FLOAT,	hal.HAL_IN,	True),
+    ('heat-temp',		hal.HAL_FLOAT,	hal.HAL_OUT,	False),
+    ('heat-time',		hal.HAL_S32,	hal.HAL_OUT,	False),
+    # - Sterilize
+    ('ster-time-set',		hal.HAL_S32,	hal.HAL_IN,	True),
+    ('ster-time',		hal.HAL_S32,	hal.HAL_OUT,	False),
+    # - Cool
+    ('cool-temp-set',		hal.HAL_FLOAT,	hal.HAL_IN,	True),
+    ('cool-temp',		hal.HAL_FLOAT,	hal.HAL_OUT,	False),
+    ('cool-time',		hal.HAL_S32,	hal.HAL_OUT,	False),
+    # Controls out
+    ('temp-set',		hal.HAL_FLOAT,	hal.HAL_OUT,	False),
+    ('valve-on',		hal.HAL_BIT,	hal.HAL_OUT,	False),
+    # Sensors in/limits out
+    ('pressure',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
+    ('pressure-max',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
+    ('temp-pot',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
+    ('temp-pot-max',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
+    ('temp-burner',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
+    ('temp-burner-max',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
+    # Other status
+    ('time-elapsed',		hal.HAL_S32,	hal.HAL_OUT,	False),
+    ('error',			hal.HAL_BIT,	hal.HAL_OUT,	False),
+    ('estop',			hal.HAL_BIT,	hal.HAL_IN,	False),
+    ('shutdown',		hal.HAL_BIT,	hal.HAL_IN,	False),
+]
 
-msg = Messages('Autoclave control')
+##################################################################
+# Functions
 
-# Mark the component as 'ready'
-msg.info("Initialized")
-h.ready()
-
-# Convenience functions
+def current_stage():
+    return stage_id_name_map[h['stage']]
 
 def stage_time_elapsed():
-    if h['time-set'] == 0:  # Not a timed stage
-        return False
-    return (now - h['stage-elapsed-time']) > h['time-set']
+    s = current_stage()
+    if s not in timed_stages:
+        return False # Not a timed stage
+    return (now - h['%s-time' % s]) > h['%s-time-set' % s]
         
-def stage_temp_reached(exceeded=True):
-    if h['time-set'] > 0:  # Not a temp stage
-        return False
-    if exceeded:
-        return h['temp-pot'] >= h['temp-set']
+def stage_temp_reached(cool=False):
+    s = current_stage()
+    if s in timed_stages:
+        return False # Not a temp stage
+    if not cool:
+        return h['temp-pot'] >= h['%s-temp-set' % s]
     else:
-        return h['temp-pot'] <= h['temp-set']
+        return h['temp-pot'] <= h['%s-temp-set' % s]
 
-def enter_stage(stage_name, temp=0, time=-1, valve_on=False):
+def enter_stage(stage_name, init=False):
     now = time.time()
-    msg.info("Exiting '%s' stage after %d seconds" %
-             (stage_id_name_map.get(h['stage']),
-              now - h['stage-elapsed-time']))
-    if stage_name == 'idle':
-        msg.info("Process ended; total elapsed time %d seconds" %
-                 now - h['elapsed-time'])
-        msg.info("Entering 'idle' state; set temperature %.1f"
-                 % temp)
-        # Process ended; reset elapsed time
-        h['elapsed-time'] = 0
-        state['elapsed-time-start'] = now
-        h['start'] = False
-    else:
-        if stage_name == 'flush':
-            msg.info("Starting process")
-            # Process starting; reset elapsed time
-            h['elapsed-time'] = 0
-            state['elapsed-time-start'] = now
 
-        if temp is not None:
-            msg.info("Entering '%s' stage; set temperature %.1f"
-                     % (stage_name, temp))
-        else:
-            msg.info("Entering '%s' stage for %d seconds"
-                     % (stage_name, time))
-    # Set state
+    if not init:
+        # Finalize previous stage
+        name = current_stage()
+        t = h['%s-time' % name] = (now - state['%s-time-start' % name])
+        msg.info("Exiting '%s' stage after %d seconds" % (name, t))
+
+        # If entering idle stage, finalize previous process
+        if stage_name == 'idle':
+            etime = now - state['time-elapsed-start']
+            h['time-elapsed'] = 0
+            state['time-elapsed-start'] = now
+            h['start'] = False
+            msg.info("Process ended; total elapsed time %d seconds" % etime)
+
+    # If entering flush stage, initialize new process
+    if stage_name == 'flush':
+        h['time-elapsed'] = 0
+        state['time-elapsed-start'] = now
+        msg.info("Starting process")
+
+    if stage_name in timed_stages:
+        set_time = h['%s-time-set'] % stage_name
+        msg.info("Entering '%s' stage for %d seconds at temperature %.1f"
+                 % (stage_name, set_time, h['temp-set']))
+    else:
+        set_temp = (h['temp-pot-max'] if stage_name in max_burner_stages
+                    else h['%s-temp-set' % stage_name])
+        msg.info("Entering '%s' stage; set temperature %.1f"
+                 % (stage_name, set_temp))
+        h['temp-set'] = set_temp
+
+    # Set stage ID pin
     state['stage'] = stage_name_id_map.get(stage_name)
     # Reset stage timer
-    h['stage-elapsed-time'] = 0
-    state['stage-elapsed-time-start'] = now
-    # Set time, temp and valve
-    h['time-set'] = time
-    h['temp-set'] = temp
-    h['valve-on'] = valve_on
+    h['%s-time' % stage_name] = 0
+    state['%s-time-start' % stage_name] = now
+    # Set valve
+    h['valve-on'] = (stage_name in valve_on_stages)
     return True
 
 # Main loop function
@@ -157,34 +142,34 @@ def loop():
     # - E-Stop
     if h['estop']:  # Actual handling in HAL file
         if not state.get('error_seen',False):
-            msg.error("E-Stop")
+            msg.warning("E-Stop")
         error = True
 
     # - Burner overheating
-    if h['temp-burner'] > h['temp-max-burner']:
+    if h['temp-burner'] > h['temp-burner-max']:
         if not state.get('error_seen',False):
-            msg.error("Burner overheating:  %.1f > %.1f" %
-                      (h['temp-burner'], h['temp-max-burner']))
+            msg.warning("Burner overheating:  %.1f > %.1f" %
+                        (h['temp-burner'], h['temp-burner-max']))
         error = True
 
     # - Autoclave overheating
-    if h['temp-pot'] > h['temp-max-pot']:
+    if h['temp-pot'] > h['temp-pot-max']:
         if not state.get('error_seen',False):
-            msg.error("Autoclave overheating:  %.1f > %.1f" %
-                      (h['temp-pot'], h['temp-max-pot']))
+            msg.warning("Autoclave overheating:  %.1f > %.1f" %
+                        (h['temp-pot'], h['temp-pot-max']))
         error = True
 
     # - Autoclave overpressure
     if h['pressure'] > h['pressure-max']:
         if not state.get('error_seen',False):
-            msg.error("Autoclave overpressure:  %.1f > %.1f" %
-                      (h['pressure'], h['pressure-max']))
+            msg.warning("Autoclave overpressure:  %.1f > %.1f" %
+                        (h['pressure'], h['pressure-max']))
         error = True
 
     # - Enable signal cleared
     if not h['enable']:
         if not state.get('error_seen',False):
-            msg.error("Enable signal cleared")
+            msg.warning("Enable signal cleared")
         error = True
 
     # - Wrap up error processing
@@ -202,56 +187,96 @@ def loop():
         h['error'] = False
 
     # Process state machine
-    state_name = stage_id_name_map.get(h['stage'], 'unset')
+    stage_name = current_stage()
 
     # - Enter idle state
-    if not h['start'] and state_name != 'idle':
-        return enter_stage('idle', temp=h['idle-temp'])
+    if not h['start'] and stage_name != 'idle':
+        return enter_stage('idle')
 
     # - Idle -> steam flush
-    if h['start'] and state_name == 'idle':
-        return enter_stage('flush', time=h['flush-time'], valve_on=True,
-                           temp=temp_max_pot) # need burner PWM at 100%
+    if h['start'] and stage_name == 'idle':
+        return enter_stage('flush')
 
     # - Flush -> heating
-    if state_name == 'flush' and stage_time_elapsed():
-        return enter_stage('heating', temp=h['ster-temp'])
+    if stage_name == 'flush' and stage_time_elapsed():
+        return enter_stage('heat')
 
     # - Heating -> sterilization
-    if state_name == 'heating' and stage_temp_reached():
-        return enter_stage('sterilization', time=h['ster-time'],
-                           temp=h['ster_temp'])
+    if stage_name == 'heat' and stage_temp_reached():
+        return enter_stage('sterilize')
 
     # - Sterilization -> cooldown
-    if state_name == 'sterilization' and stage_time_elapsed():
-        return enter_stage('cooldown', temp=h['finish-temp'])
+    if stage_name == 'sterilize' and stage_time_elapsed():
+        return enter_stage('cool')
 
     # - Cooldown -> idle
-    if state_name == 'cooldown' and stage_temp_reached(exceeded=False):
-        return enter_stage('idle', temp=h['idle-temp'])
+    if stage_name == 'cool' and stage_temp_reached(cool=True):
+        return enter_stage('idle')
 
-    # No state changes; update timers and return
+    # No state changes; update timers & temps and return
     now = time.time()
-    h['elapsed-time'] = now - state['elapsed-time-start']
-    h['stage-elapsed-time'] = now - state['stage-elapsed-time-start']
+    h['time-elapsed'] = now - state['time-elapsed-start']
+    h['%s-time' % stage_name] = now - state['%s-time-start' % stage_name]
+    if stage_name not in timed_stages:
+        h['%s-temp' % stage_name] = h['temp-pot']
     return True
 
-# Do it
+##################################################################
+# Init
 
+# Console logging
+msg = Messages('Autoclave control')
+
+# Read saved settings
+config = Config()
+saved_state = config.read_state()
+
+# Set up component
+h = hal.component("autoclave-control")
+
+# Init pins and pin values
+for name, hal_type, hal_dir, save in pin_data:
+    h.newpin(name, hal_type, hal_dir)
+    if hal_dir == hal.HAL_IN:
+        # input pins don't need init
+        continue
+    if save:
+        # init from config file
+        val = saved_state.get(name, 0)
+        h[name] = val
+        msg.info("Restored setting %s = %s" % (name,val))
+    else:
+        # init to zero
+        h[name] = 0
+
+# Dict to persist state across cycles
+state = dict()
+
+# Start in idle stage
+enter_stage('idle', init=True)
+
+# Mark the component as 'ready'
+msg.info("Initialized")
+h.ready()
+
+##################################################################
+# Run
 try:
     # Run forever
     while loop():
         pass
-except:
+except KeyboardInterrupt:
+    msg.info("Caught interrupt")
+except Exception as e:
+    msg.info("Caught exception:  %s" % e)
     pass
 finally:
     # Save settings
     msg.info("Saving settings")
-    Config().write_state(h, ['enable', 'flush-time', 'ster-temp', 'ster-time',
-                             'finish-temp', 'idle-temp'])
+    config.write_state(h, [d[0] for d in pin_data if d[3]])
 
     # Shut things off and exit
     msg.info("Exiting")
-    h['valve-on'] = False
     h['temp-set'] = 0.0
+    h['valve-on'] = False
     sys.exit(0)

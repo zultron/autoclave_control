@@ -4,12 +4,12 @@ import Machinekit.HalRemote 1.0
 Item {
     id: time
     // Pins & values
-    property alias setValue: setPin.value
-    property alias readValue: readPin.value
-    property string setPinName: "set-pin"
-    property string readPinName: "read-pin"
-    property bool setSynced
-    property bool readSynced
+    property alias setPinName:  gauge.setPinName
+    property alias setValue:    gauge.setValue
+    property alias setSynced:   gauge.setSynced
+    property alias readPinName: gauge.readPinName
+    property alias readValue:   gauge.readValue
+    property alias readSynced:  gauge.readSynced
     property bool synced: setSynced && readSynced
     // Gauge properties
     property alias readVisible: gauge.readVisible
@@ -47,44 +47,6 @@ Item {
     width: 400
     height: 450
 
-    HalPin {
-	id: setPin
-	name: time.setPinName
-	type: HalPin.S32
-        direction: HalPin.Out
-    }
-
-    Binding {
-	target: gauge;
-	property: "setValue";
-	value: setPin.value;
-    }
-
-    Binding {
-	target: time;
-	property: "setSynced";
-	value: setPin.synced;
-    }
-
-    HalPin {
-	id: readPin
-	name: time.readPinName
-	type: HalPin.S32
-        direction: HalPin.In
-    }
-
-    Binding {
-	target: gauge;
-	property: "readValue";
-	value: readPin.value;
-    }
-
-    Binding {
-	target: time;
-	property: "readSynced";
-	value: readPin.synced;
-    }
-
     Image {
         id: typeIcon
 	width: parent.height-parent.width
@@ -93,26 +55,23 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
     }
     
-    Text {
-        id: readText
-        color: time.readTextColor
-	property int minutes: Math.floor(gauge.readValue/60)
-	property int seconds: gauge.readValue%60
-        text: minutes + ":" + (seconds<10 ? "0":"") + seconds
-        anchors.right: typeIcon.left
+    TimeReadout {
+        id: setTime
+	value: gauge.setValue
+        color: time.setTextColor
+        anchors.left: typeIcon.right
         anchors.verticalCenter: typeIcon.verticalCenter
-        horizontalAlignment: Text.AlignRight
+        horizontalAlignment: Text.AlignLeft
         font.pixelSize: typeIcon.height * 0.7
     }
 
-    Text {
-        id: setText
-        color: time.setTextColor
-	property int minutes: Math.floor(gauge.setValue/60)
-	property int seconds: gauge.setValue%60
-        text: minutes + ":" + (seconds<10 ? "0":"") + seconds
-        anchors.left: typeIcon.right
+    TimeReadout {
+        id: readTime
+	value: gauge.setValue
+        color: time.readTextColor
+        anchors.right: typeIcon.left
         anchors.verticalCenter: typeIcon.verticalCenter
+        horizontalAlignment: Text.AlignRight
         font.pixelSize: typeIcon.height * 0.7
     }
 
@@ -123,6 +82,14 @@ Item {
 
 	setValue: 30.0
 	readValue: 10.0
+
+	// HAL pins
+	property string setPinName: "set-pin"
+	property bool setSynced
+	property string readPinName: "read-pin"
+	property bool readSynced
+	property bool synced: setSynced && readSynced
+
         minValue: 0.0
         maxValue: 2*60.0
         minPos: -90.0 // 12 o'clock
@@ -131,6 +98,46 @@ Item {
 	majorGrad: 5.0 // Like 1..12 on clock
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: typeIcon.bottom
+
+	// set pin
+        HalPin {
+	    id: setPin
+	    name: gauge.setPinName
+	    type: HalPin.S32
+            direction: HalPin.Out
+	}
+
+	Binding {
+	    target: gauge;
+	    property: "setValue";
+	    value: setPin.value;
+	}
+
+	Binding {
+	    target: gauge;
+	    property: "setSynced";
+	    value: setPin.synced;
+	}
+
+	// read pin
+	HalPin {
+	    id: readPin
+	    name: gauge.readPinName
+	    type: HalPin.S32
+            direction: HalPin.In
+	}
+
+	Binding {
+	    target: gauge;
+	    property: "readValue";
+	    value: readPin.value;
+	}
+
+	Binding {
+	    target: gauge;
+	    property: "readSynced";
+	    value: readPin.synced;
+	}
     }
 
     Image {
