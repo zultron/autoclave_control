@@ -218,11 +218,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.35355339"
-     inkscape:cx="379.4039"
-     inkscape:cy="1616.8629"
+     inkscape:zoom="2.8284271"
+     inkscape:cx="-851.33246"
+     inkscape:cy="1637.4962"
      inkscape:document-units="px"
-     inkscape:current-layer="layer3"
+     inkscape:current-layer="layer18"
      showgrid="false"
      inkscape:window-width="1280"
      inkscape:window-height="754"
@@ -244,7 +244,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -7619,5 +7619,20 @@
          id="rect9304"
          style="display:inline;opacity:0.30100002;fill:none;fill-opacity:1;stroke:none;stroke-width:0;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1" />
     </g>
+    <path
+       inkscape:export-ydpi="89.999992"
+       inkscape:export-xdpi="89.999992"
+       id="path6431"
+       style="fill:#666666;fill-opacity:1;fill-rule:evenodd;stroke:#000700;stroke-width:9.10686016;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m -760.1905,-626.3511 0,18.13636 m 18.77856,-4.5417 c 7.59521,7.59523 9.86731,19.01781 5.7568,28.94145 -4.1105,9.92362 -13.79406,16.39401 -24.53536,16.39401 -10.7413,0 -20.4249,-6.47039 -24.5354,-16.39401 -4.1105,-9.92364 -1.8384,-21.34622 5.7568,-28.94145 -7.6971,7.51903 -10.2137,18.54727 -5.981,28.90515 4.23261,10.3579 13.7501,16.55144 24.8379,16.34532 11.0878,-0.20611 20.41776,-7.08621 24.40748,-16.36506 4.41999,-10.58071 1.75756,-21.29698 -5.70722,-28.88541 z m -64.22516,19.29484 c 0,-25.09946 20.34721,-45.44658 45.4466,-45.44658 25.09945,0 45.44657,20.34712 45.44657,45.44658 0,25.09945 -20.34712,45.44658 -45.44657,45.44658 -25.09939,0 -45.4466,-20.34713 -45.4466,-45.44658 z"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccssscszccsssss" />
+    <path
+       id="path6437"
+       style="fill:#08b208;fill-rule:evenodd;stroke:#000000;stroke-width:9.0909996;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;fill-opacity:1"
+       d="m -752.06552,-690.72327 0,-35.80698 m -25.25,35.80698 0,-35.80698 m 58.07954,17.90349 c 0,25.10385 -20.35069,45.45455 -45.45454,45.45455 -25.10385,0 -45.45454,-20.3507 -45.45454,-45.45455 0,-25.10385 20.35069,-45.45455 45.45454,-45.45455 25.10385,0 45.45454,20.3507 45.45454,45.45455 z"
+       inkscape:export-xdpi="89.999992"
+       inkscape:export-ydpi="89.999992"
+       inkscape:export-filename="/home/jman/git/myco/qml/autoclave-remote/Autoclave/assets/c1-start-0.png" />
   </g>
 </svg>
