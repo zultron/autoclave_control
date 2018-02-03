@@ -75,6 +75,8 @@ def stage_temp_reached(cool=False):
     s = current_stage()
     if s in timed_stages:
         return False # Not a temp stage
+    # msg.info("stage %s:  temp-pot %.1f; %s-temp-set %.1f" %
+    #          (s, h['temp-pot'], s, h['%s-temp-set' % s]))
     if not cool:
         return h['temp-pot'] >= h['%s-temp-set' % s]
     else:
@@ -82,16 +84,20 @@ def stage_temp_reached(cool=False):
 
 def enter_stage(stage_name, init=False):
     now = time.time()
+    stage_id = stage_name_id_map.get(stage_name)
 
-    if not init:
+    if init:
+        msg.info("Initializing control")
+        state['time-elapsed-start'] = now
+    else:
         # Finalize previous stage
         name = current_stage()
-        t = h['%s-time' % name] = (now - state['%s-time-start' % name])
+        t = h['%s-time' % name] = (now - state.get('%s-time-start' % name,now))
         msg.info("Exiting '%s' stage after %d seconds" % (name, t))
 
         # If entering idle stage, finalize previous process
         if stage_name == 'idle':
-            etime = now - state['time-elapsed-start']
+            etime = now - state.get('time-elapsed-start', now)
             h['time-elapsed'] = 0
             state['time-elapsed-start'] = now
             h['start'] = False
@@ -104,18 +110,18 @@ def enter_stage(stage_name, init=False):
         msg.info("Starting process")
 
     if stage_name in timed_stages:
-        set_time = h['%s-time-set'] % stage_name
-        msg.info("Entering '%s' stage for %d seconds at temperature %.1f"
-                 % (stage_name, set_time, h['temp-set']))
+        set_time = h['%s-time-set' % stage_name]
+        msg.info("Entering '%s' (%d) stage for %d seconds at temperature %.1f"
+                 % (stage_name, stage_id, set_time, h['temp-set']))
     else:
         set_temp = (h['temp-pot-max'] if stage_name in max_burner_stages
                     else h['%s-temp-set' % stage_name])
-        msg.info("Entering '%s' stage; set temperature %.1f"
-                 % (stage_name, set_temp))
+        msg.info("Entering '%s' (%d) stage; set temperature %.1f"
+                 % (stage_name, stage_id, set_temp))
         h['temp-set'] = set_temp
 
     # Set stage ID pin
-    state['stage'] = stage_name_id_map.get(stage_name)
+    state['stage'] = stage_id
     # Reset stage timer
     h['%s-time' % stage_name] = 0
     state['%s-time-start' % stage_name] = now
@@ -126,7 +132,15 @@ def enter_stage(stage_name, init=False):
 # Main loop function
 
 def loop():
+    now = time.time()
     time.sleep(0.1)
+    state['ticks'] = state.get('ticks',0)+1
+    if state['ticks'] % 50 == 0:
+        msg.info("Status:  stage %s; start %s; stage time %.1f; "
+                 "stage_time_elapsed %s; stage_temp_reached %s" % (
+                     current_stage(), h['start'],
+                     h['%s-time' % current_stage()],
+                     stage_time_elapsed(), stage_temp_reached()))
 
     # Exit
     if h['shutdown']:
@@ -166,11 +180,11 @@ def loop():
                         (h['pressure'], h['pressure-max']))
         error = True
 
-    # - Enable signal cleared
-    if not h['enable']:
-        if not state.get('error_seen',False):
-            msg.warning("Enable signal cleared")
-        error = True
+    # # - Enable signal cleared
+    # if not h['enable']:
+    #     if not state.get('error_seen',False):
+    #         msg.warning("Enable signal cleared")
+    #     error = True
 
     # - Wrap up error processing
     if error:
@@ -191,34 +205,44 @@ def loop():
 
     # - Enter idle state
     if not h['start'] and stage_name != 'idle':
-        return enter_stage('idle')
+        enter_stage('idle')
 
     # - Idle -> steam flush
-    if h['start'] and stage_name == 'idle':
-        return enter_stage('flush')
+    elif h['start'] and stage_name == 'idle' and stage_temp_reached():
+        enter_stage('flush')
 
     # - Flush -> heating
-    if stage_name == 'flush' and stage_time_elapsed():
-        return enter_stage('heat')
+    elif stage_name == 'flush' and stage_time_elapsed():
+        enter_stage('heat')
 
     # - Heating -> sterilization
-    if stage_name == 'heat' and stage_temp_reached():
-        return enter_stage('sterilize')
+    elif stage_name == 'heat' and stage_temp_reached():
+        enter_stage('sterilize')
 
     # - Sterilization -> cooldown
-    if stage_name == 'sterilize' and stage_time_elapsed():
-        return enter_stage('cool')
+    elif stage_name == 'sterilize' and stage_time_elapsed():
+        enter_stage('cool')
 
     # - Cooldown -> idle
-    if stage_name == 'cool' and stage_temp_reached(cool=True):
-        return enter_stage('idle')
+    elif stage_name == 'cool' and stage_temp_reached(cool=True):
+        enter_stage('idle')
 
-    # No state changes; update timers & temps and return
-    now = time.time()
-    h['time-elapsed'] = now - state['time-elapsed-start']
-    h['%s-time' % stage_name] = now - state['%s-time-start' % stage_name]
+    # Update temp settings
+    stage_name = current_stage()
+    if stage_name not in timed_stages:
+        h['temp-set'] = (h['temp-pot-max'] if stage_name in max_burner_stages
+                         else h['%s-temp-set' % stage_name])
+
+    # Update indicators
+    # - Process elapsed time
+    h['time-elapsed'] = int(now - state["time-elapsed-start"])
+    # - Stage elapsed time
+    h['%s-time' % stage_name] = int(
+        now - state.get('%s-time-start' % stage_name, now))
+    # - Stage temperature
     if stage_name not in timed_stages:
         h['%s-temp' % stage_name] = h['temp-pot']
+
     return True
 
 ##################################################################
