@@ -163,7 +163,6 @@ Item {
         id: timeReadout
 	name: "time-pin"
 	value: 12*60 + 37
-	dir_in: true
 
 	// Size and position
         anchors.bottom: gauge.bottom

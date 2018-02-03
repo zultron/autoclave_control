@@ -14,7 +14,7 @@ TimeReadout {
         id: timePin
         name: time.name
         type: HalPin.S32
-        direction: (dir_in ? HalPin.In : HalPin.Out)
+        direction: HalPin.In
     }
 
     Binding {
