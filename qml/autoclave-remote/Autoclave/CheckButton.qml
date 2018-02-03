@@ -16,6 +16,7 @@ Button {
     property string imageUnchecked: "assets/c0-power-1.png"
 
     checkable: true
+    checked: pin.value
 
     HalPin {
         id: pin
