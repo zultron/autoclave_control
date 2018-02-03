@@ -31,7 +31,13 @@
         <file>autoclave-remote/Autoclave/Pins.qml</file>
         <file>autoclave-remote/Autoclave/TempStage.qml</file>
         <file>autoclave-remote/Autoclave/TimeStage.qml</file>
+        <file>autoclave-remote/Autoclave/Readout.qml</file>
+        <file>autoclave-remote/Autoclave/GraphicReadout.qml</file>
+        <file>autoclave-remote/Autoclave/HALGraphicReadout.qml</file>
         <file>autoclave-remote/Autoclave/TimeReadout.qml</file>
+        <file>autoclave-remote/Autoclave/GraphicTimeReadout.qml</file>
+        <file>autoclave-remote/Autoclave/HALGraphicTimeReadout.qml</file>
+        <file>autoclave-remote/Autoclave/HALGraphicBool.qml</file>
         <file>autoclave-remote/Autoclave/TempReadout.qml</file>
         <file>autoclave-remote/Autoclave/HALTempReadout.qml</file>
         <file>autoclave-remote/Autoclave/HALTimeReadout.qml</file>

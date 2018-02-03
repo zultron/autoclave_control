@@ -122,6 +122,58 @@ HalApplicationWindow {
 	    imageChecked: "assets/c1-start-1.png"
 	    imageUnchecked: "assets/c1-start-0.png"
         }
+
+	Autoclave.HALGraphicTimeReadout {
+	    id: time_elapsed
+	    name: "time-elapsed"
+            x: 767
+            y: 108
+	    height: 50
+            imageSource: "assets/s3-time.png"
+	}
+
+	Autoclave.HALGraphicReadout {
+	    id: burner_duty
+	    name: "burner-duty"
+	    scale: 100
+	    suffix: "%"
+            x: 799
+            y: 166
+	    height: 50
+            imageSource: "assets/s0-burner.png"
+	}
+
+	Autoclave.HALGraphicReadout {
+	    id: pressure
+	    name: "pressure"
+	    suffix: "PSI"
+            x: 785
+            y: 225
+	    height: 50
+            imageSource: "assets/s4-pressure.png"
+	}
+
+	Autoclave.HALGraphicReadout {
+	    id: temp_pot
+	    name: "temp-pot"
+	    suffix: "°C"
+            x: 793
+            y: 281
+	    height: 50
+            imageSource: "assets/s5-temp.png"
+	}
+
+    Autoclave.HALGraphicBool {
+	    id: steam
+	    name: "valve-on"
+	    invert: false
+            x: 738
+            y: 281
+	    height: 50
+	    width: 50
+            source: "Autoclave/assets/s2-steam.png"
+	}
+
     }
 
 }

@@ -1,12 +1,10 @@
 import QtQuick 2.0
-import Machinekit.HalRemote 1.0
 
 Text {
     id: time
 
     // Main properties
     property int value: 12*60 + 37 // 0:12:37
-    property bool synced: true
     property bool displayHours: true
 
     // Compute text display
