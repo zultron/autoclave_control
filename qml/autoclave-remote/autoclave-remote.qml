@@ -1,7 +1,6 @@
 import QtQuick 2.0
 import Machinekit.HalRemote.Controls 1.0
 import "Autoclave" as Autoclave
-import QtQuick.Layouts 1.3
 
 HalApplicationWindow {
     id: main
@@ -106,6 +105,23 @@ HalApplicationWindow {
 	    typeIconSource: "assets/l2-cool.png"
         }
 
+	Autoclave.CheckButton {
+            id: enable
+            name: "enable-switch"
+            x: 94
+            y: 102
+	    imageChecked: "assets/c0-power-1.png"
+	    imageUnchecked: "assets/c0-power-0.png"
+	}
+
+        Autoclave.CheckButton {
+            id: start
+            name: "start"
+            x: 94
+            y: 217
+	    imageChecked: "assets/c1-start-1.png"
+	    imageUnchecked: "assets/c1-start-0.png"
+        }
     }
 
 }

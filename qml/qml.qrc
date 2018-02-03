@@ -5,8 +5,10 @@
         <file>autoclave-remote/autoclave-remote.qml</file>
         <file>autoclave-remote/Autoclave/DialGauge.qml</file>
         <file>autoclave-remote/test.qml</file>
-        <file>autoclave-remote/Autoclave/assets/c0-power.png</file>
-        <file>autoclave-remote/Autoclave/assets/c1-start.png</file>
+        <file>autoclave-remote/Autoclave/assets/c0-power-0.png</file>
+        <file>autoclave-remote/Autoclave/assets/c0-power-1.png</file>
+        <file>autoclave-remote/Autoclave/assets/c1-start-0.png</file>
+        <file>autoclave-remote/Autoclave/assets/c1-start-1.png</file>
         <file>autoclave-remote/Autoclave/assets/c2-close.png</file>
         <file>autoclave-remote/Autoclave/assets/l1-heat.png</file>
         <file>autoclave-remote/Autoclave/assets/l2-cool.png</file>
@@ -25,6 +27,7 @@
         <file>autoclave-remote/Autoclave/assets/s2-steam.png</file>
         <file>autoclave-remote/Autoclave/assets/s3-time.png</file>
         <file>autoclave-remote/Autoclave/assets/s4-pressure.png</file>
+        <file>autoclave-remote/Autoclave/CheckButton.qml</file>
         <file>autoclave-remote/Autoclave/Pins.qml</file>
         <file>autoclave-remote/Autoclave/TempStage.qml</file>
         <file>autoclave-remote/Autoclave/TimeStage.qml</file>
