@@ -54,6 +54,7 @@ Item {
     property double minPos: 135.0  // SW
     //property double maxPos: 360.0*4 + minPos  // 4 spins around the dial
     property double maxPos: 405.0 // Clockwise 270 deg. to SE
+    property int decimals: 1 // Precision of setting
     // - Graduations
     property double minorGrad: 1.0 // minutes
     //property double majorGrad: 5.0 // like 1..12 on clock
@@ -434,6 +435,12 @@ Item {
 	//property alias angle: readValArc.angle
         // Saved state of initial mouse press
         property double angleStart: NaN // angle where mouse pressed
+	property double valueStart // value at mouse press
+	// Saved total delta and last update angle
+	property double angleDelta
+	property double angleLast
+	// Precision of set value
+	property int decimals: base.decimals
 
 	// Process clicks from full area, and be on top
         anchors.fill: parent
@@ -468,6 +475,9 @@ Item {
 
             // Get val from mouse position
             angleStart = mouseToAngle(mouse);
+	    valueStart = value;
+	    angleLast = angleStart;
+	    angleDelta = 0;
         }
         // When moved, adjust the value by the amount dragged
         onPositionChanged: {
@@ -477,13 +487,15 @@ Item {
 
             // Get angle delta between current and saved
 	    var angleMouse = mouseToAngle(mouse);
-            var angleDelta = (angleStart - angleMouse) % (2*Math.PI);
-	    if (angleDelta < -Math.PI) angleDelta += 2*Math.PI;
-	    else if (angleDelta > Math.PI) angleDelta -= 2*Math.PI;
+            var angleLastDelta = (angleLast - angleMouse) % (2*Math.PI);
+	    if (angleLastDelta < -Math.PI) angleLastDelta += 2*Math.PI;
+	    else if (angleLastDelta > Math.PI) angleLastDelta -= 2*Math.PI;
+	    angleDelta += angleLastDelta;
 	    var valueDelta = angleDelta / posValueScale;
-	    angleStart = angleMouse;
-	    // New value
-	    var newVal = value + valueDelta;
+	    angleLast = angleMouse;
+	    // New value, rounded
+	    var factor = Math.pow(10, decimals);
+	    var newVal = Math.round((valueStart+valueDelta) * factor) / factor;
             value = Math.min(maxLimit, Math.max(minValue, newVal));
         }
 

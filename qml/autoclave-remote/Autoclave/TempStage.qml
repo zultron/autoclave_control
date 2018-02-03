@@ -30,6 +30,7 @@ Item {
     property alias maxValue: gauge.maxValue
     property alias minPos: gauge.minPos
     property alias maxPos: gauge.maxPos
+    property alias decimals: gauge.decimals
     // - Graduations
     property alias minorGrad: gauge.minorGrad
     property alias majorGrad: gauge.majorGrad
@@ -62,6 +63,7 @@ Item {
     TempReadout {
         id: setTemp
 	value: gauge.setValue
+	decimals: gauge.decimals
         color: temp.setTextColor
         anchors.left: typeIcon.right
         anchors.verticalCenter: typeIcon.verticalCenter
@@ -72,6 +74,7 @@ Item {
     TempReadout {
         id: readTemp
 	value: gauge.readValue
+	decimals: gauge.decimals
         color: temp.readTextColor
         anchors.right: typeIcon.left
         anchors.verticalCenter: typeIcon.verticalCenter
@@ -97,6 +100,7 @@ Item {
         minValue: 0.0
         maxValue: 130.0
 	maxLimit: 121.0
+	decimals: 1
         minPos: 135.0 // SW
         maxPos: 405.0 // SE
 	minorGrad: 1.0
