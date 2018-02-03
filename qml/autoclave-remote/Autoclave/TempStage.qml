@@ -84,7 +84,7 @@ Item {
         width: parent.width
         height: parent.width
 
-	setValue: 121.0
+	setValue: setPin.value
 	readValue: 80.0
 
 	// HAL pins
