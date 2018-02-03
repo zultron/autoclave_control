@@ -49,6 +49,7 @@ Item {
     property double minValue: 0.0
     //property double maxValue: 60.0*4 // 4 hours
     property double maxValue: 130.0
+    property double maxLimit: maxValue // Max setting may be less than gauge range
     //property double minPos: 270.0  // 12 o'clock
     property double minPos: 135.0  // SW
     //property double maxPos: 360.0*4 + minPos  // 4 spins around the dial
@@ -483,7 +484,7 @@ Item {
 	    angleStart = angleMouse;
 	    // New value
 	    var newVal = value + valueDelta;
-            value = Math.min(maxValue, Math.max(minValue, newVal));
+            value = Math.min(maxLimit, Math.max(minValue, newVal));
         }
 
 	/*

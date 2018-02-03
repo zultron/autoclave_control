@@ -96,6 +96,7 @@ Item {
 
         minValue: 0.0
         maxValue: 130.0
+	maxLimit: 121.0
         minPos: 135.0 // SW
         maxPos: 405.0 // SE
 	minorGrad: 1.0
