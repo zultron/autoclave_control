@@ -56,7 +56,7 @@ net valve-on                        <= valve.out
 # - Inputs
 net estop                           => enable.in-3
 net error                           => enable.in-2
-net enable                          => enable.in-1
+net enable-switch                   => enable.in-1
 # - Output
 net enable                          <= enable.out
 
