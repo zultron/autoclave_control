@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import hal, time, sys, datetime, yaml
+import hal, time, sys, datetime, yaml, traceback
 from autoclave import Config, Messages
 
 ##################################################################
@@ -269,7 +269,7 @@ except KeyboardInterrupt:
     msg.info("Caught interrupt")
 except Exception as e:
     msg.info("Caught exception:  %s" % e)
-    pass
+    msg.info(traceback.format_exc())
 finally:
     # Save settings
     msg.info("Saving settings")
