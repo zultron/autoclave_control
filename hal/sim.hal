@@ -10,7 +10,7 @@
 # ################################################
 
 # ################
-# Primitive simulator comp
+# Simulator comp
 loadusr -W autoclave-sim-temp
 # - Burner temp in signal
 net temp-burner                     <= autoclave-sim-temp.temp-burner
@@ -24,7 +24,7 @@ net burner-duty                     => autoclave-sim-temp.burner-duty
 net valve-on                        => autoclave-sim-temp.valve-on
 
 # - Simulated external temp
-net temp-ext                        => autoclave-sim-temp.temp-ext
+net temp-ext                        <= autoclave-sim-temp.temp-ext
 # - Error
 net error                           => autoclave-sim-temp.error
 # - Shutdown
@@ -35,10 +35,3 @@ net shutdown                        => autoclave-sim-temp.shutdown
 
 # - One slow thread
 loadrt threads name1=main-thread period1=10000000
-
-# ################################################
-# Set sim default values
-# ################################################
-
-#sets temp-ext                       20.0
-sets temp-ext                       80.0

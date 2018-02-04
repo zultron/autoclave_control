@@ -7,6 +7,8 @@
 import hal, time, sys, datetime, random, math
 from autoclave import Config, Messages
 
+msg = Messages('Autoclave sim-temp')
+
 # Set up component
 h = hal.component("autoclave-sim-temp", timer=100)
 
@@ -15,8 +17,8 @@ h = hal.component("autoclave-sim-temp", timer=100)
 h.newpin("burner-duty", hal.HAL_FLOAT, hal.HAL_IN)
 # - Pressure relief valve SSR signal
 h.newpin("valve-on", hal.HAL_BIT, hal.HAL_IN)
-# - User-set pretend external temp
-h.newpin("temp-ext", hal.HAL_FLOAT, hal.HAL_IN)
+# - Pretend external temp
+h.newpin("temp-ext", hal.HAL_FLOAT, hal.HAL_OUT)
 # - Error
 h.newpin("error", hal.HAL_BIT, hal.HAL_IN)
 # - Exit
@@ -31,10 +33,9 @@ h.newpin("temp-pot", hal.HAL_FLOAT, hal.HAL_OUT)
 h.newpin("pressure", hal.HAL_FLOAT, hal.HAL_OUT)
 
 # Init values
-# h['temp-burner'] = 20 # Room temp
-# h['temp-pot'] = 20 # Room temp
-h['temp-burner'] = 80.0
-h['temp-pot'] = 80.0
+config = Config()
+saved_state = config.read_state()
+h['temp-ext'] = saved_state.get('temp-ext', 20.0)
 
 # Other settings
 # - time increment
@@ -89,8 +90,6 @@ transfer_factor = thermagon_k * burner_A / thermagon_L
 burner_power = burner_power_watts / cal_per_s_to_w # cal/s
 # - Pot water volume
 water_volume = water_volume_qts * ml_per_qt # ml
-
-msg = Messages('Autoclave sim-temp')
 
 # Print a bunch of stats
 msg.info("burner_power = %.1f cal/s" % burner_power)
@@ -228,6 +227,8 @@ try:
                 pressure))
 
 except KeyboardInterrupt:
+    msg.info("Caught interrupt; saving settings")
+    config.write_state(h, ['temp-ext'])
     msg.info("Exiting")
     sys.exit(0)
 
