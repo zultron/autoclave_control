@@ -29,13 +29,6 @@ Button {
         direction: HalPin.Out
     }
 
-    /*
-    Binding {
-	target: pin;
-	property: "value";
-	value: base.checked;
-    }
-    */
     Binding {
 	target: base;
 	property: "synced";
