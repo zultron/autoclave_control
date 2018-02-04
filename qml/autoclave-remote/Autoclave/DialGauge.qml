@@ -183,13 +183,6 @@ Item {
 	    context.strokeStyle = base.gradColor;
 	    context.lineWidth = base.gradLineWidth;
 	    context.stroke();
-	    // Draw zero handle
-	    context.beginPath();
-            context.fillStyle = readColor;
-	    context.strokeStyle = readBGColor;
-	    context.lineWidth = handleStrokeWidth;
-	    drawHandle(context, minPosR, centerR, handleFillR);
-
 	}
     }
 
@@ -359,6 +352,13 @@ Item {
 	    context.strokeStyle = base.gradColor;
 	    context.lineWidth = base.setLineWidth;
 	    context.stroke();
+
+	    // Draw zero handle
+	    context.beginPath();
+            context.fillStyle = setColor;
+	    context.strokeStyle = setBGColor;
+	    context.lineWidth = handleStrokeWidth;
+	    drawHandle(context, minPosR, centerR, handleFillR);
 	}
     }
 
@@ -409,6 +409,15 @@ Item {
 		    drawHandle(context, angleIn-angleOverlap*i,
 			       centerR, handleFillR);
 	    }
+
+	    // - Completed color
+	    context.beginPath();
+            context.fillStyle = Qt.rgba(
+		readColor.r, readColor.g, readColor.b, readValFace.colorA);
+	    context.strokeStyle = Qt.rgba(
+		readBGColor.r, readBGColor.g, readBGColor.b, readValFace.colorA);
+	    context.lineWidth = handleStrokeWidth;
+	    drawHandle(context, minPosR, centerR, handleFillR);
 	}
     }
 
