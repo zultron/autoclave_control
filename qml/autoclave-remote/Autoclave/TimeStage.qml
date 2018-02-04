@@ -27,6 +27,7 @@ Item {
     property alias maxValue: gauge.maxValue
     property alias minPos: gauge.minPos
     property alias maxPos: gauge.maxPos
+    property alias precision: gauge.precision
     // - Graduations
     property alias minorGrad: gauge.minorGrad
     property alias majorGrad: gauge.majorGrad
@@ -91,11 +92,12 @@ Item {
 	property bool synced: setSynced && readSynced
 
         minValue: 0.0
-        maxValue: 2*60.0
+        maxValue: 2*60.0*60.0 // 2 hours
         minPos: -90.0 // 12 o'clock
         maxPos: 2*360 + minPos
-	minorGrad: 1.0
-	majorGrad: 5.0 // Like 1..12 on clock
+	precision: 60.0 // 1 minute granularity
+	minorGrad: 1.0 * 60.0 // 1 minute
+	majorGrad: 5.0 * 60.0 // 5 minutes, like 1..12 on clock
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: typeIcon.bottom
 

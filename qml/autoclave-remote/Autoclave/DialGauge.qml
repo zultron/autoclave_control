@@ -54,7 +54,7 @@ Item {
     property double minPos: 135.0  // SW
     //property double maxPos: 360.0*4 + minPos  // 4 spins around the dial
     property double maxPos: 405.0 // Clockwise 270 deg. to SE
-    property int decimals: 1 // Precision of setting
+    property double precision: 1.0 // Precision of setting
     // - Graduations
     property double minorGrad: 1.0 // minutes
     //property double majorGrad: 5.0 // like 1..12 on clock
@@ -440,7 +440,7 @@ Item {
 	property double angleDelta
 	property double angleLast
 	// Precision of set value
-	property int decimals: base.decimals
+	property double precision: base.precision
 
 	// Process clicks from full area, and be on top
         anchors.fill: parent
@@ -494,8 +494,8 @@ Item {
 	    var valueDelta = angleDelta / posValueScale;
 	    angleLast = angleMouse;
 	    // New value, rounded
-	    var factor = Math.pow(10, decimals);
-	    var newVal = Math.round((valueStart+valueDelta) * factor) / factor;
+	    var newVal = Math.round(
+		(valueStart+valueDelta) / precision) * precision;
             value = Math.min(maxLimit, Math.max(minValue, newVal));
         }
 

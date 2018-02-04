@@ -30,7 +30,8 @@ Item {
     property alias maxValue: gauge.maxValue
     property alias minPos: gauge.minPos
     property alias maxPos: gauge.maxPos
-    property alias decimals: gauge.decimals
+    property alias precision: gauge.precision
+    property int decimals: 1
     // - Graduations
     property alias minorGrad: gauge.minorGrad
     property alias majorGrad: gauge.majorGrad
@@ -100,7 +101,7 @@ Item {
         minValue: 0.0
         maxValue: 130.0
 	maxLimit: 121.0
-	decimals: 1
+	precision: 0.1
         minPos: 135.0 // SW
         maxPos: 405.0 // SE
 	minorGrad: 1.0
