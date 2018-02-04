@@ -102,6 +102,7 @@ Item {
         maxValue: 130.0
 	maxLimit: 121.0
 	precision: 0.1
+	mouseScale: 0.2
         minPos: 135.0 // SW
         maxPos: 405.0 // SE
 	minorGrad: 1.0

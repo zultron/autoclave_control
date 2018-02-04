@@ -55,6 +55,7 @@ Item {
     //property double maxPos: 360.0*4 + minPos  // 4 spins around the dial
     property double maxPos: 405.0 // Clockwise 270 deg. to SE
     property double precision: 1.0 // Precision of setting
+    property double mouseScale: 1.0 // Effect of mouse on value
     // - Graduations
     property double minorGrad: 1.0 // minutes
     //property double majorGrad: 5.0 // like 1..12 on clock
@@ -491,7 +492,7 @@ Item {
 	    if (angleLastDelta < -Math.PI) angleLastDelta += 2*Math.PI;
 	    else if (angleLastDelta > Math.PI) angleLastDelta -= 2*Math.PI;
 	    angleDelta += angleLastDelta;
-	    var valueDelta = angleDelta / posValueScale;
+	    var valueDelta = angleDelta / posValueScale * mouseScale;
 	    angleLast = angleMouse;
 	    // New value, rounded
 	    var newVal = Math.round(
