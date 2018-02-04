@@ -10,17 +10,16 @@ Button {
      */
     id: base
 
-    property string name: "hal-pin"
+    property alias name: pin.name
     property bool synced: false
     property string imageChecked: "assets/c0-power-0.png"
     property string imageUnchecked: "assets/c0-power-1.png"
 
     checkable: true
-    checked: pin.value
 
     HalPin {
         id: pin
-        name: base.name
+        name: "hal-pin"
         type: HalPin.Bit
         direction: HalPin.Out
     }
@@ -44,7 +43,7 @@ Button {
 	    Image {
 		anchors.fill: parent
 		source: base.imageChecked
-		visible: base.checked
+		visible: pin.value
 		z: 1
 	    }
 	}
