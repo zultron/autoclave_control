@@ -333,7 +333,7 @@ Item {
 		if (i == numCircs-1) {
 		    // Animate new handle appearance
 		    // - Figure out how far from zero
-		    var angleFromZero = angleIn % (2*Math.PI) - minPosR;
+		    var angleFromZero = (angleIn-minPosR) % (2*Math.PI);
 		    if (angleFromZero < 0) angleFromZero += 2*Math.PI;
 		    // - Decide what to do
 		    if (angleFromZero < (numCircs-2)*angleOverlap
@@ -390,7 +390,7 @@ Item {
 		if (i == numCircs-1) {
 		    // Animate new handle appearance
 		    // - Figure out how far from zero
-		    var angleFromZero = angleIn % (2*Math.PI) - minPosR;
+		    var angleFromZero = (angleIn-minPosR) % (2*Math.PI);
 		    if (angleFromZero < 0) angleFromZero += 2*Math.PI;
 		    // - Decide what to do
 		    if (angleFromZero < (numCircs-2)*angleOverlap
