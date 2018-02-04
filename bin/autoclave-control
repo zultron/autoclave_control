@@ -6,12 +6,16 @@ from autoclave import Config, Messages
 ##################################################################
 # Control data
 
+# Difference between temp set and sensed value to progress to next
+# stage
+set_sense_delta = 0.1 # deg. C
+
 # Map stage name to ID and back
 stage_name_id_map = dict(
-    idle = 0, flush = 1, heat = 2, sterilize = 3, cool = 4)
+    idle = 0, boil = 1, flush = 2, heat = 3, ster = 4, cool = 5)
 stage_id_name_map = dict(zip(
     stage_name_id_map.values(), stage_name_id_map.keys()))
-timed_stages = ('flush', 'sterilize')
+timed_stages = ('flush', 'ster')
 valve_on_stages = ('flush')
 max_burner_stages = ('flush') # Need PWM at 100% during flush
 
@@ -28,6 +32,10 @@ pin_data = [
     ('idle-temp-set',		hal.HAL_FLOAT,	hal.HAL_IN,	True),
     ('idle-temp',		hal.HAL_FLOAT,	hal.HAL_OUT,	False),
     ('idle-time',		hal.HAL_S32,	hal.HAL_OUT,	False),
+    # - Boil stage:  heat
+    ('boil-temp-set',		hal.HAL_FLOAT,	hal.HAL_IN,	True),
+    ('boil-temp',		hal.HAL_FLOAT,	hal.HAL_OUT,	False),
+    ('boil-time',		hal.HAL_S32,	hal.HAL_OUT,	False),
     # - Flush stage: timer
     ('flush-time-set',		hal.HAL_S32,	hal.HAL_IN,	True),
     ('flush-time',		hal.HAL_S32,	hal.HAL_OUT,	False),
@@ -69,18 +77,16 @@ def stage_time_elapsed():
     s = current_stage()
     if s not in timed_stages:
         return False # Not a timed stage
-    return (now - h['%s-time' % s]) > h['%s-time-set' % s]
+    now = time.time()
+    return (h['%s-time' % s]) >= h['%s-time-set' % s]
         
-def stage_temp_reached(cool=False):
+def stage_temp_reached():
     s = current_stage()
     if s in timed_stages:
         return False # Not a temp stage
     # msg.info("stage %s:  temp-pot %.1f; %s-temp-set %.1f" %
     #          (s, h['temp-pot'], s, h['%s-temp-set' % s]))
-    if not cool:
-        return h['temp-pot'] >= h['%s-temp-set' % s]
-    else:
-        return h['temp-pot'] <= h['%s-temp-set' % s]
+    return abs(h['%s-temp-set' % s] - h['temp-pot']) <= set_sense_delta
 
 def enter_stage(stage_name, init=False):
     now = time.time()
@@ -93,7 +99,8 @@ def enter_stage(stage_name, init=False):
         # Finalize previous stage
         name = current_stage()
         t = h['%s-time' % name] = (now - state.get('%s-time-start' % name,now))
-        msg.info("Exiting '%s' stage after %d seconds" % (name, t))
+        msg.info("Exiting '%s' (%d) stage after %d seconds" % (
+            name, h['stage'], t))
 
         # If entering idle stage, finalize previous process
         if stage_name == 'idle':
@@ -103,42 +110,48 @@ def enter_stage(stage_name, init=False):
             h['start'] = False
             msg.info("Process ended; total elapsed time %d seconds" % etime)
 
-    # If entering flush stage, initialize new process
-    if stage_name == 'flush':
+    # If entering first stage, initialize new process
+    if stage_id == 1:
         h['time-elapsed'] = 0
         state['time-elapsed-start'] = now
         msg.info("Starting process")
 
     if stage_name in timed_stages:
         set_time = h['%s-time-set' % stage_name]
+        if stage_name in max_burner_stages:
+            h['temp-set'] = h['temp-pot-max']
         msg.info("Entering '%s' (%d) stage for %d seconds at temperature %.1f"
                  % (stage_name, stage_id, set_time, h['temp-set']))
     else:
-        set_temp = (h['temp-pot-max'] if stage_name in max_burner_stages
-                    else h['%s-temp-set' % stage_name])
+        set_temp = h['%s-temp-set' % stage_name]
         msg.info("Entering '%s' (%d) stage; set temperature %.1f"
                  % (stage_name, stage_id, set_temp))
         h['temp-set'] = set_temp
 
     # Set stage ID pin
-    state['stage'] = stage_id
+    h['stage'] = stage_id
     # Reset stage timer
     h['%s-time' % stage_name] = 0
     state['%s-time-start' % stage_name] = now
     # Set valve
-    h['valve-on'] = (stage_name in valve_on_stages)
+    if stage_name in valve_on_stages:
+        h['valve-on'] = True
+        msg.info("Turned valve on")
+    else:
+        if h['valve-on']:
+            h['valve-on'] = False
+            msg.info("Turned valve off")
     return True
 
 # Main loop function
 
 def loop():
     now = time.time()
-    time.sleep(0.1)
     state['ticks'] = state.get('ticks',0)+1
     if state['ticks'] % 50 == 0:
-        msg.info("Status:  stage %s; start %s; stage time %.1f; "
+        msg.info("Status:  stage %s; enable %s; start %s; stage time %.1f; "
                  "stage_time_elapsed %s; stage_temp_reached %s" % (
-                     current_stage(), h['start'],
+                     current_stage(), h['enable'], h['start'],
                      h['%s-time' % current_stage()],
                      stage_time_elapsed(), stage_temp_reached()))
 
@@ -192,7 +205,6 @@ def loop():
         state['error_seen'] = True
         # Set error signal
         h['error'] = True
-        return True
     else:
         if state.get('error_seen', False):
             msg.info("Error condition cleared; resuming")
@@ -207,8 +219,12 @@ def loop():
     if not h['start'] and stage_name != 'idle':
         enter_stage('idle')
 
-    # - Idle -> steam flush
-    elif h['start'] and stage_name == 'idle' and stage_temp_reached():
+    # - Idle -> boil
+    elif h['start'] and stage_name == 'idle':
+        enter_stage('boil')
+
+    # - Boil -> steam flush
+    elif stage_name == 'boil' and stage_temp_reached():
         enter_stage('flush')
 
     # - Flush -> heating
@@ -217,14 +233,14 @@ def loop():
 
     # - Heating -> sterilization
     elif stage_name == 'heat' and stage_temp_reached():
-        enter_stage('sterilize')
+        enter_stage('ster')
 
     # - Sterilization -> cooldown
-    elif stage_name == 'sterilize' and stage_time_elapsed():
+    elif stage_name == 'ster' and stage_time_elapsed():
         enter_stage('cool')
 
     # - Cooldown -> idle
-    elif stage_name == 'cool' and stage_temp_reached(cool=True):
+    elif stage_name == 'cool' and stage_temp_reached():
         enter_stage('idle')
 
     # Update temp settings
@@ -288,7 +304,7 @@ h.ready()
 try:
     # Run forever
     while loop():
-        pass
+        time.sleep(0.1)
 except KeyboardInterrupt:
     msg.info("Caught interrupt")
 except Exception as e:

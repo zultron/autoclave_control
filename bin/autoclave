@@ -151,11 +151,14 @@ try:
 except subprocess.CalledProcessError as e:
     sys.stderr.write("Subprocess error:  %s\n" % e)
     exit_status = 1
-
-if not args.run:
-    time.sleep(1) # Let other comps do their stuff & exit
-    msg.info("Ending session")
-    launcher.end_session()
-    
+finally:
+    if not args.run:
+        time.sleep(1) # Let other comps do their stuff & exit
+        msg.info("Ending session")
+        try:
+            launcher.end_session()
+        except OSError:
+            pass
+            
 msg.info("Exiting status %d" % exit_status)
 sys.exit(exit_status)

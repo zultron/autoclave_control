@@ -18,6 +18,10 @@ pin_data = [
     ('idle-temp-set',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
     ('idle-temp',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
     ('idle-time',		hal.HAL_S32,	hal.HAL_IN,	False),
+    # - Boil
+    ('boil-temp-set',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
+    ('boil-temp',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
+    ('boil-time',		hal.HAL_S32,	hal.HAL_IN,	False),
     # - Flush
     ('flush-time-set',		hal.HAL_S32,	hal.HAL_OUT,	True),
     ('flush-time',		hal.HAL_S32,	hal.HAL_IN,	False),

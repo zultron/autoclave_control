@@ -31,16 +31,19 @@ h.newpin("temp-pot", hal.HAL_FLOAT, hal.HAL_OUT)
 h.newpin("pressure", hal.HAL_FLOAT, hal.HAL_OUT)
 
 # Init values
-h['temp-burner'] = 20 # Room temp
-h['temp-pot'] = 20 # Room temp
+# h['temp-burner'] = 20 # Room temp
+# h['temp-pot'] = 20 # Room temp
+h['temp-burner'] = 80.0
+h['temp-pot'] = 80.0
 
 # Other settings
 # - time increment
-#time_incr = 0.1 # seconds per update
-time_incr = 1.0 # seconds per update
+time_incr = 0.1 # seconds per update
 # - time speed-up
 #speed_up = 10.0 # times
 speed_up = 6.0 # times
+# - status update interval
+status_interval = 10.0 # seconds
 # - burner heat transfer delay distribution (totally arbitrary) (old to new)
 burner_heat_transfer_weights = [ 0.3, 0.5, 0.2 ]
 # - pot heat transfer delay distribution (totally arbitrary) (old to new)
@@ -97,7 +100,7 @@ msg.info("Initialized")
 h.ready()
 
 # State variables
-i = 0
+i = 0.0
 temp_burner_base = h['temp-burner']
 temp_pot_base = h['temp-pot']
 burner_heat_transfer_ary = [0.0] * len(burner_heat_transfer_weights)
@@ -112,7 +115,7 @@ error_seen = False
 try:
     while True:
         time.sleep(time_incr)
-        i += 1
+        i += time_incr
 
         # Take one sample for consistency
         # - Autoclave comp inputs
@@ -180,6 +183,10 @@ try:
         pot_heat = pot_heat_old + pot_heat_transfer_in - leakage # cal.
         # New pot temperature
         temp_pot_base = temp_ext + pot_heat/water_volume
+        # If valve is open, let off steam
+        if valve_on and temp_pot_base > 100.0:
+            pot_heat -= (temp_pot_base - 100.0) * water_volume # cal. > 100 deg.
+            temp_pot_base = 100.0 # deg. C
         # New pot pressure; assume linear increase 0-15PSI over 100-121 deg. C
         pressure = max(temp_pot_base - 100, 0.0) * 15/21 # PSI
 
@@ -190,7 +197,7 @@ try:
 
         # Periodically print updates
         #if i % 500 == 0:
-        if i % 1 == 0:
+        if i % status_interval < time_incr:
             msg.info("Status:  pot=%.1f; burner=%.1f; avg. burner duty=%.1f%%" %
                     (temp_pot_base, temp_burner_base,
                      burner_duty))

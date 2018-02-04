@@ -15,7 +15,12 @@ Button {
     property string imageChecked: "assets/c0-power-0.png"
     property string imageUnchecked: "assets/c0-power-1.png"
 
+    checked: pin.value
     checkable: true
+
+    onClicked: {
+	pin.value = ! pin.value;
+    }
 
     HalPin {
         id: pin
@@ -24,11 +29,13 @@ Button {
         direction: HalPin.Out
     }
 
+    /*
     Binding {
 	target: pin;
 	property: "value";
 	value: base.checked;
     }
+    */
     Binding {
 	target: base;
 	property: "synced";

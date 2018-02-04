@@ -16,6 +16,8 @@ loadusr -W autoclave-sim-temp
 net temp-burner                     <= autoclave-sim-temp.temp-burner
 # - Pot temp in signal
 net temp-pot                        <= autoclave-sim-temp.temp-pot
+# - Pressure in signal
+net pressure                        <= autoclave-sim-temp.pressure
 # - Burner SSR on/off
 net burner-duty                     => autoclave-sim-temp.burner-duty
 # - Pressure relief SSR on/off
@@ -45,4 +47,5 @@ source $(HALDIR)/common.hal
 # Set sim default values
 # ################################################
 
-sets temp-ext                       20.0
+#sets temp-ext                       20.0
+sets temp-ext                       80.0

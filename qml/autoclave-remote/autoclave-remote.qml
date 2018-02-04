@@ -47,61 +47,76 @@ HalApplicationWindow {
 	    typeIconSource: "assets/l1-heat.png"
         }
 
+        Autoclave.TempStage {
+            id: boil
+            x: 199
+            y: 102
+            outerDiameter: 200.0
+            width: 200
+            height: 225
+            setPinName: "boil-temp-set"
+            readPinName: "boil-temp"
+	    timePinName: "boil-time"
+	    readVisible: pins.stage >= 1
+            centerImage: "assets/p1-boil-blue.png"
+	    typeIconSource: "assets/l1-heat.png"
+        }
+
         Autoclave.TimeStage {
             id: flush
-            x: 220
-            y: 102
+            x: 315
+            y: 333
             outerDiameter: 200.0
             width: 200
             height: 225
             setPinName: "flush-time-set"
             readPinName: "flush-time"
-	    readVisible: pins.stage >= 1
-            centerImage: "assets/p1-flush-blue.png"
+	    readVisible: pins.stage >= 2
+            centerImage: "assets/p2-flush-blue.png"
 	    typeIconSource: "assets/l3-timer.png"
         }
 
         Autoclave.TempStage {
             id: heat
-            x: 380
-            y: 332
+            x: 432
+            y: 102
             outerDiameter: 200.0
             width: 200
             height: 225
             setPinName: "heat-temp-set"
             readPinName: "heat-temp"
 	    timePinName: "heat-time"
-	    readVisible: pins.stage >= 2
-            centerImage: "assets/p2-heat-blue.png"
+	    readVisible: pins.stage >= 3
+            centerImage: "assets/p3-heat-blue.png"
 	    typeIconSource: "assets/l1-heat.png"
         }
 
         Autoclave.TimeStage {
             id: ster
-            x: 532
-            y: 102
+            x: 545
+            y: 333
             outerDiameter: 200.0
             width: 200
             height: 225
             setPinName: "ster-time-set"
             readPinName: "ster-time"
-	    readVisible: pins.stage >= 3
-            centerImage: "assets/p3-sterilize-blue.png"
+	    readVisible: pins.stage >= 4
+            centerImage: "assets/p4-sterilize-blue.png"
 	    typeIconSource: "assets/l3-timer.png"
         }
 
         Autoclave.TempStage {
             id: cool
-            x: 670
-            y: 332
+            x: 657
+            y: 102
             outerDiameter: 200.0
             width: 200
             height: 225
             setPinName: "cool-temp-set"
             readPinName: "cool-temp"
 	    timePinName: "cool-time"
-	    readVisible: pins.stage >= 4
-            centerImage: "assets/p4-cool-blue.png"
+	    readVisible: pins.stage >= 5
+            centerImage: "assets/p5-cool-blue.png"
 	    typeIconSource: "assets/l2-cool.png"
         }
 
@@ -126,8 +141,8 @@ HalApplicationWindow {
 	Autoclave.HALGraphicTimeReadout {
 	    id: time_elapsed
 	    name: "time-elapsed"
-            x: 767
-            y: 108
+            x: 793
+            y: 341
 	    height: 50
             imageSource: "assets/s3-time.png"
 	}
@@ -137,8 +152,8 @@ HalApplicationWindow {
 	    name: "burner-duty"
 	    scale: 100
 	    suffix: "%"
-            x: 799
-            y: 166
+            x: 825
+            y: 399
 	    height: 50
             imageSource: "assets/s0-burner.png"
 	}
@@ -147,8 +162,8 @@ HalApplicationWindow {
 	    id: pressure
 	    name: "pressure"
 	    suffix: "PSI"
-            x: 785
-            y: 225
+            x: 811
+            y: 458
 	    height: 50
             imageSource: "assets/s4-pressure.png"
 	}
@@ -157,8 +172,8 @@ HalApplicationWindow {
 	    id: temp_pot
 	    name: "temp-pot"
 	    suffix: "°C"
-            x: 793
-            y: 281
+            x: 819
+            y: 514
 	    height: 50
             imageSource: "assets/s5-temp.png"
 	}
@@ -167,8 +182,8 @@ HalApplicationWindow {
 	    id: steam
 	    name: "valve-on"
 	    invert: false
-            x: 738
-            y: 281
+            x: 764
+            y: 514
 	    height: 50
 	    width: 50
             source: "Autoclave/assets/s2-steam.png"

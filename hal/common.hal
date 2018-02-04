@@ -82,6 +82,10 @@ net stage                           <= autoclave-control.stage
 net idle-temp-set                   => autoclave-control.idle-temp-set
 net idle-temp                       <= autoclave-control.idle-temp
 net idle-time                       <= autoclave-control.idle-time
+# - Boil stage:  heat
+net boil-temp-set                   => autoclave-control.boil-temp-set
+net boil-temp                       <= autoclave-control.boil-temp
+net boil-time                       <= autoclave-control.boil-time
 # - Flush stage:  timer
 net flush-time-set                  => autoclave-control.flush-time-set
 net flush-time                      <= autoclave-control.flush-time
@@ -141,9 +145,9 @@ net temp-pot                        => burner.feedback
 #setp burner.FF0                     0
 #setp burner.FF1                     0
 #setp burner.FF2                     0
-setp burner.Pgain                   0.30
-setp burner.Igain                   0.0
-setp burner.Dgain                   0.0
+setp burner.Pgain                   0.3
+setp burner.Igain                   0.001
+setp burner.Dgain                   1.0 # 0.9375
 #setp burner.maxerrorI               1.0
 #setp burner.bias                    0.5
 net enable                          => burner.enable

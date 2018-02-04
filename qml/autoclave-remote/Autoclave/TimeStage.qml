@@ -57,7 +57,7 @@ Item {
     
     TimeReadout {
         id: setTime
-	value: gauge.setValue
+	value: setPin.value
         color: time.setTextColor
         anchors.left: typeIcon.right
         anchors.verticalCenter: typeIcon.verticalCenter
@@ -67,7 +67,7 @@ Item {
 
     TimeReadout {
         id: readTime
-	value: gauge.setValue
+	value: readPin.value
         color: time.readTextColor
         anchors.right: typeIcon.left
         anchors.verticalCenter: typeIcon.verticalCenter
@@ -80,8 +80,8 @@ Item {
 	width: parent.width
 	height: parent.width
 
-	setValue: 30.0
-	readValue: 10.0
+	setValue: setPin.value
+	readValue: readPin.value
 
 	// HAL pins
 	property string setPinName: "set-pin"

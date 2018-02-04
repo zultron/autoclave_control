@@ -14,14 +14,16 @@
         <file>autoclave-remote/Autoclave/assets/l2-cool.png</file>
         <file>autoclave-remote/Autoclave/assets/l3-timer.png</file>
         <file>autoclave-remote/Autoclave/assets/p0-idle-green.png</file>
-        <file>autoclave-remote/Autoclave/assets/p1-flush-blue.png</file>
-        <file>autoclave-remote/Autoclave/assets/p1-flush-green.png</file>
-        <file>autoclave-remote/Autoclave/assets/p2-heat-blue.png</file>
-        <file>autoclave-remote/Autoclave/assets/p2-heat-green.png</file>
-        <file>autoclave-remote/Autoclave/assets/p3-sterilize-blue.png</file>
-        <file>autoclave-remote/Autoclave/assets/p3-sterilize-green.png</file>
-        <file>autoclave-remote/Autoclave/assets/p4-cool-blue.png</file>
-        <file>autoclave-remote/Autoclave/assets/p4-cool-green.png</file>
+        <file>autoclave-remote/Autoclave/assets/p1-boil-blue.png</file>
+        <file>autoclave-remote/Autoclave/assets/p1-boil-green.png</file>
+        <file>autoclave-remote/Autoclave/assets/p2-flush-blue.png</file>
+        <file>autoclave-remote/Autoclave/assets/p2-flush-green.png</file>
+        <file>autoclave-remote/Autoclave/assets/p3-heat-blue.png</file>
+        <file>autoclave-remote/Autoclave/assets/p3-heat-green.png</file>
+        <file>autoclave-remote/Autoclave/assets/p4-sterilize-blue.png</file>
+        <file>autoclave-remote/Autoclave/assets/p4-sterilize-green.png</file>
+        <file>autoclave-remote/Autoclave/assets/p5-cool-blue.png</file>
+        <file>autoclave-remote/Autoclave/assets/p5-cool-green.png</file>
         <file>autoclave-remote/Autoclave/assets/s0-burner.png</file>
         <file>autoclave-remote/Autoclave/assets/s1-error.png</file>
         <file>autoclave-remote/Autoclave/assets/s2-steam.png</file>
