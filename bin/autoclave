@@ -111,9 +111,12 @@ try:
         h.ready()
         msg.info("HAL comp initialized")
 
-        # load the main HAL file
+        # load the board-specific HAL file
         launcher.load_hal_file(autoclave_config.halfilepath(
             '%s.hal' % args.board))
+        # load the common HAL file
+        launcher.load_hal_file(autoclave_config.halfilepath(
+            'common.hal'))
 
         # enable on ctrl-C, needs to executed after HAL files
         launcher.register_exit_handler()

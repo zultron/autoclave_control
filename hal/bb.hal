@@ -53,9 +53,3 @@ net valve-on                        => bb_gpio.p9.out-22
 
 # - E-stop
 net estop                           <= bb_gpio.p9.in-42
-
-# ################################################
-# Load common HAL config
-# ################################################
-
-source $(HALDIR)/common.hal

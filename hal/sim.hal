@@ -36,13 +36,6 @@ net shutdown                        => autoclave-sim-temp.shutdown
 # - One slow thread
 loadrt threads name1=main-thread period1=10000000
 
-
-# ################################################
-# Load common HAL config
-# ################################################
-
-source $(HALDIR)/common.hal
-
 # ################################################
 # Set sim default values
 # ################################################
