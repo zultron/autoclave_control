@@ -157,7 +157,8 @@ finally:
         msg.info("Ending session")
         try:
             launcher.end_session()
-        except OSError:
+        except OSError, e:
+            msg.warning("Error ending launcher:  %s" % e)
             pass
             
 msg.info("Exiting status %d" % exit_status)
