@@ -38,8 +38,10 @@ Item {
     property alias setBGColor: gauge.setBGColor
     property alias readColor: gauge.readColor
     property alias readBGColor: gauge.readBGColor
+    property alias finishFade: gauge.finishFade
     // Center image properties
-    property string centerImage: "assets/p1-flush-blue.png"
+    property string centerImageSet: "assets/p1-flush-blue.png"
+    property string centerImageRead: "assets/p1-flush-green.png"
     // Type icon properties
     property string typeIconSource: "assets/l3-timer.png"
     property color readTextColor: "#000000"
@@ -143,12 +145,23 @@ Item {
     }
 
     Image {
-        id: centerImg
+        id: centerImgSet
         width: gauge.innerDiameter
         height: gauge.innerDiameter
         anchors.horizontalCenter: gauge.horizontalCenter
         anchors.verticalCenter: gauge.verticalCenter
-        source: parent.centerImage
+        source: parent.centerImageSet
+	z: 0.1
     }
 
+    Image {
+        id: centerImgRead
+        width: gauge.innerDiameter
+        height: gauge.innerDiameter
+        anchors.horizontalCenter: gauge.horizontalCenter
+        anchors.verticalCenter: gauge.verticalCenter
+        source: parent.centerImageRead
+	opacity: gauge.finishFade
+	z: 0.2
+    }
 }

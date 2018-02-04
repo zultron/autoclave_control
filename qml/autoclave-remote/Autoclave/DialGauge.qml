@@ -67,6 +67,7 @@ Item {
     property color setBGColor: "#ff00ff" // Set background color
     property color readColor: "#008000"
     property color readBGColor: "#00c300" // Read background color
+    property alias finishFade: readValFace.colorA
 
     // Computed parameters
     // - Major sizes

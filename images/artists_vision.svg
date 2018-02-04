@@ -218,9 +218,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.25"
-     inkscape:cx="543.04693"
-     inkscape:cy="1081.4092"
+     inkscape:zoom="0.5"
+     inkscape:cx="1483.5924"
+     inkscape:cy="1309.1276"
      inkscape:document-units="px"
      inkscape:current-layer="layer18"
      showgrid="false"
@@ -7655,7 +7655,7 @@
     <g
        id="g6513"
        transform="translate(0,476)"
-       style="fill:#00c300;fill-opacity:1;stroke:#000080;stroke-opacity:1"
+       style="fill:#00c300;fill-opacity:1;stroke:#008000;stroke-opacity:1"
        inkscape:export-filename="/home/jman/git/myco/qml/autoclave-remote/Autoclave/assets/p1-boil-green.png"
        inkscape:export-xdpi="89.999992"
        inkscape:export-ydpi="89.999992">
@@ -7663,12 +7663,31 @@
          sodipodi:nodetypes="sssss"
          inkscape:connector-curvature="0"
          d="m 2010.558,-708.4034 c 0,100.50682 -81.4768,181.98364 -181.9835,181.98364 -100.5069,0 -181.9837,-81.47682 -181.9837,-181.98364 0,-100.50682 81.4768,-181.98363 181.9837,-181.98363 100.5067,0 181.9835,81.47681 181.9835,181.98363 z"
-         style="display:inline;fill:#00c300;fill-opacity:1;fill-rule:evenodd;stroke:#000080;stroke-width:36.03300095;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         style="display:inline;fill:#00c300;fill-opacity:1;fill-rule:evenodd;stroke:#008000;stroke-width:36.03300095;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path6515" />
       <path
          id="path6517"
-         style="fill:#00c300;fill-rule:evenodd;stroke:#000080;stroke-width:36;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;fill-opacity:1"
+         style="fill:#00c300;fill-rule:evenodd;stroke:#008000;stroke-width:36;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;fill-opacity:1"
          d="m 1900.2008,-746.58585 c 0.011,-38.19973 -26.2945,-38.28818 -26.3553,-74.17083 m -32.0932,74.17083 c 0.011,-38.19973 -26.2945,-38.28818 -26.3553,-74.17083 m -32.0932,74.17083 c 0.011,-38.19973 -26.2945,-38.28818 -26.3553,-74.17083 m -2.0963,190.14133 0,0 m 155.7505,34.81981 0,0 m -155.7505,-34.81981 0,0 m 112.7505,2.31981 0,0 m -112.7505,-2.31981 0,0 m 59.7505,31.81981 0,0 m -109.5287,-63.05635 c 26,2 34.4874,-44.48589 61.75,-43.5 37.924,1.37143 23.8491,41.59341 61.75,43.5 39.7743,2.00083 21.9626,-45.22171 61.75,-43.5 36.6884,1.58761 30.75,43.5 61.75,43.5"
+         inkscape:connector-curvature="0" />
+    </g>
+    <g
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       transform="matrix(1.7314147,0,0,1.7314147,-981.50133,-807.0872)"
+       id="g6519"
+       style="display:inline"
+       inkscape:export-filename="/home/jman/git/myco/qml/autoclave-remote/Autoclave/assets/p0-idle-blue.png">
+      <path
+         id="path6521"
+         style="display:inline;fill:#ff00ff;fill-opacity:1;fill-rule:evenodd;stroke:#000080;stroke-width:20.81115723;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;opacity:0.99"
+         d="m 434.61378,574.35298 c 0,58.04896 -47.05795,105.10691 -105.10682,105.10691 -58.04902,0 -105.10698,-47.05795 -105.10698,-105.10691 0,-58.04896 47.05796,-105.1069 105.10698,-105.1069 58.04887,0 105.10682,47.05794 105.10682,105.1069 z"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="sssss" />
+      <path
+         id="path6523"
+         style="fill:#ff00ff;fill-opacity:1;fill-rule:evenodd;stroke:#000080;stroke-width:20.81100082;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;opacity:0.99"
+         d="m 329.5011,605.82577 c -2.89121,3.92829 -7.74583,9.28396 -14.77422,13.48122 l 29.56039,0.0536 c -7.11163,-3.8485 -12.42403,-9.62267 -14.78617,-13.53472 z m 0,-49.05986 c -2.39374,-4.26337 -6.41307,-10.0759 -12.2321,-14.63118 l 24.47407,-0.0581 c -5.88794,4.17679 -10.28626,10.44351 -12.24197,14.68925 z m 37.15293,-24.19349 c 0,9.87489 -3.23699,20.09453 -10.53045,26.08228 -4.68814,3.84889 -8.74038,9.02929 -8.74038,15.54243 0,6.51315 4.05232,11.7213 8.74038,15.67403 7.2866,6.14367 10.53045,16.33898 10.53045,26.21387 l 0,25.92799 -74.46672,0 0,-25.92799 c 0,-9.87489 3.24038,-20.08481 10.62364,-26.21387 4.77978,-3.96792 8.83341,-9.16088 8.83341,-15.67403 0,-6.51314 -4.05309,-11.67849 -8.83341,-15.54243 -7.38974,-5.97316 -10.62364,-16.20739 -10.62364,-26.08228 l 0,-25.87948 74.63714,0 z"
          inkscape:connector-curvature="0" />
     </g>
   </g>

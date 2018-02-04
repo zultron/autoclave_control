@@ -43,7 +43,8 @@ HalApplicationWindow {
             readPinName: "idle-temp"
 	    timePinName: "idle-time"
 	    readVisible: true
-            centerImage: "assets/p0-idle-green.png"
+            centerImageSet: "assets/p0-idle-blue.png"
+            centerImageRead: "assets/p0-idle-green.png"
 	    typeIconSource: "assets/l1-heat.png"
         }
 
@@ -58,7 +59,8 @@ HalApplicationWindow {
             readPinName: "boil-temp"
 	    timePinName: "boil-time"
 	    readVisible: pins.stage >= 1
-            centerImage: "assets/p1-boil-blue.png"
+            centerImageSet: "assets/p1-boil-blue.png"
+            centerImageRead: "assets/p1-boil-green.png"
 	    typeIconSource: "assets/l1-heat.png"
         }
 
@@ -72,7 +74,8 @@ HalApplicationWindow {
             setPinName: "flush-time-set"
             readPinName: "flush-time"
 	    readVisible: pins.stage >= 2
-            centerImage: "assets/p2-flush-blue.png"
+            centerImageSet: "assets/p2-flush-blue.png"
+            centerImageRead: "assets/p2-flush-green.png"
 	    typeIconSource: "assets/l3-timer.png"
         }
 
@@ -87,7 +90,8 @@ HalApplicationWindow {
             readPinName: "heat-temp"
 	    timePinName: "heat-time"
 	    readVisible: pins.stage >= 3
-            centerImage: "assets/p3-heat-blue.png"
+            centerImageSet: "assets/p3-heat-blue.png"
+            centerImageRead: "assets/p3-heat-green.png"
 	    typeIconSource: "assets/l1-heat.png"
         }
 
@@ -101,7 +105,8 @@ HalApplicationWindow {
             setPinName: "ster-time-set"
             readPinName: "ster-time"
 	    readVisible: pins.stage >= 4
-            centerImage: "assets/p4-sterilize-blue.png"
+            centerImageSet: "assets/p4-sterilize-blue.png"
+            centerImageRead: "assets/p4-sterilize-green.png"
 	    typeIconSource: "assets/l3-timer.png"
         }
 
@@ -116,7 +121,8 @@ HalApplicationWindow {
             readPinName: "cool-temp"
 	    timePinName: "cool-time"
 	    readVisible: pins.stage >= 5
-            centerImage: "assets/p5-cool-blue.png"
+            centerImageSet: "assets/p5-cool-blue.png"
+            centerImageRead: "assets/p5-cool-green.png"
 	    typeIconSource: "assets/l2-cool.png"
         }
 

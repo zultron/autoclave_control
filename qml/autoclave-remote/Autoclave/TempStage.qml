@@ -42,8 +42,10 @@ Item {
     property alias setBGColor: gauge.setBGColor
     property alias readColor: gauge.readColor
     property alias readBGColor: gauge.readBGColor
+    property alias finishFade: gauge.finishFade
     // Center image properties
-    property string centerImage: "assets/p0-idle-green.png"
+    property string centerImageSet: "assets/p1-boil-blue.png"
+    property string centerImageRead: "assets/p1-boil-green.png"
     // Type icon properties
     property string typeIconSource: "assets/l1-heat.png"
     property color readTextColor: "#000000"
@@ -153,12 +155,24 @@ Item {
     }
 
     Image {
-        id: centerImg
+        id: centerImgSet
         width: gauge.innerDiameter
         height: gauge.innerDiameter
         anchors.horizontalCenter: gauge.horizontalCenter
         anchors.verticalCenter: gauge.verticalCenter
-        source: temp.centerImage
+        source: temp.centerImageSet
+	z: 0.1
+    }
+
+    Image {
+        id: centerImgRead
+        width: gauge.innerDiameter
+        height: gauge.innerDiameter
+        anchors.horizontalCenter: gauge.horizontalCenter
+        anchors.verticalCenter: gauge.verticalCenter
+        source: temp.centerImageRead
+	opacity: gauge.finishFade
+	z: 0.2
     }
 
     HALTimeReadout {
