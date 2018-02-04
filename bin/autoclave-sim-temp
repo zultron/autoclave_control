@@ -57,7 +57,7 @@ burner_power_watts = 1500 # W
 # - burner heat capacity (totally arbitrary)
 burner_heat_cap = 500.0 # Cal./degree C
 # - pot heat leakage
-leakage_factor = 0.001 # heat loss per second
+leakage_factor = 0.05/100 # % heat loss (to ambient) per second
 # - Thermagon k
 thermagon_k = 3.0 # W/(mK)
 # - burner diameter
