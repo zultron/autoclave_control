@@ -239,9 +239,10 @@ Item {
 	property color baseColor: base.readBGColor
 	property alias readVal: base.readValue
 	property alias setVal: base.setValue
-	property double fadePercentile: 0.01 // Fade in over last 1%
+	property double fadeStart: 0.02 // Fade in over last 2%
+	property double fadeEnd: 0.01 // Faded in by last 1%
 	property double colorA: Math.min(Math.max(
-	    readVal / setVal - (1-fadePercentile), 0.0) / fadePercentile, 1.0)
+	    readVal / setVal - (1-fadeStart), 0.0) / fadeEnd, 1.0)
 	property color color: Qt.rgba(
 	    baseColor.r, baseColor.g, baseColor.b, colorA)
 
