@@ -96,12 +96,6 @@ Item {
 
 
 
-    /*
-    property alias debug1val: debug.val1
-    property alias debug2val: debug.val2
-    property alias debug3val: debug.val3
-    */
-
     Canvas {
 	// Set base ring
 	id: face
@@ -133,18 +127,16 @@ Item {
     Label {
         // Debugging
         id: debug
-	property double val1: NaN
-	property double val2: NaN
-	property double val3: NaN
+	property string val1: ""
+	property string val2: ""
+	property string val3: ""
 
 	x: 0
         y: outerDiameter + 5
 	z: 10
 
         // Format float value with decimals in black text
-        text: (val1.toFixed(5) + "; " +
-	       val2.toFixed(5) + "; " +
-	       val3.toFixed(5) + "; ")
+        text: (val1 + "; " + val2 + "; " + val3)
         color: "#000000"
 
         // Proportional size, centered above handle, with l/r tweak
