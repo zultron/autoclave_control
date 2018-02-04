@@ -36,9 +36,11 @@ h['temp-pot'] = 20 # Room temp
 
 # Other settings
 # - time increment
-time_incr = 0.1 # seconds per update
+#time_incr = 0.1 # seconds per update
+time_incr = 1.0 # seconds per update
 # - time speed-up
-speed_up = 10.0 # times
+#speed_up = 10.0 # times
+speed_up = 6.0 # times
 # - burner heat transfer delay distribution (totally arbitrary) (old to new)
 burner_heat_transfer_weights = [ 0.3, 0.5, 0.2 ]
 # - pot heat transfer delay distribution (totally arbitrary) (old to new)
@@ -51,7 +53,7 @@ burner_power_watts = 1500 # W
 # - burner heat capacity (totally arbitrary)
 burner_heat_cap = 500.0 # Cal./degree C
 # - pot heat leakage
-leakage_factor = 0.006 # heat loss per second
+leakage_factor = 0.001 # heat loss per second
 # - Thermagon k
 thermagon_k = 3.0 # W/(mK)
 # - burner diameter
@@ -86,6 +88,9 @@ burner_power = burner_power_watts / cal_per_s_to_w # cal/s
 water_volume = water_volume_qts * ml_per_qt # ml
 
 msg = Messages('Autoclave sim-temp')
+
+# Print a bunch of stats
+msg.info("burner_power = %.1f cal/s" % burner_power)
 
 # Mark the component as 'ready'
 msg.info("Initialized")
@@ -155,10 +160,10 @@ try:
         # - Burner total heat and temperature
         burner_heat_old = burner_heat
         burner_heat = (burner_heat_old + burner_heat_transfer_in
-                       + burner_pot_transfer_calories) # cal.
+                       - burner_pot_transfer_calories) # cal.
         temp_burner_base = temp_ext + burner_heat / burner_heat_cap # deg. C
         # - Calories added to pot by heat transfer
-        t_delta = temp_pot_base - temp_burner_base # deg. C
+        t_delta = temp_burner_base - temp_pot_base # deg. C
         burner_pot_transfer_calories = (
             t_delta * transfer_factor / cal_per_s_to_w * update_time) # cal.
         # - Update pot heat transfer array
@@ -176,7 +181,7 @@ try:
         # New pot temperature
         temp_pot_base = temp_ext + pot_heat/water_volume
         # New pot pressure; assume linear increase 0-15PSI over 100-121 deg. C
-        pressure = min(temp_pot_base - 100, 0.0) * 15/21 # PSI
+        pressure = max(temp_pot_base - 100, 0.0) * 15/21 # PSI
 
         # Output values with +/- 0.1 deg. sensor error
         h['temp-pot'] = temp_pot_base + random.triangular(-0.1,0.1,0)
@@ -184,12 +189,36 @@ try:
         h['pressure'] = pressure + random.triangular(-0.1,0.1,0)
 
         # Periodically print updates
-        burner_duty_saved += burner_duty
-        if i % 500 == 0:
+        #if i % 500 == 0:
+        if i % 1 == 0:
             msg.info("Status:  pot=%.1f; burner=%.1f; avg. burner duty=%.1f%%" %
                     (temp_pot_base, temp_burner_base,
-                     burner_duty_saved/5))
+                     burner_duty))
             burner_duty_saved = 0.0
+            msg.info("   burner_calories %.1f" % (
+                burner_calories))
+            msg.info("   burner_heat_transfer_in %.1f" % (
+                burner_heat_transfer_in))
+            msg.info("   burner_heat_transfer_ary %s" % (
+                burner_heat_transfer_ary,))
+            msg.info("   burner_heat %.1f" % (
+                burner_heat))
+            msg.info("   temp_burner_base %.1f" % (
+                temp_burner_base))
+            msg.info("   t_delta %.1f" % (
+                t_delta))
+            msg.info("   burner_pot_transfer_calories %.1f" % (
+                burner_pot_transfer_calories))
+            msg.info("   pot_heat_transfer_in %.1f" % (
+                pot_heat_transfer_in))
+            msg.info("   leakage %.1f" % (
+                leakage))
+            msg.info("   pot_heat %.1f" % (
+                pot_heat))
+            msg.info("   temp_pot_base %.1f" % (
+                temp_pot_base))
+            msg.info("   pressure %.1f" % (
+                pressure))
 
 except KeyboardInterrupt:
     msg.info("Exiting")
