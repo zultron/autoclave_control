@@ -99,7 +99,7 @@ msg.info("Initialized")
 h.ready()
 
 # State variables
-i = 0.0
+elapsed = 0.0
 temp_burner_base = h['temp-burner']
 temp_pot_base = h['temp-pot']
 burner_heat_transfer_ary = [0.0] * len(burner_heat_transfer_weights)
@@ -113,7 +113,7 @@ error_seen = False
 try:
     while True:
         time.sleep(time_incr)
-        i += time_incr
+        elapsed += time_incr
 
         # Take one sample for consistency
         # - Autoclave comp inputs
@@ -194,7 +194,7 @@ try:
         h['pressure'] = pressure + random.triangular(-0.1,0.1,0)
 
         # Periodically print updates
-        if i % status_interval < time_incr:
+        if elapsed % status_interval < time_incr:
             msg.info("Status:  pot=%.1f; burner=%.1f; avg. burner duty=%.1f%%" %
                     (temp_pot_base, temp_burner_base,
                      burner_duty))
