@@ -95,10 +95,40 @@ Item {
     width: outerDiameter
     height: outerDiameter
 
+    // ------------------- Convenience functions -------------------
 
+    // Draw an arc centered on middle of gauge
+    function drawArc(c, radius, start, end) {
+	c.beginPath();
+	c.arc(outerR, outerR,   // center
+	      radius, start, end);
+	c.stroke();
+    }
 
+    // Draw a graduation line
+    function drawGrad(c,ang,w) {
+	var gradOuterR = centerR + (outerR-centerR)*w;
+	var gradInnerR = centerR + (innerR-centerR)*w;
+	c.moveTo(Math.cos(ang)*gradOuterR + outerR,
+		 Math.sin(ang)*gradOuterR + outerR);
+	c.lineTo(Math.cos(ang)*gradInnerR + outerR,
+		 Math.sin(ang)*gradInnerR + outerR);
+    }
+
+    // Draw a 'handle', a small circle on the set/read arc
+    function drawHandle(c, dialAngle, dialRadius, radius) {
+	c.beginPath();
+	c.arc(base.outerR + Math.cos(dialAngle) * dialRadius,  // center X
+	      base.outerR + Math.sin(dialAngle) * dialRadius,  // center Y
+	      radius, 0, 2*Math.PI);
+	c.stroke();
+        c.fill();
+    }
+
+    // ------------------- Graphical elements -------------------
+
+    // Background ring
     Canvas {
-	// Set base ring
 	id: face
 
 	// Positioning
@@ -113,51 +143,40 @@ Item {
 	    context.lineWidth = outerR - innerR;
 
 	    // Draw set value outer arc
-	    drawArc(context, (outerR+innerR)/2, 0, 2*Math.PI);
+	    drawArc(context, centerR, 0, 2*Math.PI);
 	}
     }
 
-    function drawArc(c, radius, start, end) {
-	c.beginPath();
-	c.arc(outerR, outerR,   // center
-	      radius, start, end);
-	c.stroke();
-    }
-
-    /*
-    Label {
-        // Debugging
-        id: debug
-	property string val1: ""
-	property string val2: ""
-	property string val3: ""
-
-	x: 0
-        y: outerDiameter + 5
-	z: 10
-
-        // Format float value with decimals in black text
-        text: (val1 + "; " + val2 + "; " + val3)
-        color: "#000000"
-
-        // Proportional size, centered above handle, with l/r tweak
-        font.pixelSize: 20
-    }
-    */
-
-    function drawGrad(c,ang,w) {
-	var gradOuterR = centerR + (outerR-centerR)*w;
-	var gradInnerR = centerR + (innerR-centerR)*w;
-	c.moveTo(Math.cos(ang)*gradOuterR + outerR,
-		 Math.sin(ang)*gradOuterR + outerR);
-	c.lineTo(Math.cos(ang)*gradInnerR + outerR,
-		 Math.sin(ang)*gradInnerR + outerR);
-    }
-
+    // A second background ring in the stage complete color
     Canvas {
-	// http://doc.qt.io/qt-5/qml-qtquick-context2d.html
+	id: readValFace
+	property alias color: base.readBGColor
+	property alias readVal: base.readValue
+	property alias setVal: base.setValue
 
-	// Graduations on face dial
+	// Positioning & visibility
+	anchors.fill: parent
+	z: 0.1
+	opacity: base.readFade
+
+	// This changes transparency as the read value increases
+	onReadValChanged: requestPaint()
+	onSetValChanged: requestPaint()
+
+	contextType: "2d"
+	onPaint: {
+	    if (!context) return;
+	    context.reset();
+	    context.strokeStyle = color;
+	    context.lineWidth = outerR - innerR;
+
+	    // Draw set value outer arc
+	    drawArc(context, centerR, 0, 2*Math.PI);
+	}
+    }
+
+    // Graduations on face dial
+    Canvas {
 	id: faceGrads
 	anchors.fill: parent
 	z: 3
@@ -187,10 +206,8 @@ Item {
 	}
     }
 
+    // Set value arc
     Canvas {
-	// http://doc.qt.io/qt-5/qml-qtquick-context2d.html
-
-	// Set value arc
 	id: setValArc
 	property alias value: base.setValue
 	property int numCircs: Math.floor(value*posValueScale / (2*Math.PI))
@@ -219,36 +236,8 @@ Item {
 	}
     }
 
+    // Read value arc
     Canvas {
-	// Like face, but the readBGColor, fades slowly into view
-	id: readValFace
-	property alias color: base.readBGColor
-	property alias readVal: base.readValue
-	property alias setVal: base.setValue
-
-	// Positioning & visibility
-	anchors.fill: parent
-	z: 0.1
-	opacity: base.readFade
-
-	// This changes transparency as the read value increases
-	onReadValChanged: requestPaint()
-	onSetValChanged: requestPaint()
-
-	contextType: "2d"
-	onPaint: {
-	    if (!context) return;
-	    context.reset();
-	    context.strokeStyle = color;
-	    context.lineWidth = outerR - innerR;
-
-	    // Draw set value outer arc
-	    drawArc(context, (outerR+innerR)/2, 0, 2*Math.PI);
-	}
-    }
-
-    Canvas {
-	// Read value arc, <360
 	id: readValArc
 	property alias value: base.readValue
 	property int numCircs: Math.floor(value*posValueScale / (2*Math.PI))
@@ -284,18 +273,8 @@ Item {
 	}
     }
 
-    function drawHandle(c, dialAngle, dialRadius, radius) {
-	// Draw set value handle
-	c.beginPath();
-	c.arc(base.outerR + Math.cos(dialAngle) * dialRadius,  // center X
-	      base.outerR + Math.sin(dialAngle) * dialRadius,  // center Y
-	      radius, 0, 2*Math.PI);
-	c.stroke();
-        c.fill();
-    }
-
+    // Set value line and handles:  Draw overlapping circles representing laps
     Canvas {
-	// Set value handle, <360 deg.
 	id: setValHandle
 	property alias angleIn: setValArc.angle
 	property double angleOverlap: Math.asin(handleR*handleOverlap / centerR)
@@ -350,8 +329,8 @@ Item {
 	}
     }
 
+    // Read value handles:  Draw overlapping circles representing laps
     Canvas {
-	// Read value handle, <360 deg.
 	id: readValHandle
 	property alias angleIn: readValArc.angle
 	property double angleOverlap: Math.asin(handleR*handleOverlap / centerR)
@@ -401,6 +380,7 @@ Item {
     }
 
     /*
+    // Zero handle, incomplete color
     Canvas {
 	// Set zero handle
 	id: setZeroHandle
@@ -420,6 +400,7 @@ Item {
 	}
     }
 
+    // Zero handle, complete color, fades in when stage complete
     Canvas {
 	// Read zero handle
 	id: readZeroHandle
@@ -441,6 +422,7 @@ Item {
     }
     */
 
+    // Handle mouse events
     MouseArea {
 	/* Invisible layer for dealing with mouse button and scroll input
 
@@ -541,4 +523,26 @@ Item {
         }
 	*/
     }
+
+    /*
+    // Debugging readout
+    Label {
+        id: debug
+	property string val1: ""
+	property string val2: ""
+	property string val3: ""
+
+	x: 0
+        y: outerDiameter + 5
+	z: 10
+
+        // Format float value with decimals in black text
+        text: (val1 + "; " + val2 + "; " + val3)
+        color: "#000000"
+
+        // Proportional size, centered above handle, with l/r tweak
+        font.pixelSize: 20
+    }
+    */
+
 }
