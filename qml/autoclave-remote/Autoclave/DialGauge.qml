@@ -52,9 +52,10 @@ Item {
     property double setLineWidth: outerR * 0.02
     // - Min/max and direction
     property double minValue: 0.0
+    property double minLimit: minValue // Min may be greater than gauge range
     //property double maxValue: 60.0*4 // 4 hours
     property double maxValue: 130.0
-    property double maxLimit: maxValue // Max setting may be less than gauge range
+    property double maxLimit: maxValue // Max may be less than gauge range
     //property double minPos: 3/2 * Math.PI  // 12 o'clock
     property double minPos: 3/4 * Math.PI  // SW
     //property double maxPos: 4 * 2*Math.PI + minPos  // 4 spins around the dial
@@ -87,9 +88,11 @@ Item {
     property double radsPerMajorGrad: posValueScale * majorGrad
     property double radsPerMinorGrad: posValueScale * minorGrad
     property int numMinorGrads: Math.floor( // clip to <360deg. & int amount
-	valueRange/minorGrad * Math.min(Math.abs(posRange),2*Math.PI)/posRange)
+	valueRange/minorGrad *
+	    Math.min(Math.abs(posRange),2*Math.PI)/Math.abs(posRange))
     property int numMajorGrads: Math.floor( // clip to <360deg. & int amount
-	valueRange/majorGrad * Math.min(Math.abs(posRange),2*Math.PI)/posRange)
+	valueRange/majorGrad *
+	    Math.min(Math.abs(posRange),2*Math.PI)/Math.abs(posRange))
 
     // Size
     width: 400
@@ -222,7 +225,7 @@ Item {
 	property int numCircs: Math.floor(value*posValueScale / (2*Math.PI))
 	/* property double angle: ( */
 	/*     value * posValueScale - numCircs*2*Math.PI + minPos) */
-	property double angle: (value * posValueScale + minPos)
+	property double angle: ((value-minValue) * posValueScale + minPos)
 	property color color: base.setColor
 
 	// Positioning
@@ -231,7 +234,6 @@ Item {
 
 	// Repaint canvas whenever value changes
         onValueChanged: requestPaint()
-	onColorChanged: requestPaint()
 
 	contextType: "2d"
 	onPaint: {
@@ -241,7 +243,10 @@ Item {
 	    context.lineWidth = outerR - innerR;
 
 	    // Draw value arc
-	    drawArc(context, medianR, minPos, angle);
+	    if (posRange >0)
+		drawArc(context, medianR, minPos, angle);
+	    else
+		drawArc(context, medianR, angle, minPos);
 	}
     }
 
@@ -251,7 +256,8 @@ Item {
 	property alias value: base.readValue
 	property int numCircs: Math.floor(value*posValueScale / (2*Math.PI))
 	property alias setNumCircs: setValArc.numCircs
-	property double angle: value * posValueScale - numCircs*2*Math.PI + minPos
+	property double angle: ((value-minValue) * posValueScale
+				- numCircs*2*Math.PI + minPos)
 	property color color: base.readColor
 
 	// Positioning & visibility
@@ -278,7 +284,10 @@ Item {
 	    // Draw read value outer arc
 	    var lineWidth = (numCircs+1) * (outerR - innerR)/(setNumCircs+1);
 	    context.lineWidth = Math.min(lineWidth, outerR - innerR);
-	    drawArc(context, medianR, minPos, angle);
+	    if (posRange >0)
+		drawArc(context, medianR, minPos, angle);
+	    else
+		drawArc(context, medianR, angle, minPos);
 	}
     }
 
@@ -512,7 +521,10 @@ Item {
 	    // New value, rounded
 	    var newVal = Math.round(
 		(valueStart+valueDelta) / precision) * precision;
-            value = Math.min(maxLimit, Math.max(minValue, newVal));
+	    if (posRange > 0)
+		value = Math.min(maxLimit, Math.max(minLimit, newVal));
+	    else
+		value = Math.max(maxLimit, Math.min(minLimit, newVal));
         }
 
 	/*
@@ -533,13 +545,13 @@ Item {
 	*/
     }
 
-    /*
     // Debugging readout
     Label {
         id: debug
 	property string val1: ""
 	property string val2: ""
 	property string val3: ""
+	visible: (val1+val2+val3 == "" ? 0 : 1)
 
 	x: 0
         y: outerR*2 + 5
@@ -552,6 +564,5 @@ Item {
         // Proportional size, centered above handle, with l/r tweak
         font.pixelSize: 20
     }
-    */
 
 }

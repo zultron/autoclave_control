@@ -125,6 +125,15 @@ HalApplicationWindow {
             centerImageSet: "assets/p5-cool-blue.png"
             centerImageRead: "assets/p5-cool-green.png"
 	    typeIconSource: "assets/l2-cool.png"
+	    // Reverse:  this is cooling, not heating
+	    minPos: 2.25 * Math.PI // SE
+            maxPos: minPos - 1.5 * Math.PI // SW
+	    minorGrad: -1.0
+	    majorGrad: -10.0
+	    minValue: 130.0
+	    maxValue: 0.0
+	    minLimit: 121.0
+	    maxLimit: 0.0
         }
 
 	// --------------- Left-hand-side button controls ------------------

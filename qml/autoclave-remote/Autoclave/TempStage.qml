@@ -28,7 +28,9 @@ Item {
     property alias setLineWidth: gauge.setLineWidth
     // - Min/max and direction
     property alias minValue: gauge.minValue
+    property alias minLimit: gauge.minLimit
     property alias maxValue: gauge.maxValue
+    property alias maxLimit: gauge.maxLimit
     property alias minPos: gauge.minPos
     property alias maxPos: gauge.maxPos
     property alias precision: gauge.precision
@@ -116,6 +118,7 @@ Item {
 	property bool synced: setSynced && readSynced
 
         minValue: 0.0
+	minLimit: 20.0
         maxValue: 130.0
 	maxLimit: 121.0
 	precision: 0.1
