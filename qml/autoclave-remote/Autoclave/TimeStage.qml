@@ -2,7 +2,7 @@ import QtQuick 2.0
 import Machinekit.HalRemote 1.0
 
 Item {
-    id: time
+    id: base
     // Pins & values
     property alias setPinName:  gauge.setPinName
     property alias setValue:    gauge.setValue
@@ -12,7 +12,6 @@ Item {
     property alias readSynced:  gauge.readSynced
     property bool synced: setSynced && readSynced
     // Gauge properties
-    property alias readVisible: gauge.readVisible
     property alias outerDiameter: gauge.outerDiameter
     property alias innerDiameter: gauge.outerDiameter
     property alias minorGradWidth: gauge.minorGradWidth
@@ -38,30 +37,35 @@ Item {
     property alias setBGColor: gauge.setBGColor
     property alias readColor: gauge.readColor
     property alias readBGColor: gauge.readBGColor
-    property alias finishFade: gauge.finishFade
+    property double readFade: 0.0
+    property bool readVisible: false
     // Center image properties
-    property string centerImageSet: "assets/p1-flush-blue.png"
-    property string centerImageRead: "assets/p1-flush-green.png"
+    property string centerImageSet: "assets/p2-flush-blue.png"
+    property string centerImageRead: "assets/p2-flush-green.png"
     // Type icon properties
     property string typeIconSource: "assets/l3-timer.png"
     property color readTextColor: "#000000"
     property color setTextColor: "#000000"
+
+    // State
+    property int stageID: 0
+    property int stageCur: 0
 
     width: 400
     height: 450
 
     Image {
         id: typeIcon
-	width: parent.height-parent.width
-	height: parent.height-parent.width
+        width: parent.height-parent.width
+        height: parent.height-parent.width
         source: parent.typeIconSource
         anchors.horizontalCenter: parent.horizontalCenter
     }
     
     TimeReadout {
-        id: setTime
+        id: setReadout
 	value: setPin.value
-        color: time.setTextColor
+        color: base.setTextColor
         anchors.left: typeIcon.right
         anchors.verticalCenter: typeIcon.verticalCenter
         horizontalAlignment: Text.AlignLeft
@@ -69,9 +73,10 @@ Item {
     }
 
     TimeReadout {
-        id: readTime
+        id: readReadout
 	value: readPin.value
-        color: time.readTextColor
+	visible: base.readVisible
+        color: base.readTextColor
         anchors.right: typeIcon.left
         anchors.verticalCenter: typeIcon.verticalCenter
         horizontalAlignment: Text.AlignRight
@@ -80,11 +85,13 @@ Item {
 
     DialGauge {
         id: gauge
-	width: parent.width
-	height: parent.width
+        width: parent.width
+        height: parent.width
 
 	setValue: setPin.value
 	readValue: readPin.value
+	readVisible: base.readVisible
+	readFade: base.readFade
 
 	// HAL pins
 	property string setPinName: "set-pin"
@@ -103,45 +110,45 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: typeIcon.bottom
 
-	// set pin
+        // set pin
         HalPin {
-	    id: setPin
-	    name: gauge.setPinName
-	    type: HalPin.S32
+            id: setPin
+            name: gauge.setPinName
+            type: HalPin.S32
             direction: HalPin.Out
-	}
+        }
 
-	Binding {
+        Binding {
             target: setPin;
             property: "value";
             value: gauge.setValue;
-	}
+        }
 
-	Binding {
-	    target: gauge;
-	    property: "setSynced";
-	    value: setPin.synced;
-	}
+        Binding {
+            target: gauge;
+            property: "setSynced";
+            value: setPin.synced;
+        }
 
-	// read pin
-	HalPin {
-	    id: readPin
-	    name: gauge.readPinName
-	    type: HalPin.S32
+        // read pin
+        HalPin {
+            id: readPin
+            name: gauge.readPinName
+            type: HalPin.S32
             direction: HalPin.In
-	}
+        }
 
-	Binding {
-	    target: gauge;
-	    property: "readValue";
-	    value: readPin.value;
-	}
+        Binding {
+            target: gauge;
+            property: "readValue";
+            value: readPin.value;
+        }
 
-	Binding {
-	    target: gauge;
-	    property: "readSynced";
-	    value: readPin.synced;
-	}
+        Binding {
+            target: gauge;
+            property: "readSynced";
+            value: readPin.synced;
+        }
     }
 
     Image {
@@ -161,7 +168,36 @@ Item {
         anchors.horizontalCenter: gauge.horizontalCenter
         anchors.verticalCenter: gauge.verticalCenter
         source: parent.centerImageRead
-	opacity: gauge.finishFade
+	opacity: base.readFade
 	z: 0.2
     }
+
+    states: [
+	State {
+	    name: "progress"
+	    when: base.stageCur == base.stageID
+	    PropertyChanges {
+		target: base
+		readFade: 0.0
+		readVisible: true
+	    }
+	},
+	State {
+	    name: "done"
+	    when: base.stageCur > base.stageID
+	    PropertyChanges {
+		target: base
+		readFade: 1.0
+		readVisible: true
+	    }
+	}
+    ]
+    transitions: [
+	Transition {
+	    NumberAnimation {
+		properties: "readFade"
+		duration: 500
+	    }
+	}
+    ]
 }

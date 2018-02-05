@@ -42,7 +42,8 @@ HalApplicationWindow {
             setPinName: "idle-temp-set"
             readPinName: "idle-temp"
 	    timePinName: "idle-time"
-	    readVisible: true
+	    stageID: 0
+	    stageCur: pins.stage
             centerImageSet: "assets/p0-idle-blue.png"
             centerImageRead: "assets/p0-idle-green.png"
 	    typeIconSource: "assets/l1-heat.png"
@@ -58,7 +59,8 @@ HalApplicationWindow {
             setPinName: "boil-temp-set"
             readPinName: "boil-temp"
 	    timePinName: "boil-time"
-	    readVisible: pins.stage >= 1
+	    stageID: 1
+	    stageCur: pins.stage
             centerImageSet: "assets/p1-boil-blue.png"
             centerImageRead: "assets/p1-boil-green.png"
 	    typeIconSource: "assets/l1-heat.png"
@@ -73,7 +75,8 @@ HalApplicationWindow {
             height: 225
             setPinName: "flush-time-set"
             readPinName: "flush-time"
-	    readVisible: pins.stage >= 2
+	    stageID: 2
+	    stageCur: pins.stage
             centerImageSet: "assets/p2-flush-blue.png"
             centerImageRead: "assets/p2-flush-green.png"
 	    typeIconSource: "assets/l3-timer.png"
@@ -89,7 +92,8 @@ HalApplicationWindow {
             setPinName: "heat-temp-set"
             readPinName: "heat-temp"
 	    timePinName: "heat-time"
-	    readVisible: pins.stage >= 3
+	    stageID: 3
+	    stageCur: pins.stage
             centerImageSet: "assets/p3-heat-blue.png"
             centerImageRead: "assets/p3-heat-green.png"
 	    typeIconSource: "assets/l1-heat.png"
@@ -104,7 +108,8 @@ HalApplicationWindow {
             height: 225
             setPinName: "ster-time-set"
             readPinName: "ster-time"
-	    readVisible: pins.stage >= 4
+	    stageID: 4
+	    stageCur: pins.stage
             centerImageSet: "assets/p4-sterilize-blue.png"
             centerImageRead: "assets/p4-sterilize-green.png"
 	    typeIconSource: "assets/l3-timer.png"
@@ -120,7 +125,8 @@ HalApplicationWindow {
             setPinName: "cool-temp-set"
             readPinName: "cool-temp"
 	    timePinName: "cool-time"
-	    readVisible: pins.stage >= 5
+	    stageID: 5
+	    stageCur: pins.stage
             centerImageSet: "assets/p5-cool-blue.png"
             centerImageRead: "assets/p5-cool-green.png"
 	    typeIconSource: "assets/l2-cool.png"

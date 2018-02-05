@@ -35,6 +35,7 @@ Item {
     // Display settings
     // - Visibility
     property bool readVisible: true // read value visible/invisible
+    property double readFade: 1.0 // At 0.0, only set elements can be seen
     // - Size
     property double outerDiameter: 400.0
     property double innerDiameter: outerDiameter/2
@@ -67,7 +68,6 @@ Item {
     property color setBGColor: "#ff00ff" // Set background color
     property color readColor: "#008000"
     property color readBGColor: "#00c300" // Read background color
-    property alias finishFade: readValFace.colorA
 
     // Computed parameters
     // - Major sizes
@@ -222,20 +222,14 @@ Item {
     Canvas {
 	// Like face, but the readBGColor, fades slowly into view
 	id: readValFace
-	property color baseColor: base.readBGColor
+	property alias color: base.readBGColor
 	property alias readVal: base.readValue
 	property alias setVal: base.setValue
-	property double fadeStart: 0.02 // Fade in over last 2%
-	property double fadeEnd: 0.01 // Faded in by last 1%
-	property double colorA: Math.min(Math.max(
-	    readVal / setVal - (1-fadeStart), 0.0) / fadeEnd, 1.0)
-	property color color: Qt.rgba(
-	    baseColor.r, baseColor.g, baseColor.b, colorA)
 
 	// Positioning & visibility
 	anchors.fill: parent
 	z: 0.1
-	visible: base.readVisible
+	opacity: base.readFade
 
 	// This changes transparency as the read value increases
 	onReadValChanged: requestPaint()
@@ -353,13 +347,6 @@ Item {
 	    context.strokeStyle = base.gradColor;
 	    context.lineWidth = base.setLineWidth;
 	    context.stroke();
-
-	    // Draw zero handle
-	    context.beginPath();
-            context.fillStyle = setColor;
-	    context.strokeStyle = setBGColor;
-	    context.lineWidth = handleStrokeWidth;
-	    drawHandle(context, minPosR, centerR, handleFillR);
 	}
     }
 
@@ -410,17 +397,49 @@ Item {
 		    drawHandle(context, angleIn-angleOverlap*i,
 			       centerR, handleFillR);
 	    }
+	}
+    }
 
-	    // - Completed color
-	    context.beginPath();
-            context.fillStyle = Qt.rgba(
-		readColor.r, readColor.g, readColor.b, readValFace.colorA);
-	    context.strokeStyle = Qt.rgba(
-		readBGColor.r, readBGColor.g, readBGColor.b, readValFace.colorA);
+    /*
+    Canvas {
+	// Set zero handle
+	id: setZeroHandle
+
+	// Positioning & visibility
+	anchors.fill: parent
+	z: 9.3
+
+	contextType: "2d"
+	onPaint: {
+	    if (!context) return;
+	    context.reset();
+            context.fillStyle = setColor;
+	    context.strokeStyle = setBGColor;
 	    context.lineWidth = handleStrokeWidth;
 	    drawHandle(context, minPosR, centerR, handleFillR);
 	}
     }
+
+    Canvas {
+	// Read zero handle
+	id: readZeroHandle
+
+	// Positioning & visibility
+	anchors.fill: parent
+	z: 9.4 // Over readZeroHandle
+	opacity: base.readFade
+
+	contextType: "2d"
+	onPaint: {
+	    if (!context) return;
+	    context.reset();
+            context.fillStyle = readColor;
+	    context.strokeStyle = readBGColor;
+	    context.lineWidth = handleStrokeWidth;
+	    drawHandle(context, minPosR, centerR, handleFillR);
+	}
+    }
+    */
 
     MouseArea {
 	/* Invisible layer for dealing with mouse button and scroll input
@@ -431,7 +450,7 @@ Item {
 
 	   Then, when arc is dragged, the angle is compared with the
 	   saved angle, and applied to the arc.
-	  */
+	*/
         id: events
 	property alias numCircs: setValArc.numCircs
 	//property alias numCircs: readValArc.numCircs
@@ -511,14 +530,14 @@ Item {
         // - Check which zone mouse is closest to
         // - Increment/decrement the zone, respecting max/min values
         onWheel: {
-            if (!mouseInRing(wheel)) return; // Ignore out of bounds
+        if (!mouseInRing(wheel)) return; // Ignore out of bounds
 
-            var val = mouseToVal(wheel);
-            var newv = red.value + wheel.angleDelta.y/15 * base.stepSize;
-            if (newv > maximumValue) newv = maximumValue;
-            if (newv < blue.value + base.minGreenZone)
-                newv = blue.value + base.minGreenZone;
-            setValue = newv;
+        var val = mouseToVal(wheel);
+        var newv = red.value + wheel.angleDelta.y/15 * base.stepSize;
+        if (newv > maximumValue) newv = maximumValue;
+        if (newv < blue.value + base.minGreenZone)
+        newv = blue.value + base.minGreenZone;
+        setValue = newv;
         }
 	*/
     }

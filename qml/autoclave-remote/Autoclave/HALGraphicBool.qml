@@ -15,7 +15,7 @@ Image {
     HalPin {
         id: pin
         name: "set-pin"
-        type: HalPin.bool
+        type: HalPin.Bit
         direction: HalPin.In
     }
 

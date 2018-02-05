@@ -2,7 +2,7 @@ import QtQuick 2.0
 import Machinekit.HalRemote 1.0
 
 Item {
-    id: temp
+    id: base
     // Pins & values
     property alias setPinName:  gauge.setPinName
     property alias setValue:    gauge.setValue
@@ -15,7 +15,6 @@ Item {
     property alias timeSynced:  timeReadout.synced
     property bool  synced: setSynced && readSynced && timeSynced
     // Gauge properties
-    property alias readVisible: gauge.readVisible
     property alias outerDiameter: gauge.outerDiameter
     property alias innerDiameter: gauge.outerDiameter
     property alias minorGradWidth: gauge.minorGradWidth
@@ -42,7 +41,8 @@ Item {
     property alias setBGColor: gauge.setBGColor
     property alias readColor: gauge.readColor
     property alias readBGColor: gauge.readBGColor
-    property alias finishFade: gauge.finishFade
+    property double readFade: 0.0
+    property bool readVisible: false
     // Center image properties
     property string centerImageSet: "assets/p1-boil-blue.png"
     property string centerImageRead: "assets/p1-boil-green.png"
@@ -51,9 +51,12 @@ Item {
     property color readTextColor: "#000000"
     property color setTextColor: "#000000"
 
+    // State
+    property int stageID: 0
+    property int stageCur: 0
+
     width: 400
     height: 450
-
 
     Image {
         id: typeIcon
@@ -64,10 +67,10 @@ Item {
     }
     
     TempReadout {
-        id: setTemp
-	value: gauge.setValue
-	decimals: gauge.decimals
-        color: temp.setTextColor
+        id: setReadout
+	value: setPin.value
+	decimals: base.decimals
+        color: base.setTextColor
         anchors.left: typeIcon.right
         anchors.verticalCenter: typeIcon.verticalCenter
         horizontalAlignment: Text.AlignLeft
@@ -75,10 +78,11 @@ Item {
     }
 
     TempReadout {
-        id: readTemp
-	value: gauge.readValue
-	decimals: gauge.decimals
-        color: temp.readTextColor
+        id: readReadout
+	value: readPin.value
+	visible: base.readVisible
+	decimals: base.decimals
+        color: base.readTextColor
         anchors.right: typeIcon.left
         anchors.verticalCenter: typeIcon.verticalCenter
         horizontalAlignment: Text.AlignRight
@@ -91,7 +95,9 @@ Item {
         height: parent.width
 
 	setValue: setPin.value
-	readValue: 80.0
+	readValue: readPin.value
+	readVisible: base.readVisible
+	readFade: base.readFade
 
 	// HAL pins
 	property string setPinName: "set-pin"
@@ -112,46 +118,45 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: typeIcon.bottom
 
-	// set pin
+        // set pin
         HalPin {
             id: setPin
             name: gauge.setPinName
             type: HalPin.Float
             direction: HalPin.Out
-	}
+        }
 
-	Binding {
+        Binding {
             target: setPin;
             property: "value";
             value: gauge.setValue;
-	}
+        }
 
-	Binding {
+        Binding {
             target: gauge;
             property: "setSynced";
             value: setPin.synced;
-	}
+        }
 
-	// read pin
+        // read pin
         HalPin {
             id: readPin
             name: gauge.readPinName
             type: HalPin.Float
             direction: HalPin.In
-	}
+        }
 
-	Binding {
+        Binding {
             target: gauge;
             property: "readValue";
             value: readPin.value;
-	}
+        }
 
-	Binding {
+        Binding {
             target: gauge;
             property: "readSynced";
             value: readPin.synced;
-	}
-
+        }
     }
 
     Image {
@@ -160,7 +165,7 @@ Item {
         height: gauge.innerDiameter
         anchors.horizontalCenter: gauge.horizontalCenter
         anchors.verticalCenter: gauge.verticalCenter
-        source: temp.centerImageSet
+        source: parent.centerImageSet
 	z: 0.1
     }
 
@@ -170,8 +175,8 @@ Item {
         height: gauge.innerDiameter
         anchors.horizontalCenter: gauge.horizontalCenter
         anchors.verticalCenter: gauge.verticalCenter
-        source: temp.centerImageRead
-	opacity: gauge.finishFade
+        source: parent.centerImageRead
+	opacity: base.readFade
 	z: 0.2
     }
 
@@ -182,9 +187,38 @@ Item {
 
 	// Size and position
         anchors.bottom: gauge.bottom
-        anchors.bottomMargin: temp.outerDiameter * 0.01
+        anchors.bottomMargin: base.outerDiameter * 0.01
         anchors.horizontalCenter: gauge.horizontalCenter
         horizontalAlignment: Text.AlignHCenter
         font.pixelSize: typeIcon.height * 0.7
     }
+
+    states: [
+	State {
+	    name: "progress"
+	    when: base.stageCur == base.stageID
+	    PropertyChanges {
+		target: base
+		readFade: 0.0
+		readVisible: true
+	    }
+	},
+	State {
+	    name: "done"
+	    when: base.stageCur > base.stageID
+	    PropertyChanges {
+		target: base
+		readFade: 1.0
+		readVisible: true
+	    }
+	}
+    ]
+    transitions: [
+	Transition {
+	    NumberAnimation {
+		properties: "readFade"
+		duration: 500
+	    }
+	}
+    ]
 }
