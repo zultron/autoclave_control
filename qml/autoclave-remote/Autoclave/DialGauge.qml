@@ -530,14 +530,14 @@ Item {
         // - Check which zone mouse is closest to
         // - Increment/decrement the zone, respecting max/min values
         onWheel: {
-        if (!mouseInRing(wheel)) return; // Ignore out of bounds
+            if (!mouseInRing(wheel)) return; // Ignore out of bounds
 
-        var val = mouseToVal(wheel);
-        var newv = red.value + wheel.angleDelta.y/15 * base.stepSize;
-        if (newv > maximumValue) newv = maximumValue;
-        if (newv < blue.value + base.minGreenZone)
-        newv = blue.value + base.minGreenZone;
-        setValue = newv;
+            var val = mouseToVal(wheel);
+            var newv = red.value + wheel.angleDelta.y/15 * base.stepSize;
+            if (newv > maximumValue) newv = maximumValue;
+            if (newv < blue.value + base.minGreenZone)
+                newv = blue.value + base.minGreenZone;
+            setValue = newv;
         }
 	*/
     }

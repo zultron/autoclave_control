@@ -1,31 +1,31 @@
 import QtQuick 2.0
 import Machinekit.HalRemote 1.0
 
-TimeReadout {
-    id: time
+Readout {
+    id: base
 
     // Main properties
-    property string name: "time-pin"
+    property string name: "read-pin"
     property bool synced: true
     property bool dir_in: true
 
     // Connect HAL pin
     HalPin {
-        id: timePin
-        name: time.name
-        type: HalPin.S32
+        id: pin
+        name: base.name
+        type: (base.timeMode ? HalPin.S32 : HalPin.Float)
         direction: HalPin.In
     }
 
     Binding {
-        target: time;
+        target: base;
         property: "value";
-        value: timePin.value;
+        value: pin.value;
     }
 
     Binding {
-        target: time;
+        target: base;
         property: "synced";
-        value: timePin.synced;
+        value: pin.synced;
     }
 }

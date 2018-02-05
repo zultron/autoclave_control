@@ -13,7 +13,7 @@ GraphicReadout {
     HalPin {
         id: pin
         name: "temp-pin"
-        type: (readout.int_type ? HalPin.S32 : HalPin.Float)
+        type: (readout.timeMode ? HalPin.S32 : HalPin.Float)
         direction: HalPin.In
     }
 

@@ -132,6 +132,8 @@ HalApplicationWindow {
 	    typeIconSource: "assets/l2-cool.png"
         }
 
+	// --------------- Left-hand-side button controls ------------------
+	// Enable/disable button
 	Autoclave.CheckButton {
             id: enable
             name: "enable-switch"
@@ -141,6 +143,7 @@ HalApplicationWindow {
 	    imageUnchecked: "assets/c0-power-0.png"
 	}
 
+	// Start/stop button
         Autoclave.CheckButton {
             id: start
             name: "start"
@@ -150,51 +153,58 @@ HalApplicationWindow {
 	    imageUnchecked: "assets/c1-start-0.png"
         }
 
-	Autoclave.HALGraphicTimeReadout {
+	// --------------- Right-hand-side status ------------------
+	// Process elapsed time
+	Autoclave.HALGraphicReadout {
 	    id: time_elapsed
 	    name: "time-elapsed"
-            x: 793
-            y: 341
+	    timeMode: true
+            x: 855
+            y: 343
 	    height: 50
-            imageSource: "assets/s3-time.png"
-	}
+            source: "Autoclave/assets/s3-time.png"
+    }
 
+	// Burner % duty cycle
 	Autoclave.HALGraphicReadout {
 	    id: burner_duty
 	    name: "burner-duty"
 	    scale: 100
 	    suffix: "%"
-            x: 825
+            x: 855
             y: 399
 	    height: 50
-            imageSource: "assets/s0-burner.png"
-	}
+            source: "Autoclave/assets/s0-burner.png"
+    }
 
+	// Pressure
 	Autoclave.HALGraphicReadout {
 	    id: pressure
 	    name: "pressure"
 	    suffix: "PSI"
-            x: 811
-            y: 458
+            x: 855
+            y: 455
 	    height: 50
-            imageSource: "assets/s4-pressure.png"
-	}
+            source: "Autoclave/assets/s4-pressure.png"
+    }
 
+	// Temperature
 	Autoclave.HALGraphicReadout {
 	    id: temp_pot
 	    name: "temp-pot"
 	    suffix: "°C"
-            x: 819
+            x: 855
             y: 514
 	    height: 50
-            imageSource: "assets/s5-temp.png"
-	}
+            source: "Autoclave/assets/s5-temp.png"
+    }
 
-    Autoclave.HALGraphicBool {
+	// Steam icon appears when valve is open
+	Autoclave.HALGraphicBool {
 	    id: steam
 	    name: "valve-on"
 	    invert: false
-            x: 764
+            x: 751
             y: 514
 	    height: 50
 	    width: 50

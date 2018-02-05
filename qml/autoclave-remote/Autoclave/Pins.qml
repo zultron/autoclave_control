@@ -1,6 +1,8 @@
 import QtQuick 2.0
 import Machinekit.HalRemote 1.0
 
+// This is a catch-all for pins that aren't used elsewhere
+
 Item {
     id: pins
     

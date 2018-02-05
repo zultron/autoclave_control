@@ -66,7 +66,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
     }
     
-    TempReadout {
+    Readout {
         id: setReadout
 	value: setPin.value
 	decimals: base.decimals
@@ -77,7 +77,7 @@ Item {
         font.pixelSize: typeIcon.height * 0.7
     }
 
-    TempReadout {
+    Readout {
         id: readReadout
 	value: readPin.value
 	visible: base.readVisible
@@ -180,8 +180,9 @@ Item {
 	z: 0.2
     }
 
-    HALTimeReadout {
+    HALReadout {
         id: timeReadout
+	timeMode: true
 	name: "time-pin"
 	value: 12*60 + 37
 

@@ -3,8 +3,8 @@
         <file>main.qml</file>
         <file>autoclave-remote/description.ini</file>
         <file>autoclave-remote/autoclave-remote.qml</file>
-        <file>autoclave-remote/Autoclave/DialGauge.qml</file>
-        <file>autoclave-remote/test.qml</file>
+
+	<!-- Icons -->
         <file>autoclave-remote/Autoclave/assets/c0-power-0.png</file>
         <file>autoclave-remote/Autoclave/assets/c0-power-1.png</file>
         <file>autoclave-remote/Autoclave/assets/c1-start-0.png</file>
@@ -30,19 +30,23 @@
         <file>autoclave-remote/Autoclave/assets/s2-steam.png</file>
         <file>autoclave-remote/Autoclave/assets/s3-time.png</file>
         <file>autoclave-remote/Autoclave/assets/s4-pressure.png</file>
-        <file>autoclave-remote/Autoclave/CheckButton.qml</file>
+
+	<!-- Widgets -->
+	<!-- ** Widget for binding pins not used elsewhere -->
         <file>autoclave-remote/Autoclave/Pins.qml</file>
-        <file>autoclave-remote/Autoclave/TempStage.qml</file>
-        <file>autoclave-remote/Autoclave/TimeStage.qml</file>
+	<!-- ** On/off checkbutton -->
+        <file>autoclave-remote/Autoclave/CheckButton.qml</file>
+	<!-- ** Time and temp readouts, with/without icon and HAL pins -->
         <file>autoclave-remote/Autoclave/Readout.qml</file>
+        <file>autoclave-remote/Autoclave/HALReadout.qml</file>
         <file>autoclave-remote/Autoclave/GraphicReadout.qml</file>
         <file>autoclave-remote/Autoclave/HALGraphicReadout.qml</file>
-        <file>autoclave-remote/Autoclave/TimeReadout.qml</file>
-        <file>autoclave-remote/Autoclave/GraphicTimeReadout.qml</file>
-        <file>autoclave-remote/Autoclave/HALGraphicTimeReadout.qml</file>
+	<!-- ** Icon that appears/disappears -->
         <file>autoclave-remote/Autoclave/HALGraphicBool.qml</file>
-        <file>autoclave-remote/Autoclave/TempReadout.qml</file>
-        <file>autoclave-remote/Autoclave/HALTempReadout.qml</file>
-        <file>autoclave-remote/Autoclave/HALTimeReadout.qml</file>
+	<!-- ** Dial gauge widget -->
+        <file>autoclave-remote/Autoclave/DialGauge.qml</file>
+	<!-- ** Main stage widgets -->
+        <file>autoclave-remote/Autoclave/TempStage.qml</file>
+        <file>autoclave-remote/Autoclave/TimeStage.qml</file>
     </qresource>
 </RCC>

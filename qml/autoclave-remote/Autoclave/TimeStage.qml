@@ -62,9 +62,10 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
     }
     
-    TimeReadout {
+    Readout {
         id: setReadout
 	value: setPin.value
+	timeMode: true
         color: base.setTextColor
         anchors.left: typeIcon.right
         anchors.verticalCenter: typeIcon.verticalCenter
@@ -72,9 +73,10 @@ Item {
         font.pixelSize: typeIcon.height * 0.7
     }
 
-    TimeReadout {
+    Readout {
         id: readReadout
 	value: readPin.value
+	timeMode: true
 	visible: base.readVisible
         color: base.readTextColor
         anchors.right: typeIcon.left
