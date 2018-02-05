@@ -24,7 +24,7 @@ class Config(object):
             if os.path.isfile(path):
                 config_file = path
                 break
-            path = (os.path.join(path, self.default_base_name))
+            path = os.path.abspath(os.path.join(path, self.default_base_name))
             if os.path.isfile(path):
                 config_file = path
                 break
