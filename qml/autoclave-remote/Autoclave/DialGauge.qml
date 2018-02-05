@@ -37,24 +37,28 @@ Item {
     property bool readVisible: true // read value visible/invisible
     property double readFade: 1.0 // At 0.0, only set elements can be seen
     // - Size
-    property double outerDiameter: 400.0
-    property double innerDiameter: outerDiameter/2
+    property double overallR: base.width/2 // Radius to outside edge
+    property double centerR: overallR/2 // Radius to inner edge
+    property double outerBezelWidth: width * 0.025 // width of outer ring
+    property double bezelGapWidth: width * 0.012 // width of ring outside arcs
+    property double outerR: overallR - outerBezelWidth - bezelGapWidth
+    property double innerR: centerR + bezelGapWidth
     property double minorGradWidth: 0.10 // width of minor graduations; %
     property double majorGradWidth: 0.30 // width of major graduations; %
-    property double gradLineWidth: outerDiameter * 3.0/400
-    property double handleDiameter: outerDiameter * 25.0/400
-    property double handleStrokeWidth: outerDiameter * 5.0/400
+    property double gradLineWidth: outerR * 0.015
+    property double handleDiameter: outerR * 0.125
+    property double handleStrokeWidth: outerR * 0.025
     property double handleOverlap: 0.50 // pct
-    property double setLineWidth: outerDiameter * 4.0/400
+    property double setLineWidth: outerR * 0.02
     // - Min/max and direction
     property double minValue: 0.0
     //property double maxValue: 60.0*4 // 4 hours
     property double maxValue: 130.0
     property double maxLimit: maxValue // Max setting may be less than gauge range
-    //property double minPos: 270.0  // 12 o'clock
-    property double minPos: 135.0  // SW
-    //property double maxPos: 360.0*4 + minPos  // 4 spins around the dial
-    property double maxPos: 405.0 // Clockwise 270 deg. to SE
+    //property double minPos: 3/2 * Math.PI  // 12 o'clock
+    property double minPos: 3/4 * Math.PI  // SW
+    //property double maxPos: 4 * 2*Math.PI + minPos  // 4 spins around the dial
+    property double maxPos: minPos + 3/2 * Math.PI // Clockwise 270 deg. to SE
     property double precision: 1.0 // Precision of setting
     property double mouseScale: 1.0 // Effect of mouse on value
     // - Graduations
@@ -71,18 +75,14 @@ Item {
 
     // Computed parameters
     // - Major sizes
-    property double outerR: outerDiameter/2
-    property double innerR: innerDiameter/2
-    property double centerR: (outerR+innerR)/2 // Halfway between
+    property double medianR: (outerR+innerR)/2 // Halfway between
     property double handleFillR: handleDiameter/2
     property double handleStrokeR: handleStrokeWidth/2
     property double handleR: handleFillR+handleStrokeR
     // - Ranges, scales and angles
     property double toRads: Math.PI/180.0
     property double valueRange: maxValue-minValue
-    property double maxPosR: maxPos * toRads // rename to maxRads
-    property double minPosR: minPos * toRads // rename to minRads
-    property double posRange: maxPosR-minPosR // rename to rangeRads
+    property double posRange: maxPos-minPos
     property double posValueScale: posRange/valueRange
     property double radsPerMajorGrad: posValueScale * majorGrad
     property double radsPerMinorGrad: posValueScale * minorGrad
@@ -92,34 +92,34 @@ Item {
 	valueRange/majorGrad * Math.min(Math.abs(posRange),2*Math.PI)/posRange)
 
     // Size
-    width: outerDiameter
-    height: outerDiameter
+    width: 400
+    height: 400
 
     // ------------------- Convenience functions -------------------
 
     // Draw an arc centered on middle of gauge
     function drawArc(c, radius, start, end) {
 	c.beginPath();
-	c.arc(outerR, outerR,   // center
+	c.arc(base.overallR, base.overallR,   // center
 	      radius, start, end);
 	c.stroke();
     }
 
     // Draw a graduation line
     function drawGrad(c,ang,w) {
-	var gradOuterR = centerR + (outerR-centerR)*w;
-	var gradInnerR = centerR + (innerR-centerR)*w;
-	c.moveTo(Math.cos(ang)*gradOuterR + outerR,
-		 Math.sin(ang)*gradOuterR + outerR);
-	c.lineTo(Math.cos(ang)*gradInnerR + outerR,
-		 Math.sin(ang)*gradInnerR + outerR);
+	var gradOuterR = medianR + (outerR-medianR)*w;
+	var gradInnerR = medianR + (innerR-medianR)*w;
+	c.moveTo(Math.cos(ang)*gradOuterR + base.overallR,
+		 Math.sin(ang)*gradOuterR + base.overallR);
+	c.lineTo(Math.cos(ang)*gradInnerR + base.overallR,
+		 Math.sin(ang)*gradInnerR + base.overallR);
     }
 
     // Draw a 'handle', a small circle on the set/read arc
     function drawHandle(c, dialAngle, dialRadius, radius) {
 	c.beginPath();
-	c.arc(base.outerR + Math.cos(dialAngle) * dialRadius,  // center X
-	      base.outerR + Math.sin(dialAngle) * dialRadius,  // center Y
+	c.arc(base.overallR + Math.cos(dialAngle) * dialRadius,  // center X
+	      base.overallR + Math.sin(dialAngle) * dialRadius,  // center Y
 	      radius, 0, 2*Math.PI);
 	c.stroke();
         c.fill();
@@ -127,7 +127,7 @@ Item {
 
     // ------------------- Graphical elements -------------------
 
-    // Background ring
+    // Background ring, incl. outer bezel
     Canvas {
 	id: face
 
@@ -139,18 +139,22 @@ Item {
 	onPaint: {
 	    if (!context) return;
 	    context.reset();
-	    context.strokeStyle = base.baseColor;
-	    context.lineWidth = outerR - innerR;
 
-	    // Draw set value outer arc
-	    drawArc(context, centerR, 0, 2*Math.PI);
+	    // Draw background in background color
+	    context.strokeStyle = base.setBGColor;
+	    context.lineWidth = overallR - centerR;
+	    drawArc(context, (overallR + centerR)/2, 0, 2*Math.PI);
+
+	    // Draw bezel in foreground color
+	    context.strokeStyle = base.setColor;
+	    context.lineWidth = outerBezelWidth;
+	    drawArc(context, overallR - outerBezelWidth/2, 0, 2*Math.PI);
 	}
     }
 
     // A second background ring in the stage complete color
     Canvas {
 	id: readValFace
-	property alias color: base.readBGColor
 	property alias readVal: base.readValue
 	property alias setVal: base.setValue
 
@@ -167,11 +171,16 @@ Item {
 	onPaint: {
 	    if (!context) return;
 	    context.reset();
-	    context.strokeStyle = color;
-	    context.lineWidth = outerR - innerR;
 
-	    // Draw set value outer arc
-	    drawArc(context, centerR, 0, 2*Math.PI);
+	    // Draw background in background color
+	    context.strokeStyle = base.readBGColor;
+	    context.lineWidth = overallR - centerR;
+	    drawArc(context, (overallR + centerR)/2, 0, 2*Math.PI);
+
+	    // Draw bezel in foreground color
+	    context.strokeStyle = base.readColor;
+	    context.lineWidth = outerBezelWidth;
+	    drawArc(context, overallR - outerBezelWidth/2, 0, 2*Math.PI);
 	}
     }
 
@@ -190,15 +199,15 @@ Item {
 
 	    // Draw graduations
 	    // - First major graduation
-	    drawGrad(context, minPosR, majorGradWidth);
+	    drawGrad(context, minPos, majorGradWidth);
 	    // - Minor graduations
 	    for (i=1; i <= numMinorGrads; i++)
-		drawGrad(context, minPosR + i*radsPerMinorGrad, minorGradWidth);
+		drawGrad(context, minPos + i*radsPerMinorGrad, minorGradWidth);
 	    // - Major graduations
 	    for (i=1; i <= numMajorGrads; i++)
-		drawGrad(context, minPosR + i*radsPerMajorGrad, majorGradWidth);
+		drawGrad(context, minPos + i*radsPerMajorGrad, majorGradWidth);
 	    // - Final major graduation
-	    drawGrad(context, maxPosR, majorGradWidth);
+	    drawGrad(context, maxPos, majorGradWidth);
 	    // - Stroke lines with color and width
 	    context.strokeStyle = base.gradColor;
 	    context.lineWidth = base.gradLineWidth;
@@ -212,8 +221,8 @@ Item {
 	property alias value: base.setValue
 	property int numCircs: Math.floor(value*posValueScale / (2*Math.PI))
 	/* property double angle: ( */
-	/*     value * posValueScale - numCircs*2*Math.PI + minPosR) */
-	property double angle: (value * posValueScale + minPosR)
+	/*     value * posValueScale - numCircs*2*Math.PI + minPos) */
+	property double angle: (value * posValueScale + minPos)
 	property color color: base.setColor
 
 	// Positioning
@@ -232,7 +241,7 @@ Item {
 	    context.lineWidth = outerR - innerR;
 
 	    // Draw value arc
-	    drawArc(context, centerR, minPosR, angle);
+	    drawArc(context, medianR, minPos, angle);
 	}
     }
 
@@ -242,7 +251,7 @@ Item {
 	property alias value: base.readValue
 	property int numCircs: Math.floor(value*posValueScale / (2*Math.PI))
 	property alias setNumCircs: setValArc.numCircs
-	property double angle: value * posValueScale - numCircs*2*Math.PI + minPosR
+	property double angle: value * posValueScale - numCircs*2*Math.PI + minPos
 	property color color: base.readColor
 
 	// Positioning & visibility
@@ -263,13 +272,13 @@ Item {
 	    if (numCircs > 0) {
 		var lineWidth = numCircs * (outerR - innerR)/(setNumCircs+1);
 		context.lineWidth = Math.min(lineWidth, outerR - innerR);
-		drawArc(context, centerR, 0, 2*Math.PI);
+		drawArc(context, medianR, 0, 2*Math.PI);
 	    }
 
 	    // Draw read value outer arc
 	    var lineWidth = (numCircs+1) * (outerR - innerR)/(setNumCircs+1);
 	    context.lineWidth = Math.min(lineWidth, outerR - innerR);
-	    drawArc(context, centerR, minPosR, angle);
+	    drawArc(context, medianR, minPos, angle);
 	}
     }
 
@@ -277,7 +286,7 @@ Item {
     Canvas {
 	id: setValHandle
 	property alias angleIn: setValArc.angle
-	property double angleOverlap: Math.asin(handleR*handleOverlap / centerR)
+	property double angleOverlap: Math.asin(handleR*handleOverlap / medianR)
 	property alias numCircs: setValArc.numCircs
 
 	// Positioning
@@ -300,7 +309,7 @@ Item {
 		if (i == numCircs-1) {
 		    // Animate new handle appearance
 		    // - Figure out how far from zero
-		    var angleFromZero = (angleIn-minPosR) % (2*Math.PI);
+		    var angleFromZero = (angleIn-minPos) % (2*Math.PI);
 		    if (angleFromZero < 0) angleFromZero += 2*Math.PI;
 		    // - Decide what to do
 		    if (angleFromZero < (numCircs-2)*angleOverlap
@@ -309,15 +318,15 @@ Item {
 			;
 		    else if (angleFromZero < (numCircs-1)*angleOverlap)
 			// Just passed zero; draw at zero
-			drawHandle(context, minPosR, centerR, handleFillR);
+			drawHandle(context, minPos, medianR, handleFillR);
 		    else
 			// Draw normally
 			drawHandle(context, angleIn-angleOverlap*(numCircs-1),
-				   centerR, handleFillR);
+				   medianR, handleFillR);
 		} else
 		    // Animate other handles
 		    drawHandle(context, angleIn-angleOverlap*i,
-			       centerR, handleFillR);
+			       medianR, handleFillR);
 	    }
 
 	    // Draw set line
@@ -333,13 +342,13 @@ Item {
     Canvas {
 	id: readValHandle
 	property alias angleIn: readValArc.angle
-	property double angleOverlap: Math.asin(handleR*handleOverlap / centerR)
+	property double angleOverlap: Math.asin(handleR*handleOverlap / medianR)
 	property alias numCircs: readValArc.numCircs
 
 	// Positioning & visibility
 	anchors.fill: parent
 	z: 9.2
-	visible: base.readVisible
+	//visible: base.readVisible
 
 	// Repaint canvas whenever value changes
         onAngleInChanged: requestPaint()
@@ -357,7 +366,7 @@ Item {
 		if (i == numCircs-1) {
 		    // Animate new handle appearance
 		    // - Figure out how far from zero
-		    var angleFromZero = (angleIn-minPosR) % (2*Math.PI);
+		    var angleFromZero = (angleIn-minPos) % (2*Math.PI);
 		    if (angleFromZero < 0) angleFromZero += 2*Math.PI;
 		    // - Decide what to do
 		    if (angleFromZero < (numCircs-2)*angleOverlap
@@ -366,15 +375,15 @@ Item {
 			;
 		    else if (angleFromZero < (numCircs-1)*angleOverlap)
 			// Just passed zero; draw at zero
-			drawHandle(context, minPosR, centerR, handleFillR);
+			drawHandle(context, minPos, medianR, handleFillR);
 		    else
 			// Draw normally
 			drawHandle(context, angleIn-angleOverlap*(numCircs-1),
-				   centerR, handleFillR);
+				   medianR, handleFillR);
 		} else
 		    // Animate other handles
 		    drawHandle(context, angleIn-angleOverlap*i,
-			       centerR, handleFillR);
+			       medianR, handleFillR);
 	    }
 	}
     }
@@ -396,7 +405,7 @@ Item {
             context.fillStyle = setColor;
 	    context.strokeStyle = setBGColor;
 	    context.lineWidth = handleStrokeWidth;
-	    drawHandle(context, minPosR, centerR, handleFillR);
+	    drawHandle(context, minPos, medianR, handleFillR);
 	}
     }
 
@@ -417,7 +426,7 @@ Item {
             context.fillStyle = readColor;
 	    context.strokeStyle = readBGColor;
 	    context.lineWidth = handleStrokeWidth;
-	    drawHandle(context, minPosR, centerR, handleFillR);
+	    drawHandle(context, minPos, medianR, handleFillR);
 	}
     }
     */
@@ -533,7 +542,7 @@ Item {
 	property string val3: ""
 
 	x: 0
-        y: outerDiameter + 5
+        y: outerR*2 + 5
 	z: 10
 
         // Format float value with decimals in black text

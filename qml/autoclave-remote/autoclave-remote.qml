@@ -32,11 +32,11 @@ HalApplicationWindow {
             font.pixelSize: 20
         }
 
+	// --------------- Central process stage widgets ------------------
         Autoclave.TempStage {
             id: idle
             x: 82
             y: 332
-            outerDiameter: 200.0
             width: 200
             height: 225
             setPinName: "idle-temp-set"
@@ -53,7 +53,6 @@ HalApplicationWindow {
             id: boil
             x: 199
             y: 102
-            outerDiameter: 200.0
             width: 200
             height: 225
             setPinName: "boil-temp-set"
@@ -70,7 +69,6 @@ HalApplicationWindow {
             id: flush
             x: 315
             y: 333
-            outerDiameter: 200.0
             width: 200
             height: 225
             setPinName: "flush-time-set"
@@ -86,7 +84,6 @@ HalApplicationWindow {
             id: heat
             x: 432
             y: 102
-            outerDiameter: 200.0
             width: 200
             height: 225
             setPinName: "heat-temp-set"
@@ -103,7 +100,6 @@ HalApplicationWindow {
             id: ster
             x: 545
             y: 333
-            outerDiameter: 200.0
             width: 200
             height: 225
             setPinName: "ster-time-set"
@@ -119,7 +115,6 @@ HalApplicationWindow {
             id: cool
             x: 657
             y: 102
-            outerDiameter: 200.0
             width: 200
             height: 225
             setPinName: "cool-temp-set"

@@ -12,8 +12,10 @@ Item {
     property alias readSynced:  gauge.readSynced
     property bool synced: setSynced && readSynced
     // Gauge properties
-    property alias outerDiameter: gauge.outerDiameter
-    property alias innerDiameter: gauge.outerDiameter
+    property alias overallR: gauge.overallR
+    property alias outerR: gauge.outerR
+    property alias innerR: gauge.innerR
+    property alias centerR: gauge.centerR
     property alias minorGradWidth: gauge.minorGradWidth
     property alias majorGradWidth: gauge.majorGradWidth
     property alias gradLineWidth: gauge.gradLineWidth
@@ -91,8 +93,11 @@ Item {
     // The gauge
     DialGauge {
         id: gauge
+	// Circular gauge takes up whole width, aligned at bottom
         width: parent.width
         height: parent.width
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: typeIcon.bottom
 
 	setValue: setPin.value
 	readValue: readPin.value
@@ -108,13 +113,11 @@ Item {
 
         minValue: 0.0
         maxValue: 2*60.0*60.0 // 2 hours
-        minPos: -90.0 // 12 o'clock
-        maxPos: 2*360 + minPos
+        minPos: -1/2 * Math.PI // 12 o'clock
+        maxPos: minPos + 2 * 2*Math.PI // 2 hours
 	precision: 60.0 // 1 minute granularity
 	minorGrad: 1.0 * 60.0 // 1 minute
 	majorGrad: 5.0 * 60.0 // 5 minutes, like 1..12 on clock
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: typeIcon.bottom
 
         // set pin
         HalPin {
@@ -160,8 +163,8 @@ Item {
     // Center:  stage icon, incomplete
     Image {
         id: centerImgSet
-        width: gauge.innerDiameter
-        height: gauge.innerDiameter
+        width: gauge.centerR * 2
+        height: gauge.centerR * 2
         anchors.horizontalCenter: gauge.horizontalCenter
         anchors.verticalCenter: gauge.verticalCenter
         source: parent.centerImageSet
@@ -171,8 +174,8 @@ Item {
     // Center:  stage icon, complete
     Image {
         id: centerImgRead
-        width: gauge.innerDiameter
-        height: gauge.innerDiameter
+        width: gauge.centerR * 2
+        height: gauge.centerR * 2
         anchors.horizontalCenter: gauge.horizontalCenter
         anchors.verticalCenter: gauge.verticalCenter
         source: parent.centerImageRead

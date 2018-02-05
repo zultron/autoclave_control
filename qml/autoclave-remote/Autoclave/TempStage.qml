@@ -15,8 +15,10 @@ Item {
     property alias timeSynced:  timeReadout.synced
     property bool  synced: setSynced && readSynced && timeSynced
     // Gauge properties
-    property alias outerDiameter: gauge.outerDiameter
-    property alias innerDiameter: gauge.outerDiameter
+    property alias overallR: gauge.overallR
+    property alias outerR: gauge.outerR
+    property alias innerR: gauge.innerR
+    property alias centerR: gauge.centerR
     property alias minorGradWidth: gauge.minorGradWidth
     property alias majorGradWidth: gauge.majorGradWidth
     property alias gradLineWidth: gauge.gradLineWidth
@@ -95,8 +97,11 @@ Item {
     // The gauge
     DialGauge {
         id: gauge
+	// Circular gauge takes up whole width, aligned at bottom
         width: parent.width
         height: parent.width
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: typeIcon.bottom
 
 	setValue: setPin.value
 	readValue: readPin.value
@@ -115,12 +120,10 @@ Item {
 	maxLimit: 121.0
 	precision: 0.1
 	mouseScale: 0.2
-        minPos: 135.0 // SW
-        maxPos: 405.0 // SE
+        minPos: 3/4 * Math.PI // SW
+        maxPos: minPos + 3/2 * Math.PI // SE
 	minorGrad: 1.0
 	majorGrad: 10.0
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: typeIcon.bottom
 
         // set pin
         HalPin {
@@ -166,8 +169,8 @@ Item {
     // Center:  stage icon, incomplete
     Image {
         id: centerImgSet
-        width: gauge.innerDiameter
-        height: gauge.innerDiameter
+        width: gauge.centerR * 2
+        height: gauge.centerR * 2
         anchors.horizontalCenter: gauge.horizontalCenter
         anchors.verticalCenter: gauge.verticalCenter
         source: parent.centerImageSet
@@ -177,8 +180,8 @@ Item {
     // Center:  stage icon, complete
     Image {
         id: centerImgRead
-        width: gauge.innerDiameter
-        height: gauge.innerDiameter
+        width: gauge.centerR * 2
+        height: gauge.centerR * 2
         anchors.horizontalCenter: gauge.horizontalCenter
         anchors.verticalCenter: gauge.verticalCenter
         source: parent.centerImageRead
@@ -195,7 +198,7 @@ Item {
 
 	// Size and position
         anchors.bottom: gauge.bottom
-        anchors.bottomMargin: base.outerDiameter * 0.01
+        anchors.bottomMargin: base.overallR * 0.1
         anchors.horizontalCenter: gauge.horizontalCenter
         horizontalAlignment: Text.AlignHCenter
         font.pixelSize: typeIcon.height * 0.7
