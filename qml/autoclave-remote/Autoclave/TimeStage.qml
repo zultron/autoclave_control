@@ -54,6 +54,7 @@ Item {
     width: 400
     height: 450
 
+    // Top:  stage type image
     Image {
         id: typeIcon
         width: parent.height-parent.width
@@ -61,7 +62,8 @@ Item {
         source: parent.typeIconSource
         anchors.horizontalCenter: parent.horizontalCenter
     }
-    
+
+    // Top right:  set value readout
     Readout {
         id: setReadout
 	value: setPin.value
@@ -73,6 +75,7 @@ Item {
         font.pixelSize: typeIcon.height * 0.7
     }
 
+    // Top left:  read value readout
     Readout {
         id: readReadout
 	value: readPin.value
@@ -85,6 +88,7 @@ Item {
         font.pixelSize: typeIcon.height * 0.7
     }
 
+    // The gauge
     DialGauge {
         id: gauge
         width: parent.width
@@ -153,6 +157,7 @@ Item {
         }
     }
 
+    // Center:  stage icon, incomplete
     Image {
         id: centerImgSet
         width: gauge.innerDiameter
@@ -163,6 +168,7 @@ Item {
 	z: 0.1
     }
 
+    // Center:  stage icon, complete
     Image {
         id: centerImgRead
         width: gauge.innerDiameter
