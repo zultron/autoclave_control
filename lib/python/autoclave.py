@@ -80,11 +80,11 @@ class Config(object):
 
     def write_state(self, comp, param_list):
         config = self.read_state()
-        Messages.info("Read state %s" % (config,))
+        #Messages.info("Read state %s" % (config,))
         for param in param_list:
             config[param] = comp[param]
         with open(self.state_file, 'w') as f:
-            Messages.info("Writing state %s" % (config,))
+            #Messages.info("Writing state %s" % (config,))
             yaml.dump(config, f, default_flow_style=False)
 
     def read_state(self):
@@ -97,7 +97,7 @@ class Config(object):
             state = yaml.load(f)
             if not state:
                 state = {}
-        Messages.info("Read state %s" % (state,))
+        #Messages.info("Read state %s" % (state,))
         return state
 
     @property
