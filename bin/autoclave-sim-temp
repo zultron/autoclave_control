@@ -41,8 +41,8 @@ h['temp-ext'] = saved_state.get('temp-ext', 20.0)
 # - time increment
 time_incr = 0.1 # seconds per update
 # - time speed-up
-#speed_up = 10.0 # times
-speed_up = 6.0 # times
+speed_up = 1.0 # times
+#speed_up = 6.0 # times
 # - status update interval
 status_interval = 10.0 # seconds
 # - burner heat transfer delay distribution (totally arbitrary) (old to new)
@@ -108,7 +108,6 @@ burner_heat = 0.0
 burner_pot_transfer_calories = 0.0
 pot_heat = 0.0
 pot_heat_old = 0.0
-burner_duty_saved = 0.0
 error_seen = False
 
 try:
@@ -195,36 +194,35 @@ try:
         h['pressure'] = pressure + random.triangular(-0.1,0.1,0)
 
         # Periodically print updates
-        #if i % 500 == 0:
         if i % status_interval < time_incr:
             msg.info("Status:  pot=%.1f; burner=%.1f; avg. burner duty=%.1f%%" %
                     (temp_pot_base, temp_burner_base,
                      burner_duty))
-            burner_duty_saved = 0.0
-            msg.info("   burner_calories %.1f" % (
-                burner_calories))
-            msg.info("   burner_heat_transfer_in %.1f" % (
-                burner_heat_transfer_in))
-            msg.info("   burner_heat_transfer_ary %s" % (
-                burner_heat_transfer_ary,))
-            msg.info("   burner_heat %.1f" % (
-                burner_heat))
-            msg.info("   temp_burner_base %.1f" % (
-                temp_burner_base))
-            msg.info("   t_delta %.1f" % (
-                t_delta))
-            msg.info("   burner_pot_transfer_calories %.1f" % (
-                burner_pot_transfer_calories))
-            msg.info("   pot_heat_transfer_in %.1f" % (
-                pot_heat_transfer_in))
-            msg.info("   leakage %.1f" % (
-                leakage))
-            msg.info("   pot_heat %.1f" % (
-                pot_heat))
-            msg.info("   temp_pot_base %.1f" % (
-                temp_pot_base))
-            msg.info("   pressure %.1f" % (
-                pressure))
+            # Simulation debugging
+            # msg.info("   burner_calories %.1f" % (
+            #     burner_calories))
+            # msg.info("   burner_heat_transfer_in %.1f" % (
+            #     burner_heat_transfer_in))
+            # msg.info("   burner_heat_transfer_ary %s" % (
+            #     burner_heat_transfer_ary,))
+            # msg.info("   burner_heat %.1f" % (
+            #     burner_heat))
+            # msg.info("   temp_burner_base %.1f" % (
+            #     temp_burner_base))
+            # msg.info("   t_delta %.1f" % (
+            #     t_delta))
+            # msg.info("   burner_pot_transfer_calories %.1f" % (
+            #     burner_pot_transfer_calories))
+            # msg.info("   pot_heat_transfer_in %.1f" % (
+            #     pot_heat_transfer_in))
+            # msg.info("   leakage %.1f" % (
+            #     leakage))
+            # msg.info("   pot_heat %.1f" % (
+            #     pot_heat))
+            # msg.info("   temp_pot_base %.1f" % (
+            #     temp_pot_base))
+            # msg.info("   pressure %.1f" % (
+            #     pressure))
 
 except KeyboardInterrupt:
     msg.info("Caught interrupt; saving settings")
