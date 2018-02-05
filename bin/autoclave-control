@@ -9,6 +9,10 @@ from autoclave import Config, Messages
 # Difference between temp set and sensed value to progress to next
 # stage
 set_sense_delta = 0.1 # deg. C
+# Time increment per update
+time_incr = 0.1 # seconds
+# How many seconds between status updates
+status_interval = 10.0 # seconds
 
 # Map stage name to ID and back
 stage_name_id_map = dict(
@@ -146,9 +150,11 @@ def enter_stage(stage_name, init=False):
 # Main loop function
 
 def loop():
+    time.sleep(time_incr)
+    state['elapsed'] = state.get('elapsed',0.0) + time_incr
+    
     now = time.time()
-    state['ticks'] = state.get('ticks',0)+1
-    if state['ticks'] % 50 == 0:
+    if state['elapsed'] % status_interval < time_incr:
         msg.info("Status:  stage %s; enable %s; start %s; stage time %.1f; "
                  "stage_time_elapsed %s; stage_temp_reached %s" % (
                      current_stage(), h['enable'], h['start'],
@@ -304,7 +310,7 @@ h.ready()
 try:
     # Run forever
     while loop():
-        time.sleep(0.1)
+        pass
 except KeyboardInterrupt:
     msg.info("Caught interrupt")
 except Exception as e:
