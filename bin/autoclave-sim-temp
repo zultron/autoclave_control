@@ -197,7 +197,7 @@ try:
         if elapsed % status_interval < time_incr:
             msg.info("Status:  pot=%.1f; burner=%.1f; avg. burner duty=%.1f%%" %
                     (temp_pot_base, temp_burner_base,
-                     burner_duty))
+                     burner_duty*100))
             # Simulation debugging
             # msg.info("   burner_calories %.1f" % (
             #     burner_calories))
