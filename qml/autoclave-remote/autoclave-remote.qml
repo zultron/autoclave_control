@@ -48,7 +48,7 @@ HalApplicationWindow {
 	    visible: false
 
             // Format float value with decimals in black text
-            text: Pins.stage
+            text: pins.stage
             color: "#000000"
 
             // Proportional size, centered above handle, with l/r tweak
