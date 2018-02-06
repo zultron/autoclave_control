@@ -48,24 +48,28 @@ Item {
     property string typeIconSource: "assets/l3-timer.png"
     property color readTextColor: "#000000"
     property color setTextColor: "#000000"
+    property bool onTop: false
+    property double typeIconHeight: height * 0.125
 
     // State
     property int stageID: 0
     property int stageCur: 0
 
     width: 400
-    height: 450
+    height: 400
 
-    // Top:  stage type image
+    // Top/bottom:  stage type image
     Image {
         id: typeIcon
-        width: parent.height-parent.width
-        height: parent.height-parent.width
+        width: parent.typeIconHeight
+        height: parent.typeIconHeight
         source: parent.typeIconSource
         anchors.horizontalCenter: parent.horizontalCenter
+	anchors.top: gauge.bottom
+	anchors.topMargin: (base.onTop ? -parent.height - height : 0)
     }
 
-    // Top right:  set value readout
+    // Top/bottom right:  set value readout
     Readout {
         id: setReadout
 	value: setPin.value
@@ -77,7 +81,7 @@ Item {
         font.pixelSize: typeIcon.height * 0.7
     }
 
-    // Top left:  read value readout
+    // Top/bottom left:  read value readout
     Readout {
         id: readReadout
 	value: readPin.value
@@ -94,10 +98,7 @@ Item {
     DialGauge {
         id: gauge
 	// Circular gauge takes up whole width, aligned at bottom
-        width: parent.width
-        height: parent.width
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: typeIcon.bottom
+        anchors.fill: parent
 
 	setValue: setPin.value
 	readValue: readPin.value
@@ -178,7 +179,6 @@ Item {
 	    alwaysRunToEnd: true
 	    running: base.state == "progress"
 	}
-
     }
 
     // Center:  stage icon, complete

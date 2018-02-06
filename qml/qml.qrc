@@ -34,6 +34,8 @@
 	<!-- Widgets -->
 	<!-- ** Widget for binding pins not used elsewhere -->
         <file>autoclave-remote/Autoclave/Pins.qml</file>
+	<!-- ** Window background -->
+        <file>autoclave-remote/Autoclave/Background.qml</file>
 	<!-- ** On/off checkbutton -->
         <file>autoclave-remote/Autoclave/CheckButton.qml</file>
 	<!-- ** Time and temp readouts, with/without icon and HAL pins -->
