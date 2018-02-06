@@ -2,7 +2,8 @@
 
 rrdtool_graph_pat = "autoclave-logger.%s.png" # Fill with period, e.g. 'daily'
 rrdtool_period = 6 # Seconds between updates
-
+status_interval = 60 # Seconds between status updates
+loop_interval = 1 # Seconds per loop
 
 import rrdtool, hal, time, sys, os, datetime
 from autoclave import Config, Messages
@@ -77,13 +78,14 @@ if not os.path.exists(rrdtool_db):
 estop = error = disable = valve_on = 0
 last_sample = time.time()
 sample_periods = 0
+start_time = time.time()
 
 # Mark the component as 'ready'
 msg.info("Initialized")
 h.ready()
 
 def loop():
-    time.sleep(1)
+    time.sleep(loop_interval)
 
     # Use globals to maintain state
     # - Cumulative
@@ -184,11 +186,14 @@ def loop():
                 "DEF:btemp=%s:btemp:AVERAGE" % (rrdtool_db),
 	        "LINE2:btemp#ff8000:dashes:Burner temp",
             )
-        msg.info("Updated RRD DB %s" % rrdtool_db)
+        #msg.info("Updated RRD DB %s" % rrdtool_db)
         # - Reset state for next sample
         last_sample = now
         sample_periods = 0
         disable = error = estop = valve_on = 0
+
+    if (now - start_time) % status_interval < loop_interval:
+        msg.info("ping")
 
     sample_periods += 1
 
