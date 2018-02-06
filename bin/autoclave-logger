@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 rrdtool_graph_pat = "autoclave-logger.%s.png" # Fill with period, e.g. 'daily'
-rrdtool_period = 60 # Seconds between updates
+rrdtool_period = 6 # Seconds between updates
 
 import rrdtool, hal, time, sys, os, datetime
 from autoclave import Config, Messages
@@ -13,8 +13,7 @@ h = hal.component("autoclave-logger")
 # - Process settings and outputs
 h.newpin("stage", hal.HAL_S32, hal.HAL_IN)
 h.newpin("temp-set", hal.HAL_FLOAT, hal.HAL_IN)
-h.newpin("time-set", hal.HAL_S32, hal.HAL_IN)
-h.newpin("burner-duty", hal.HAL_S32, hal.HAL_IN)
+h.newpin("burner-duty", hal.HAL_FLOAT, hal.HAL_IN)
 h.newpin("valve-on", hal.HAL_BIT, hal.HAL_IN)
 # - Temperatures and pressure
 h.newpin("temp-burner", hal.HAL_FLOAT, hal.HAL_IN)
@@ -41,11 +40,11 @@ msg.info("RRD file '%s'" % rrdtool_db)
 
 # RRD archive parameters
 archives = dict(
-    # hourly:  60s samples for 2d = 2880
+    # hourly:  6s samples for 2d = 28800
     hourly = dict(steps = "%ds" % rrdtool_period, rows = "2d"),
-    # daily:  15m samples for 30d = 2880
+    # daily:  1.5m samples for 30d = 28800
     daily  = dict(steps = "%ds" % (rrdtool_period*15), rows = "30d"),
-    # weekly: 3h samples for 1y = 2920
+    # weekly: 20m samples for 1y = 29200
     weekly = dict(steps = "%ds" % (rrdtool_period*60*3), rows = "1y"),
 )
 
@@ -53,26 +52,28 @@ archives = dict(
 # https://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
 if not os.path.exists(rrdtool_db):
     msg.info("Creating RRD database in %s" % rrdtool_db)
-    rrdtool.create(
+    args = [
         rrdtool_db,
         "--start=0",
         "--step=%s" % rrdtool_period,
         "--no-overwrite", # Don't clobber existing file
         "DS:stage:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:temp-set:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:time-set:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:burner-duty:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:valve-on:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:temp-burner:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:temp-pot:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:pressure:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:set:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:temp:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:pres:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:duty:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:btemp:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:valve:GAUGE:%d:U:U" % (rrdtool_period*2),
         "DS:estop:GAUGE:%d:U:U" % (rrdtool_period*2),
         "DS:error:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:enable:GAUGE:%d:U:U" % (rrdtool_period*2),
-        *[("RRA:AVERAGE:0.5:%(steps)s:%(rows)s" % i) for i in archives.values() ])
+        "DS:disable:GAUGE:%d:U:U" % (rrdtool_period*2)] + \
+        [("RRA:AVERAGE:0.5:%(steps)s:%(rows)s" % i) for i in archives.values() ]
+    for i in args:
+        msg.info("Create arg:  %s" % i)
+    rrdtool.create( *args )
 
 # Init vars
-estop = error = enable = heat = cool = 0
+estop = error = disable = valve_on = 0
 last_sample = time.time()
 sample_periods = 0
 
@@ -84,27 +85,29 @@ def loop():
     time.sleep(1)
 
     # Use globals to maintain state
+    # - Cumulative
     global estop
     global error
-    global enable
-    global heat
-    global cool
+    global disable
+    global valve_on
+    # - Instantaneous
     global last_sample
     global sample_periods
 
     # Take one sample for consistency
-    # - Temps
-    temp_int = h['temp-int']
-    temp_ext = h['temp-ext']
-    temp_min = h['temp-min']
-    temp_max = h['temp-max']
-    # - Cumulative
+    # - Settings
+    stage = h['stage']
+    temp_set = h['temp-set']
+    # - Readings
+    temp_pot = h['temp-pot']
+    pressure = h['pressure']
+    valve_on = h['valve-on']
+    burner_duty = h['burner-duty']
+    temp_burner = h['temp-burner']
+    # - Status/controls
     estop+= h['estop']
     error+= h['error']
-    enable += h['enable']
-    heat += h['heat']
-    cool += h['cool']
-    # - Control
+    disable += 1 - h['enable']
     shutdown = h['shutdown']
 
     # Exit
@@ -117,14 +120,15 @@ def loop():
     if (now - last_sample) > rrdtool_period and sample_periods > 1:
         # Time for new sample
         # - Update RRD database
-        ret = rrdtool.update(
-            rrdtool_db,
-            '--template=int:ext:min:max:estop:error:enable:heat:cool',
-            'N:%.1f:%.1f:%.1f:%.1f:%.2f:%.2f:%.2f:%.2f:%.2f' % tuple(
-                # Temperatures
-                [temp_int, temp_ext, temp_min, temp_max] +
-                # Cumulative vars scaled to percentages
-                [float(i)/sample_periods for i in (estop, error, enable, heat, cool)]))
+        u1 = '--template=stage:set:temp:pres:duty:btemp:valve:estop:error:disable'
+        u2 = 'N:%d:%.1f:%.1f:%.1f:%.2f:%.2f:%.1f:%.2f:%.2f:%.2f' % tuple(
+            [max (j,0) for j in # Sometimes random values on stop/start
+             # Temperatures
+             [stage, temp_set, temp_pot, pressure, burner_duty, temp_burner] +
+             # Cumulative vars scaled to percentages
+             [float(i)/sample_periods for i in (
+                 valve_on, estop, error, disable)]])
+        rrdtool.update(rrdtool_db, u1, u2)
         # - Build new graphs
         for sched, params in archives.items():
             period = sched[0]
@@ -133,74 +137,51 @@ def loop():
             # LINE: https://oss.oetiker.ch/rrdtool/doc/rrdgraph_graph.en.html
             rrdtool_graph = os.path.join(
                 rrd_image_dir, rrdtool_graph_pat % sched)
-            ret = rrdtool.graph(
+            rrdtool.graph(
                 rrdtool_graph,
                 "--start=-1%s" % period,
                 "--title=%s" % sched,
-                "--vertical-label=Deg. C",
+                "--vertical-label=Deg. C, PSIG",
                 # "--width=1000", "--height=500",
                 "--width=600", "--height=300",
+                "--color=CANVAS#a0a0a0",
 
-	        # Background:  stacked
-	        # - Too hot:  red (bottom); bogus value for label
-                "--color=CANVAS#ff0000",
-	        "DEF:too-hot=%s:max:AVERAGE" % (rrdtool_db),
-	        "AREA:too-hot#ff0000:Too hot",
-	        # - Goldilocks zone:  green (middle)
-                "DEF:goldilocks=%s:max:AVERAGE" % (rrdtool_db),
-                "AREA:goldilocks#00ff00:Goldilocks zone",
-	        # - Too cold:  blue (top)
-                "DEF:too-cold=%s:min:AVERAGE" % (rrdtool_db),
-                "AREA:too-cold#0000ff:Too cold",
-
-	        # Temp curves:  these rely on stacking
-	        # - External temp:  dashed black curve
-                "DEF:ext=%s:ext:AVERAGE" % (rrdtool_db),
-	        "LINE2:ext#000000:dashes:Ext. temp",
-	        # - Off:  green curve (bottom)
-                "DEF:int=%s:int:AVERAGE" % (rrdtool_db),
-                "LINE3:int#00c000:Off",
-	        # - Heat:  red curve
-	        "DEF:heat=%s:heat:AVERAGE" % (rrdtool_db),
-	        "CDEF:heat-on=heat,0.01,GT",
-	        "CDEF:int-heat=heat-on,int,UNKN,IF",
-                "LINE3:int-heat#c00000:Heat",
-	        # - Cool:  blue curve
-	        "DEF:cool=%s:cool:AVERAGE" % (rrdtool_db),
-	        "CDEF:cool-on=cool,0.01,GT",
-	        "CDEF:int-cool=cool-on,int,UNKN,IF",
-                "LINE3:int-cool#0000c0:Cool",
-	        # - Disable: black curve
-	        "DEF:enable=%s:enable:AVERAGE" % (rrdtool_db),
-	        "CDEF:disable=enable,0.01,LT",
-	        "CDEF:int-disable=disable,int,UNKN,IF",
-                "LINE5:int-disable#000000:Disabled",
-                # - Estop:  orange area
-	        "DEF:estop=%s:estop:AVERAGE" % (rrdtool_db),
-	        "CDEF:estop-on=estop,0.01,GT,disable,-,0,GT",
-	        "CDEF:int-estop=estop-on,int,UNKN,IF",
-                "AREA:int-estop#ffff00:Estop",
-	        # - Error and enabled:  yellow area
+                # Binary statuses stacked in background; scaled to 150 deg.
+                # - Valve-on: blue area
+	        "DEF:valve=%s:valve:AVERAGE" % (rrdtool_db),
+	        "CDEF:valve-curve=valve,150,*",
+                "LINE3:valve-curve#0000ff:Valve on",
+	        # - Disable: black area
+	        "DEF:disable=%s:disable:AVERAGE" % (rrdtool_db),
+	        "CDEF:disable-curve=disable,150,*",
+                "AREA:disable-curve#000000:Disabled",
+	        # - Error:  orange area
 	        "DEF:error=%s:error:AVERAGE" % (rrdtool_db),
-	        "CDEF:error-on=error,0.01,GT,disable,-,0,GT",
-	        "CDEF:int-error=error-on,int,UNKN,IF",
-                "AREA:int-error#ffff00:Error",
+	        "CDEF:error-curve=error,150,*",
+                "AREA:error-curve#ff8000:Error",
+                # - Estop:  yellow area
+	        "DEF:estop=%s:estop:AVERAGE" % (rrdtool_db),
+	        "CDEF:estop-curve=estop,150,*",
+                "AREA:estop-curve#ffff00:Estop",
 
-                # Stats:
-                # - % time heat
-                "DEF:heat-avg=%s:heat:AVERAGE:start=-1h" % (rrdtool_db),
-                "CDEF:heat-pct=heat-avg,100,*",
-                "GPRINT:heat-pct:AVERAGE: Pct time heat %2.1lf%% ",
-                # - % time cool
-                "DEF:cool-avg=%s:cool:AVERAGE:start=-1h" % (rrdtool_db),
-                "CDEF:cool-pct=cool-avg,100,*",
-                "GPRINT:cool-pct:AVERAGE:Pct time cool %2.1lf%% ",
+                # - Set temp:  dark grey area
+                "DEF:set=%s:set:AVERAGE" % (rrdtool_db),
+	        "AREA:set#404040:Set temp",
+                # - Measured temp: red area
+                "DEF:temp=%s:temp:AVERAGE" % (rrdtool_db),
+	        "AREA:temp#ff0000:Temperature",
+                # - Pressure: orange area
+                "DEF:pres=%s:pres:AVERAGE" % (rrdtool_db),
+	        "AREA:pres#ff8000:Pressure",
+	        # - Burner temp:  dashed orange curve
+                "DEF:btemp=%s:btemp:AVERAGE" % (rrdtool_db),
+	        "LINE2:btemp#ff8000:dashes:Burner temp",
             )
         msg.info("Updated RRD DB %s" % rrdtool_db)
         # - Reset state for next sample
         last_sample = now
         sample_periods = 0
-        enable = error = heat = cool = 0
+        disable = error = estop = valve = 0
 
     sample_periods += 1
 

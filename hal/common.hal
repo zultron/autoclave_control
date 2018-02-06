@@ -207,26 +207,25 @@ net burner-on                       <= pwmgen.0.pwm
 # Logger comp
 # ################################################
 
-# # Load userland comp
-# loadusr -W autoclave-logger
+# Load userland comp
+loadusr -W autoclave-logger
 
-# # Inputs
-# # - Process settings and outputs
-# net stage                           => autoclave-logger.stage
-# net temp-set                        => autoclave-logger.temp-set
-# net time-set                        => autoclave-logger.time-set
-# net burner-duty                     => autoclave-logger.burner-duty
-# net valve-on                        => autoclave-logger.valve-on
-# # - Temperatures & pressure inputs
-# net temp-burner                     => autoclave-logger.temp-burner
-# net temp-pot                        => autoclave-logger.temp-pot
-# net pressure                        => autoclave-logger.pressure
-# # - Estop/enable/error
-# net estop                           => autoclave-logger.estop
-# net error                           => autoclave-logger.error
-# net enable                          => autoclave-logger.enable
-# # - Shut down
-# net shutdown                        => autoclave-logger.shutdown
+# Inputs
+# - Process settings and outputs
+net stage                           => autoclave-logger.stage
+net temp-set                        => autoclave-logger.temp-set
+net burner-duty                     => autoclave-logger.burner-duty
+net valve-on                        => autoclave-logger.valve-on
+# - Temperatures & pressure inputs
+net temp-burner                     => autoclave-logger.temp-burner
+net temp-pot                        => autoclave-logger.temp-pot
+net pressure                        => autoclave-logger.pressure
+# - Estop/enable/error
+net estop                           => autoclave-logger.estop
+net error                           => autoclave-logger.error
+net enable                          => autoclave-logger.enable
+# - Shut down
+net shutdown                        => autoclave-logger.shutdown
 
 
 # ################################################
