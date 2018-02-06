@@ -28,7 +28,17 @@ database, from which time series charts are generated.
 The `autoclave-control` component exposes a remote UI, used by the
 `MachinekitClient` software, which can be downloaded for Android from
 the Google Play store, and for Linux, Mac OS X and Windows directly
-from the [QtQuickVCP][qqvcp] project.  FIXME:  configuration?
+from the [QtQuickVCP][qqvcp] project.  See the below screenshot.  The
+idle, boil, steam and heat stages in green are done.  The current
+stage is 8+ minutes into a 30 minute sterilization.  That and the
+blue-colored cool stage are not yet done.  The button controls on the
+left are enable/disable and start/stop.  The indicators on the upper
+right are process elapsed time, burner duty cycle, pressure and
+temperature.
+
+![Autoclave GUI](images/autoclave-gui.png)
+
+FIXME:  configuration?
 
 # Running
 
