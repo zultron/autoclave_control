@@ -249,6 +249,24 @@ HalApplicationWindow {
 	    height: base.indicatorSize
 	    width: base.indicatorSize
             source: "Autoclave/assets/s2-steam.png"
+
+	    property int cycleTime: 2000
+	    SequentialAnimation {
+		running: true
+		NumberAnimation {
+		    target: steam
+		    property: "opacity"
+		    to: 1.0
+		    duration: steam.cycleTime/2
+		}
+		NumberAnimation {
+		    target: steam
+		    property: "opacity"
+		    to: 0.0
+		    duration: steam.cycleTime/2
+		}
+		loops: Animation.Infinite
+	    }
 	}
 
     }

@@ -178,6 +178,14 @@ Item {
         anchors.verticalCenter: gauge.verticalCenter
         source: parent.centerImageSet
 	z: 0.1
+	RotationAnimation on rotation {
+            loops: Animation.Infinite
+            from: 0
+            to: 360
+	    duration: 5000
+	    alwaysRunToEnd: true
+	    running: base.state == "progress"
+	}
     }
 
     // Center:  stage icon, complete
