@@ -12,7 +12,7 @@ set_sense_delta = 1.0 # deg. C
 # Time increment per update
 time_incr = 0.1 # seconds
 # How many seconds between status updates
-status_interval = 10.0 # seconds
+status_interval = 60.0 # seconds
 
 # Map stage name to ID and back
 stage_name_id_map = dict(
