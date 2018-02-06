@@ -22,6 +22,7 @@ stage_id_name_map = dict(zip(
 timed_stages = ('flush', 'ster')
 valve_on_stages = ('flush')
 max_burner_stages = ('flush') # Need PWM at 100% during flush
+min_burner_stages = ('cool')  # Need PWM at 0% during cool
 
 # Pin creation data
 # (name, hal_type, hal_dir, save)
@@ -124,10 +125,17 @@ def enter_stage(stage_name, init=False):
         set_time = h['%s-time-set' % stage_name]
         if stage_name in max_burner_stages:
             h['temp-set'] = h['temp-pot-max']
+        elif stage_name in min_burner_stages:
+            h['temp-set'] = 0
         msg.info("Entering '%s' (%d) stage for %d seconds at temperature %.1f"
                  % (stage_name, stage_id, set_time, h['temp-set']))
     else:
-        set_temp = h['%s-temp-set' % stage_name]
+        if stage_name in max_burner_stages:
+            h['temp-set'] = h['temp-pot-max']
+        elif stage_name in min_burner_stages:
+            h['temp-set'] = 0
+        else:
+            set_temp = h['%s-temp-set' % stage_name]
         msg.info("Entering '%s' (%d) stage; set temperature %.1f"
                  % (stage_name, stage_id, set_temp))
         h['temp-set'] = set_temp
