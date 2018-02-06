@@ -121,24 +121,22 @@ def enter_stage(stage_name, init=False):
         state['time-elapsed-start'] = now
         msg.info("Starting process")
 
+    if stage_name in max_burner_stages:
+        h['temp-set'] = h['temp-pot-max']
+    elif stage_name in min_burner_stages:
+        h['temp-set'] = 0
+    elif stage_name not in timed_stages:
+        h['temp-set'] = h['%s-temp-set' % stage_name]
+    else:
+        pass # keep previous setting for timed stage
+
     if stage_name in timed_stages:
         set_time = h['%s-time-set' % stage_name]
-        if stage_name in max_burner_stages:
-            h['temp-set'] = h['temp-pot-max']
-        elif stage_name in min_burner_stages:
-            h['temp-set'] = 0
         msg.info("Entering '%s' (%d) stage for %d seconds at temperature %.1f"
                  % (stage_name, stage_id, set_time, h['temp-set']))
     else:
-        if stage_name in max_burner_stages:
-            h['temp-set'] = h['temp-pot-max']
-        elif stage_name in min_burner_stages:
-            h['temp-set'] = 0
-        else:
-            set_temp = h['%s-temp-set' % stage_name]
         msg.info("Entering '%s' (%d) stage; set temperature %.1f"
-                 % (stage_name, stage_id, set_temp))
-        h['temp-set'] = set_temp
+                 % (stage_name, stage_id, h['temp-set']))
 
     # Set stage ID pin
     h['stage'] = stage_id
