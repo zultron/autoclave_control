@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import Machinekit.HalRemote.Controls 1.0
 import "Autoclave" as Autoclave
+import QtQuick.Window 2.2
 
 HalApplicationWindow {
     id: main
@@ -15,17 +16,39 @@ HalApplicationWindow {
     }
 
     Item {
-        id: autoclave
-        anchors.fill: parent
+        id: base
+
+	// Sizes
+	property double isos: 0.866025 // isosceles triangle cosine
+	// - Basic size units
+	property double scaleW: 3.5
+	property double scaleH: 2.0
+	property int blockSize: Math.min(main.height/scaleH, main.width/scaleW)
+	// - Content dimensions within window
+        width: blockSize * scaleW
+        height: blockSize * scaleH
+        anchors.horizontalCenter: parent.horizontalCenter
+	anchors.verticalCenter: parent.verticalCenter
+	// - Size of gauges & borders within their areas
+	property int gaugeWidth: blockSize * 0.8
+	property int gaugeHeight: blockSize * 0.9
+	property int borderSize: blockSize - gaugeWidth
+	// - Size of buttons & borders
+	property int buttonSize: blockSize * 0.35
+	property int buttonBorder: buttonSize * 0.2
+	// - Size of indicators & borders
+	property int indicatorSize: blockSize * 0.15
+	property int indicatorBorder: indicatorSize * 0.2
 
         Text {
             id: stage
             x: 0
             y: 25
             z: 10
+	    visible: false
 
             // Format float value with decimals in black text
-            text: pins.stage
+            text: Pins.stage
             color: "#000000"
 
             // Proportional size, centered above handle, with l/r tweak
@@ -33,12 +56,13 @@ HalApplicationWindow {
         }
 
 	// --------------- Central process stage widgets ------------------
+
         Autoclave.TempStage {
             id: idle
-            x: 82
-            y: 332
-            width: 200
-            height: 225
+            x: base.borderSize * 0.5
+            y: base.borderSize * 0.5
+            width: base.gaugeWidth
+            height: base.gaugeHeight
             setPinName: "idle-temp-set"
             readPinName: "idle-temp"
 	    timePinName: "idle-time"
@@ -51,10 +75,10 @@ HalApplicationWindow {
 
         Autoclave.TempStage {
             id: boil
-            x: 199
-            y: 102
-            width: 200
-            height: 225
+            x: base.blockSize * 0.5 + base.borderSize * 0.5
+            y: base.blockSize
+            width: base.gaugeWidth
+            height: base.gaugeHeight
             setPinName: "boil-temp-set"
             readPinName: "boil-temp"
 	    timePinName: "boil-time"
@@ -67,10 +91,10 @@ HalApplicationWindow {
 
         Autoclave.TimeStage {
             id: flush
-            x: 315
-            y: 333
-            width: 200
-            height: 225
+            x: base.blockSize * 1.0 + base.borderSize * 0.5
+            y: base.borderSize * 0.5
+            width: base.gaugeWidth
+            height: base.gaugeHeight
             setPinName: "flush-time-set"
             readPinName: "flush-time"
 	    stageID: 2
@@ -82,10 +106,10 @@ HalApplicationWindow {
 
         Autoclave.TempStage {
             id: heat
-            x: 432
-            y: 102
-            width: 200
-            height: 225
+            x: base.blockSize * 1.5 + base.borderSize * 0.5
+            y: base.blockSize
+            width: base.gaugeWidth
+            height: base.gaugeHeight
             setPinName: "heat-temp-set"
             readPinName: "heat-temp"
 	    timePinName: "heat-time"
@@ -98,10 +122,10 @@ HalApplicationWindow {
 
         Autoclave.TimeStage {
             id: ster
-            x: 545
-            y: 333
-            width: 200
-            height: 225
+            x: base.blockSize * 2.0 + base.borderSize * 0.5
+            y: base.borderSize * 0.5
+            width: base.gaugeWidth
+            height: base.gaugeHeight
             setPinName: "ster-time-set"
             readPinName: "ster-time"
 	    stageID: 4
@@ -113,10 +137,10 @@ HalApplicationWindow {
 
         Autoclave.TempStage {
             id: cool
-            x: 657
-            y: 102
-            width: 200
-            height: 225
+            x: base.blockSize * 2.5 + base.borderSize * 0.5
+            y: base.blockSize
+            width: base.gaugeWidth
+            height: base.gaugeHeight
             setPinName: "cool-temp-set"
             readPinName: "cool-temp"
 	    timePinName: "cool-time"
@@ -137,12 +161,16 @@ HalApplicationWindow {
         }
 
 	// --------------- Left-hand-side button controls ------------------
+	// - Fit on bottom left 1/2 block
+
 	// Enable/disable button
 	Autoclave.CheckButton {
             id: enable
             name: "enable-switch"
-            x: 94
-            y: 102
+            x: base.borderSize * 0.5
+            y: base.blockSize + base.borderSize * 0.5
+	    height: base.buttonSize
+	    width: base.buttonSize
 	    imageChecked: "assets/c0-power-1.png"
 	    imageUnchecked: "assets/c0-power-0.png"
 	}
@@ -151,21 +179,26 @@ HalApplicationWindow {
         Autoclave.CheckButton {
             id: start
             name: "start"
-            x: 94
-            y: 217
+            x: base.borderSize * 0.5
+            y: enable.y + base.buttonSize + base.buttonBorder
+	    height: base.buttonSize
+	    width: base.buttonSize
 	    imageChecked: "assets/c1-start-1.png"
 	    imageUnchecked: "assets/c1-start-0.png"
         }
 
 	// --------------- Right-hand-side status ------------------
+	// - Fit on top right 1/2 block
+
 	// Process elapsed time
 	Autoclave.HALGraphicReadout {
 	    id: time_elapsed
 	    name: "time-elapsed"
 	    timeMode: true
-            x: 855
-            y: 343
-	    height: 50
+            x: base.width - base.indicatorSize - base.borderSize * 0.5
+            y: base.borderSize * 0.5
+	    height: base.indicatorSize
+	    width: base.indicatorSize
             source: "Autoclave/assets/s3-time.png"
     }
 
@@ -175,9 +208,10 @@ HalApplicationWindow {
 	    name: "burner-duty"
 	    scale: 100
 	    suffix: "%"
-            x: 855
-            y: 399
-	    height: 50
+            x: base.width - base.indicatorSize - base.borderSize * 0.5
+            y: base.borderSize * 0.5 + base.indicatorSize + base.indicatorBorder
+	    height: base.indicatorSize
+	    width: base.indicatorSize
             source: "Autoclave/assets/s0-burner.png"
     }
 
@@ -186,9 +220,10 @@ HalApplicationWindow {
 	    id: pressure
 	    name: "pressure"
 	    suffix: "PSI"
-            x: 855
-            y: 455
-	    height: 50
+            x: base.width - base.indicatorSize - base.borderSize * 0.5
+            y: base.borderSize * 0.5 + (base.indicatorSize + base.indicatorBorder) * 2.0
+	    height: base.indicatorSize
+	    width: base.indicatorSize
             source: "Autoclave/assets/s4-pressure.png"
     }
 
@@ -197,9 +232,10 @@ HalApplicationWindow {
 	    id: temp_pot
 	    name: "temp-pot"
 	    suffix: "°C"
-            x: 855
-            y: 514
-	    height: 50
+            x: base.width - base.indicatorSize - base.borderSize * 0.5
+            y: base.borderSize * 0.5 + (base.indicatorSize + base.indicatorBorder) * 3.0
+	    height: base.indicatorSize
+	    width: base.indicatorSize
             source: "Autoclave/assets/s5-temp.png"
     }
 
@@ -208,10 +244,10 @@ HalApplicationWindow {
 	    id: steam
 	    name: "valve-on"
 	    invert: false
-            x: 751
-            y: 514
-	    height: 50
-	    width: 50
+            x: base.width - base.indicatorSize - base.borderSize * 0.5
+            y: base.borderSize * 0.5 + (base.indicatorSize + base.indicatorBorder) * 4.0
+	    height: base.indicatorSize
+	    width: base.indicatorSize
             source: "Autoclave/assets/s2-steam.png"
 	}
 
