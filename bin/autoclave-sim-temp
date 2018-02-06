@@ -4,7 +4,7 @@
 #
 # See sim-model.ods
 
-import hal, time, sys, datetime, random, math
+import hal, time, sys, datetime, math
 from autoclave import Config, Messages
 
 msg = Messages('Autoclave sim-temp')
@@ -101,8 +101,8 @@ h.ready()
 
 # State variables
 elapsed = 0.0
-temp_burner_base = h['temp-burner']
-temp_pot_base = h['temp-pot']
+temp_burner = h['temp-burner']
+temp_pot = h['temp-pot']
 burner_heat_transfer_ary = [0.0] * len(burner_heat_transfer_weights)
 pot_heat_transfer_ary = [0.0] * len(pot_heat_transfer_weights)
 burner_heat = 0.0
@@ -138,9 +138,9 @@ try:
             msg.info("Error:  HAL error signal asserted")
             err = 1
             error_seen = True
-        if temp_burner_base > thermagon_temp_max and not error_seen:
+        if temp_burner > thermagon_temp_max and not error_seen:
             msg.info("Error:  Thermagon max temp exceeded:  %.1f > %.1f" %
-                     (temp_burner_base, thermagon_temp_max))
+                     (temp_burner, thermagon_temp_max))
             err = 1
             error_seen = True
         if error_seen and not error:
@@ -163,9 +163,9 @@ try:
         burner_heat_old = burner_heat
         burner_heat = (burner_heat_old + burner_heat_transfer_in
                        - burner_pot_transfer_calories) # cal.
-        temp_burner_base = temp_ext + burner_heat / burner_heat_cap # deg. C
+        temp_burner = temp_ext + burner_heat / burner_heat_cap # deg. C
         # - Calories added to pot by heat transfer
-        t_delta = temp_burner_base - temp_pot_base # deg. C
+        t_delta = temp_burner - temp_pot # deg. C
         burner_pot_transfer_calories = (
             t_delta * transfer_factor / cal_per_s_to_w * update_time) # cal.
         # - Update pot heat transfer array
@@ -181,23 +181,23 @@ try:
         pot_heat_old = pot_heat # cal.
         pot_heat = pot_heat_old + pot_heat_transfer_in - leakage # cal.
         # New pot temperature
-        temp_pot_base = temp_ext + pot_heat/water_volume
+        temp_pot = temp_ext + pot_heat/water_volume
         # If valve is open, let off steam
-        if valve_on and temp_pot_base > 100.0:
-            pot_heat -= (temp_pot_base - 100.0) * water_volume # cal. > 100 deg.
-            temp_pot_base = 100.0 # deg. C
+        if valve_on and temp_pot > 100.0:
+            pot_heat -= (temp_pot - 100.0) * water_volume # cal. > 100 deg.
+            temp_pot = 100.0 # deg. C
         # New pot pressure; assume linear increase 0-15PSI over 100-121 deg. C
-        pressure = max(temp_pot_base - 100, 0.0) * 15/21 # PSI
+        pressure = max(temp_pot - 100, 0.0) * 15/21 # PSI
 
         # Output values with +/- 0.1 deg. sensor error
-        h['temp-pot'] = temp_pot_base + random.triangular(-0.1,0.1,0)
-        h['temp-burner'] = temp_burner_base + random.triangular(-0.1,0.1,0)
-        h['pressure'] = pressure + random.triangular(-0.1,0.1,0)
+        h['temp-pot'] = temp_pot
+        h['temp-burner'] = temp_burner
+        h['pressure'] = pressure
 
         # Periodically print updates
         if elapsed % status_interval < time_incr:
             msg.info("Status:  pot=%.1f; burner=%.1f; avg. burner duty=%.1f%%" %
-                    (temp_pot_base, temp_burner_base,
+                    (temp_pot, temp_burner,
                      burner_duty*100))
             # Simulation debugging
             # msg.info("   burner_calories %.1f" % (
@@ -208,8 +208,8 @@ try:
             #     burner_heat_transfer_ary,))
             # msg.info("   burner_heat %.1f" % (
             #     burner_heat))
-            # msg.info("   temp_burner_base %.1f" % (
-            #     temp_burner_base))
+            # msg.info("   temp_burner %.1f" % (
+            #     temp_burner))
             # msg.info("   t_delta %.1f" % (
             #     t_delta))
             # msg.info("   burner_pot_transfer_calories %.1f" % (
@@ -220,8 +220,8 @@ try:
             #     leakage))
             # msg.info("   pot_heat %.1f" % (
             #     pot_heat))
-            # msg.info("   temp_pot_base %.1f" % (
-            #     temp_pot_base))
+            # msg.info("   temp_pot %.1f" % (
+            #     temp_pot))
             # msg.info("   pressure %.1f" % (
             #     pressure))
 
