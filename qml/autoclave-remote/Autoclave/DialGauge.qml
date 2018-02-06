@@ -73,6 +73,8 @@ Item {
     property color setBGColor: "#ff00ff" // Set background color
     property color readColor: "#008000"
     property color readBGColor: "#00c300" // Read background color
+    // - Mouse wheel scrolling
+    property double wheelStepSize: 0.1
 
     // Computed parameters
     // - Major sizes
@@ -527,7 +529,6 @@ Item {
 		value = Math.max(maxLimit, Math.min(minLimit, newVal));
         }
 
-	/*
         // Mouse wheel:
         // - If not in ring, do nothing, stop.  Else,
         // - Check which zone mouse is closest to
@@ -535,14 +536,16 @@ Item {
         onWheel: {
             if (!mouseInRing(wheel)) return; // Ignore out of bounds
 
-            var val = mouseToVal(wheel);
-            var newv = red.value + wheel.angleDelta.y/15 * base.stepSize;
-            if (newv > maximumValue) newv = maximumValue;
-            if (newv < blue.value + base.minGreenZone)
-                newv = blue.value + base.minGreenZone;
-            setValue = newv;
+            var angleMouse = mouseToAngle(wheel);
+	    var valueDelta = wheel.angleDelta.y/120 * base.wheelStepSize;
+	    // New value, rounded
+	    var newVal = Math.round(
+		(value+valueDelta) / precision) * precision;
+	    if (posRange > 0)
+		value = Math.min(maxLimit, Math.max(minLimit, newVal));
+	    else
+		value = Math.max(maxLimit, Math.min(minLimit, newVal));
         }
-	*/
     }
 
     // Debugging readout

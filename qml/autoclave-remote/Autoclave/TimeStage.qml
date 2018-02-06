@@ -118,6 +118,7 @@ Item {
 	precision: 60.0 // 1 minute granularity
 	minorGrad: 1.0 * 60.0 // 1 minute
 	majorGrad: 5.0 * 60.0 // 5 minutes, like 1..12 on clock
+	wheelStepSize: 60.0
 
         // set pin
         HalPin {
