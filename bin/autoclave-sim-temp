@@ -36,6 +36,7 @@ h.newpin("pressure", hal.HAL_FLOAT, hal.HAL_OUT)
 config = Config()
 saved_state = config.read_state()
 h['temp-ext'] = saved_state.get('temp-ext', 20.0)
+msg.info("Restored setting temp-ext = %s" % h['temp-ext'])
 
 # Other settings
 # - time increment
@@ -225,9 +226,7 @@ try:
             #     pressure))
 
 except KeyboardInterrupt:
-    msg.info("Caught interrupt; saving settings")
-    config.write_state(h, ['temp-ext'])
-    msg.info("Exiting")
+    msg.info("Caught interrupt; exiting")
     sys.exit(0)
 
 msg.info("Exiting")

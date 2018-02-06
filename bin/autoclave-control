@@ -13,6 +13,8 @@ set_sense_delta = 0.1 # deg. C
 time_incr = 0.1 # seconds
 # How many seconds between status updates
 status_interval = 60.0 # seconds
+# How many seconds between updating saved state
+save_interval = 60.0 # seconds
 
 # Map stage name to ID and back
 stage_name_id_map = dict(
@@ -28,7 +30,7 @@ min_burner_stages = ('cool')  # Need PWM at 0% during cool
 # (name, hal_type, hal_dir, save)
 pin_data = [
     # Remote controls
-    ('enable',			hal.HAL_BIT,	hal.HAL_IN,	True),
+    ('enable-switch',		hal.HAL_BIT,	hal.HAL_IN,	True), # For save
     ('start',			hal.HAL_BIT,	hal.HAL_IN,	False),
     # Process stage settings and status
     # - Current stage ID
@@ -65,8 +67,10 @@ pin_data = [
     ('temp-pot-max',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
     ('temp-burner',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
     ('temp-burner-max',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
+    ('temp-ext',		hal.HAL_FLOAT,	hal.HAL_IN,	True), # For sim
     # Other status
     ('time-elapsed',		hal.HAL_S32,	hal.HAL_OUT,	False),
+    ('enable',			hal.HAL_BIT,	hal.HAL_IN,	False),
     ('error',			hal.HAL_BIT,	hal.HAL_OUT,	False),
     ('estop',			hal.HAL_BIT,	hal.HAL_IN,	False),
     ('shutdown',		hal.HAL_BIT,	hal.HAL_IN,	False),
@@ -166,6 +170,10 @@ def loop():
                      current_stage(), h['enable'], h['start'],
                      h['%s-time' % current_stage()],
                      stage_time_elapsed(), stage_temp_reached()))
+
+    # Save settings
+    if state['elapsed'] % save_interval < time_incr:
+        config.write_state(h, [d[0] for d in pin_data if d[3]])
 
     # Exit
     if h['shutdown']:
@@ -323,10 +331,6 @@ except Exception as e:
     msg.info("Caught exception:  %s" % e)
     msg.info(traceback.format_exc())
 finally:
-    # Save settings
-    msg.info("Saving settings")
-    config.write_state(h, [d[0] for d in pin_data if d[3]])
-
     # Shut things off and exit
     msg.info("Exiting")
     h['temp-set'] = 0.0

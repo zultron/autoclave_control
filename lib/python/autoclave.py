@@ -79,13 +79,19 @@ class Config(object):
             return True
 
     def write_state(self, comp, param_list):
-        config = self.read_state()
-        #Messages.info("Read state %s" % (config,))
+        old_config = self.read_state()
+        new_config = old_config.copy()
         for param in param_list:
-            config[param] = comp[param]
-        with open(self.state_file, 'w') as f:
-            #Messages.info("Writing state %s" % (config,))
-            yaml.dump(config, f, default_flow_style=False)
+            new_config[param] = comp[param]
+        if old_config != new_config:
+            changed_list = ["%s=%s" % (k,v) for k,v in new_config.items()
+                            if old_config[k] != new_config[k]]
+            Messages.info("Updating saved state:  %s" % ";".join(changed_list))
+            tmp = "%s.tmp" % self.state_file
+            with open(tmp, 'w') as f:
+                yaml.dump(new_config, f, default_flow_style=False)
+            os.rename(tmp, self.state_file)
+        #else: Messages.info("State unchanged; not writing")
 
     def read_state(self):
         if not self.state_file_exists():
@@ -93,7 +99,7 @@ class Config(object):
                           self.state_file)
             return {}
         with open(self.state_file, 'r') as f:
-            Messages.info("Using state file '%s'" % self.state_file)
+            #Messages.info("Using state file '%s'" % self.state_file)
             state = yaml.load(f)
             if not state:
                 state = {}
