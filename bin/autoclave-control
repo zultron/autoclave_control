@@ -8,7 +8,7 @@ from autoclave import Config, Messages
 
 # Difference between temp set and sensed value to progress to next
 # stage
-set_sense_delta = 0.1 # deg. C
+set_sense_delta = 1.0 # deg. C
 # Time increment per update
 time_incr = 0.1 # seconds
 # How many seconds between status updates
