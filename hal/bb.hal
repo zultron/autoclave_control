@@ -31,7 +31,7 @@ net temp-pot                        <= therm.ch-03.value
 # Threads
 
 # - One slow thread
-loadrt threads name1=main-thread period1=10000000
+loadrt threads name1=main-thread period1=100000000
 
 # ################
 # BeagleBone GPIOs
