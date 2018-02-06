@@ -101,7 +101,7 @@ def loop():
     # - Readings
     temp_pot = h['temp-pot']
     pressure = h['pressure']
-    valve_on = h['valve-on']
+    valve_on += h['valve-on']
     burner_duty = h['burner-duty']
     temp_burner = h['temp-burner']
     # - Status/controls
@@ -128,6 +128,8 @@ def loop():
              # Cumulative vars scaled to percentages
              [float(i)/sample_periods for i in (
                  valve_on, estop, error, disable)]])
+        #msg.info("u1: %s" % u1) # Debugging
+        #msg.info("u2: %s" % u2)
         rrdtool.update(rrdtool_db, u1, u2)
         # - Build new graphs
         for sched, params in archives.items():
@@ -145,23 +147,24 @@ def loop():
                 # "--width=1000", "--height=500",
                 "--width=600", "--height=300",
                 "--color=CANVAS#a0a0a0",
+                "--upper-limit=150", "--lower-limit=0", "--rigid",
 
                 # Binary statuses stacked in background; scaled to 150 deg.
                 # - Valve-on: blue area
 	        "DEF:valve=%s:valve:AVERAGE" % (rrdtool_db),
-	        "CDEF:valve-curve=valve,150,*",
-                "LINE3:valve-curve#0000ff:Valve on",
+	        "CDEF:valve-curve=valve,0.01,GT,148,UNKN,IF",
+                "LINE10:valve-curve#0000ff:Valve on",
 	        # - Disable: black area
 	        "DEF:disable=%s:disable:AVERAGE" % (rrdtool_db),
-	        "CDEF:disable-curve=disable,150,*",
-                "AREA:disable-curve#000000:Disabled",
+	        "CDEF:disable-curve=disable,0.01,GT,146,UNKN,IF",
+                "LINE10:disable-curve#000000:Disabled",
 	        # - Error:  orange area
 	        "DEF:error=%s:error:AVERAGE" % (rrdtool_db),
-	        "CDEF:error-curve=error,150,*",
+	        "CDEF:error-curve=error,0.01,GT,144,UNKN,IF",
                 "AREA:error-curve#ff8000:Error",
                 # - Estop:  yellow area
 	        "DEF:estop=%s:estop:AVERAGE" % (rrdtool_db),
-	        "CDEF:estop-curve=estop,150,*",
+	        "CDEF:estop-curve=estop,0.01,GT,142,UNKN,IF",
                 "AREA:estop-curve#ffff00:Estop",
 
                 # - Set temp:  dark grey area
@@ -181,7 +184,7 @@ def loop():
         # - Reset state for next sample
         last_sample = now
         sample_periods = 0
-        disable = error = estop = valve = 0
+        disable = error = estop = valve_on = 0
 
     sample_periods += 1
 
