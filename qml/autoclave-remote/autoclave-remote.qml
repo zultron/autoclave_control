@@ -47,7 +47,7 @@ HalApplicationWindow {
 	    visible: false
 
             // Format float value with decimals in black text
-            text: pins.stage
+            text: progress.stage
             color: "#000000"
 
             // Proportional size, centered above handle, with l/r tweak
@@ -56,9 +56,9 @@ HalApplicationWindow {
 
 	// --------------- Background widget ------------------
 	Autoclave.Background {
+	    id: progress
 	    blockSize: base.blockSize
 	    borderSize: base.borderSize
-	    stage: pins.stage
 	    z: 0
 	}
 
@@ -76,7 +76,7 @@ HalApplicationWindow {
             readPinName: "idle-temp"
 	    timePinName: "idle-time"
 	    stageID: 0
-	    stageCur: pins.stage
+	    stageCur: progress.stage
             centerImageSet: "assets/p0-idle-blue.png"
             centerImageRead: "assets/p0-idle-green.png"
 	    typeIconSource: "assets/l1-heat.png"
@@ -93,7 +93,7 @@ HalApplicationWindow {
             readPinName: "boil-temp"
 	    timePinName: "boil-time"
 	    stageID: 1
-	    stageCur: pins.stage
+	    stageCur: progress.stage
             centerImageSet: "assets/p1-boil-blue.png"
             centerImageRead: "assets/p1-boil-green.png"
 	    typeIconSource: "assets/l1-heat.png"
@@ -110,7 +110,7 @@ HalApplicationWindow {
             setPinName: "flush-time-set"
             readPinName: "flush-time"
 	    stageID: 2
-	    stageCur: pins.stage
+	    stageCur: progress.stage
             centerImageSet: "assets/p2-flush-blue.png"
             centerImageRead: "assets/p2-flush-green.png"
 	    typeIconSource: "assets/l3-timer.png"
@@ -127,7 +127,7 @@ HalApplicationWindow {
             readPinName: "heat-temp"
 	    timePinName: "heat-time"
 	    stageID: 3
-	    stageCur: pins.stage
+	    stageCur: progress.stage
             centerImageSet: "assets/p3-heat-blue.png"
             centerImageRead: "assets/p3-heat-green.png"
 	    typeIconSource: "assets/l1-heat.png"
@@ -144,7 +144,7 @@ HalApplicationWindow {
             setPinName: "ster-time-set"
             readPinName: "ster-time"
 	    stageID: 4
-	    stageCur: pins.stage
+	    stageCur: progress.stage
             centerImageSet: "assets/p4-sterilize-blue.png"
             centerImageRead: "assets/p4-sterilize-green.png"
 	    typeIconSource: "assets/l3-timer.png"
@@ -161,7 +161,7 @@ HalApplicationWindow {
             readPinName: "cool-temp"
 	    timePinName: "cool-time"
 	    stageID: 5
-	    stageCur: pins.stage
+	    stageCur: progress.stage
             centerImageSet: "assets/p5-cool-blue.png"
             centerImageRead: "assets/p5-cool-green.png"
 	    typeIconSource: "assets/l2-cool.png"

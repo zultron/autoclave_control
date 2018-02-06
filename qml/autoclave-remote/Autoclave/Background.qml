@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import QtQuick.Controls 2.0
+import Machinekit.HalRemote 1.0
 
 Canvas {
     id: base
@@ -10,7 +11,8 @@ Canvas {
     property color pendingColor: "#000080"
     property color doneColor: "#008000"
     property int lineWidth: blockSize * 0.2
-    property int stage: 0
+    property alias stage: pin.value
+    property alias synced: pin.synced
 
     anchors.fill: parent
 
@@ -36,5 +38,12 @@ Canvas {
 			   (startLow ? hiY : lowY));
 	    context.stroke();
 	}
+    }
+
+    HalPin {
+        id: pin
+        name: "stage"
+        type: HalPin.S32
+        direction: HalPin.In
     }
 }

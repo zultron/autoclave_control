@@ -6,9 +6,6 @@ import Machinekit.HalRemote 1.0
 Item {
     id: pins
     
-    // Process stage settings and status
-    // (others taken care of in TimeStage and TempStage objects)
-    property alias stage: stage.value
     // Controls in
     property alias temp_set: temp_set.value
     // Sensors/limits
@@ -19,33 +16,6 @@ Item {
     // Other status
     property alias error: error.value
     property alias estop: estop.value
-
-    // Process stage settings and status
-
-    Item {
-	id: stage
-	property int value
-	property bool synced
-
-	HalPin {
-            id: stage_pin
-            name: "stage"
-            type: HalPin.S32
-            direction: HalPin.In
-	}
-
-	Binding {
-	    target: stage;
-	    property: "value";
-	    value: stage_pin.value;
-	}
-
-	Binding {
-	    target: stage;
-	    property: "synced";
-	    value: stage_pin.synced;
-	}
-    }
 
     // Controls in
 
