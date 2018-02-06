@@ -3,6 +3,7 @@
 rrdtool_graph_pat = "autoclave-logger.%s.png" # Fill with period, e.g. 'daily'
 rrdtool_period = 6 # Seconds between updates
 
+
 import rrdtool, hal, time, sys, os, datetime
 from autoclave import Config, Messages
 
@@ -135,8 +136,6 @@ def loop():
         for sched, params in archives.items():
             period = sched[0]
             # graph(): https://oss.oetiker.ch/rrdtool/doc/rrdgraph.en.html
-            # DEF: https://oss.oetiker.ch/rrdtool/doc/rrdgraph_data.en.html
-            # LINE: https://oss.oetiker.ch/rrdtool/doc/rrdgraph_graph.en.html
             rrdtool_graph = os.path.join(
                 rrd_image_dir, rrdtool_graph_pat % sched)
             rrdtool.graph(
@@ -149,7 +148,11 @@ def loop():
                 "--color=CANVAS#a0a0a0",
                 "--upper-limit=150", "--lower-limit=0", "--rigid",
 
-                # Binary statuses stacked in background; scaled to 150 deg.
+                # Define the curve values and render them
+                # https://oss.oetiker.ch/rrdtool/doc/rrdgraph_data.en.html
+                # https://oss.oetiker.ch/rrdtool/doc/rrdgraph_graph.en.html
+
+                # Binary statuses stacked in background; scaled to ~150 deg.
                 # - Valve-on: blue area
 	        "DEF:valve=%s:valve:AVERAGE" % (rrdtool_db),
 	        "CDEF:valve-curve=valve,0.01,GT,148,UNKN,IF",
@@ -167,6 +170,7 @@ def loop():
 	        "CDEF:estop-curve=estop,0.01,GT,142,UNKN,IF",
                 "AREA:estop-curve#ffff00:Estop",
 
+                # Sampled data in foreground
                 # - Set temp:  dark grey area
                 "DEF:set=%s:set:AVERAGE" % (rrdtool_db),
 	        "AREA:set#404040:Set temp",
