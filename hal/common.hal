@@ -150,10 +150,17 @@ net temp-set                        => burner.command
 net temp-pot                        => burner.feedback
 net temp-pot-ddt                    => burner.feedback-deriv
 # PID parameters; see http://linuxcnc.org/docs/html/motion/pid-theory.html
-setp burner.Pgain                    2.00
-setp burner.Igain                    0.42
-setp burner.Dgain                   60.00
-setp burner.maxerrorI                1.00
+# Tuning:
+# - Set I + D to zero; set P to overshoot (when going up) first time
+#   - P will then undershoot, and oscillate
+# - Set I so that oscillations center around target
+#   - If I is too high, will have to go back to zero and start over
+# - Set D so that overshoot is minimal, but doesn't slow down too early
+# - Test going downward
+setp burner.Pgain                   15.00
+setp burner.Igain                    0.44
+setp burner.Dgain                   75.00
+setp burner.maxerrorI                2.00
 setp burner.maxoutput                1.00
 net enable                          => burner.enable
 net burner-duty-raw                 <= burner.output
