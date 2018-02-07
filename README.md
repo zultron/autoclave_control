@@ -38,6 +38,24 @@ temperature.
 
 ![Autoclave GUI](images/autoclave-gui.png)
 
+The `autoclave-logger` component captures process data with
+[rrdtool][rrdtool] and generates graphs like the one below, which
+shows an entire cycle.  The enable button was pressed just after
+13:40, and the autoclave heated up to the idle temperature, set at 80
+degrees.  Just before 14:00, the start button was pressed.  The water
+was heated to 100 degrees in the boil stage, and the valve was opened
+(blue curve) for ten minutes with the burner at 100% (bottom yellow
+curve).  Then the valve closed and the autoclave was heated to the 121
+degree sterilization temperature.  Pressure was also measured at 15
+PSIG (solid orange curve).  After 30 minutes, the burner was turned
+off and the autoclave cooled to 99 degrees, and the cycle was
+finished.  After that, the autoclave continued to cool until reaching
+the 80 degree idle temperature.
+
+![Autoclave logger](images/autoclave-logger.png)
+
+[rrdtool]: https://oss.oetiker.ch/rrdtool/
+
 FIXME:  configuration?
 
 # Running
