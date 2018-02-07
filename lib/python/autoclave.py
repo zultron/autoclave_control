@@ -94,15 +94,20 @@ class Config(object):
         #else: Messages.info("State unchanged; not writing")
 
     def read_state(self):
+        # Start with defaults from config
+        state = self.config.get('defaults',{}).copy()
+        # Update from saved state file, if possible
         if not self.state_file_exists():
-            Messages.info("State file missing: '%s'; zeroing data" %
+            Messages.info("State file missing: '%s'; using defaults" %
                           self.state_file)
-            return {}
-        with open(self.state_file, 'r') as f:
-            #Messages.info("Using state file '%s'" % self.state_file)
-            state = yaml.load(f)
-            if not state:
-                state = {}
+        else:
+            with open(self.state_file, 'r') as f:
+                #Messages.info("Using state file '%s'" % self.state_file)
+                read_state = yaml.load(f)
+                if read_state:
+                    state.update(read_state)
+        # Override limits with config
+        state.update(self.config.get('limits',{}))
         #Messages.info("Read state %s" % (state,))
         return state
 
