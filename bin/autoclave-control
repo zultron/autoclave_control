@@ -68,7 +68,6 @@ pin_data = [
     ('temp-pot-max',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
     ('temp-burner',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
     ('temp-burner-max',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
-    ('temp-ext',		hal.HAL_FLOAT,	hal.HAL_IN,	True), # For sim
     # Other status
     ('time-elapsed',		hal.HAL_S32,	hal.HAL_OUT,	False),
     ('enable',			hal.HAL_BIT,	hal.HAL_IN,	False),

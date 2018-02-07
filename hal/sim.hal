@@ -23,8 +23,6 @@ net burner-duty                     => autoclave-sim-temp.burner-duty
 # - Pressure relief SSR on/off
 net valve-on                        => autoclave-sim-temp.valve-on
 
-# - Simulated external temp
-net temp-ext                        <= autoclave-sim-temp.temp-ext
 # - Error
 net error                           => autoclave-sim-temp.error
 # - Shutdown

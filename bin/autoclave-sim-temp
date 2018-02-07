@@ -17,8 +17,6 @@ h = hal.component("autoclave-sim-temp", timer=100)
 h.newpin("burner-duty", hal.HAL_FLOAT, hal.HAL_IN)
 # - Pressure relief valve SSR signal
 h.newpin("valve-on", hal.HAL_BIT, hal.HAL_IN)
-# - Pretend external temp
-h.newpin("temp-ext", hal.HAL_FLOAT, hal.HAL_OUT)
 # - Error
 h.newpin("error", hal.HAL_BIT, hal.HAL_IN)
 # - Exit
@@ -35,8 +33,7 @@ h.newpin("pressure", hal.HAL_FLOAT, hal.HAL_OUT)
 # Init values
 config = Config()
 saved_state = config.read_state()
-h['temp-ext'] = saved_state.get('temp-ext', 20.0)
-msg.info("Restored setting temp-ext = %s" % h['temp-ext'])
+temp_ext = 20.0
 
 # Other settings
 # - time increment
@@ -120,8 +117,6 @@ try:
         # - Autoclave comp inputs
         burner_duty = h['burner-duty']
         valve_on = h['valve-on']
-        # - User-defined inputs
-        temp_ext = h['temp-ext']
         # - Error
         error = h['error']
         # - Shutdown

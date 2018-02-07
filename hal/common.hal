@@ -119,8 +119,6 @@ net temp-pot-max                    <= autoclave-control.temp-pot-max
 # - Burner temperature, deg. C
 net temp-burner                     => autoclave-control.temp-burner
 net temp-burner-max                 <= autoclave-control.temp-burner-max
-# - Outside temp, for sim, deg. C
-net temp-ext                        => autoclave-control.temp-ext
 
 # Other status
 # - Overall elapsed time, s.
