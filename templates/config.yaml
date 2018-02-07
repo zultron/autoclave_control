@@ -10,7 +10,6 @@ limits:
   temp-burner-max: 200.0
   temp-pot-max: 121.1
 defaults:
-  enable-switch: false
   idle-temp-set: 80.0
   boil-temp-set: 100.0
   flush-time-set: 600

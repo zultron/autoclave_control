@@ -10,7 +10,7 @@ msg = Messages('Autoclave remote')
 # (name, hal_type, hal_dir, save)
 pin_data = [
     # Controls
-    ('enable-switch',		hal.HAL_BIT,	hal.HAL_OUT,	True),
+    ('enable-switch',		hal.HAL_BIT,	hal.HAL_OUT,	False),
     ('start',			hal.HAL_BIT,	hal.HAL_OUT,	False),
     # Process stages
     ('stage',			hal.HAL_S32,	hal.HAL_IN,	False),

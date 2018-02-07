@@ -30,7 +30,7 @@ min_burner_stages = ('cool')  # Need PWM at 0% from cool
 # (name, hal_type, hal_dir, save)
 pin_data = [
     # Remote controls
-    ('enable-switch',		hal.HAL_BIT,	hal.HAL_IN,	True), # For save
+    ('enable-switch',		hal.HAL_BIT,	hal.HAL_IN,	False),
     ('start',			hal.HAL_BIT,	hal.HAL_IN,	False),
     # Process stage settings and status
     # - Current stage ID
@@ -298,14 +298,10 @@ for name, hal_type, hal_dir, save in pin_data:
     if hal_dir == hal.HAL_IN:
         # input pins don't need init
         continue
-    if save:
+    if name in saved_state:
         # init from config file
-        val = saved_state.get(name, 0)
-        h[name] = val
-        msg.info("Restored setting %s = %s" % (name,val))
-    else:
-        # init to zero
-        h[name] = 0
+        h[name] = saved_state.get(name)
+        msg.info("Restored setting %s = %s" % (name,h[name]))
 
 # Dict to persist state across cycles
 state = dict()
