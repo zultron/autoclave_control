@@ -70,8 +70,8 @@ if not os.path.exists(rrdtool_db):
         "DS:error:GAUGE:%d:U:U" % (rrdtool_period*2),
         "DS:disable:GAUGE:%d:U:U" % (rrdtool_period*2)] + \
         [("RRA:AVERAGE:0.5:%(steps)s:%(rows)s" % i) for i in archives.values() ]
-    for i in args:
-        msg.info("Create arg:  %s" % i)
+    # for i in args:
+    #     msg.info("Create arg:  %s" % i)
     rrdtool.create( *args )
 
 # Init vars
