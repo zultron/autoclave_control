@@ -104,6 +104,8 @@ net cool-time                       <= autoclave-control.cool-time
 # Controls out
 # - Burner temp
 net temp-set                        <= autoclave-control.temp-set
+# - Burner output override (added to PID output)
+net burner-override                 <= autoclave-control.burner-override
 # - Pressure relief valve
 net valve-on-input                  <= autoclave-control.valve-on
 
@@ -137,12 +139,6 @@ net shutdown                        => autoclave-control.shutdown
 # Burner duty cycle PID
 # ################################################
 
-# Derivative of temperature to feed PID comp
-newinst ddt temp-ddt
-addf temp-ddt                       main-thread
-net temp-pot                        => temp-ddt.in
-net temp-pot-ddt                    <= temp-ddt.out
-
 # Load PID comp
 newinst pid burner
 #newinst at_pid burner
@@ -158,8 +154,33 @@ setp burner.Pgain                    2.00
 setp burner.Igain                    0.42
 setp burner.Dgain                   60.00
 setp burner.maxerrorI                1.00
+setp burner.maxoutput                1.00
 net enable                          => burner.enable
 net burner-duty-raw                 <= burner.output
+
+
+# ################################################
+# Burner PID feedback derivative
+# ################################################
+
+# MK PID comp seems to have dropped internal derivative code
+newinst ddt temp-ddt
+addf temp-ddt                       main-thread
+net temp-pot                        => temp-ddt.in
+net temp-pot-ddt                    <= temp-ddt.out
+
+
+# ################################################
+# Burner PID override
+# ################################################
+
+# Allow control to force duty cycle on or off
+newinst sum2 burner-override
+addf burner-override                main-thread
+net burner-duty-raw                 => burner-override.in0
+net burner-override                 => burner-override.in1
+net burner-duty-plus-override       <= burner-override.out
+
 
 # ################################################
 # Burner duty cycle limited
@@ -173,7 +194,7 @@ addf burner-limit                   main-thread
 setp burner-limit.min               0.0
 setp burner-limit.max               1.0
 # - Input
-net burner-duty-raw                 => burner-limit.in
+net burner-duty-plus-override       => burner-limit.in
 # - Output
 net burner-duty                     <= burner-limit.out
 

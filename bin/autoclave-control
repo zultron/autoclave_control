@@ -23,8 +23,8 @@ stage_id_name_map = dict(zip(
     stage_name_id_map.values(), stage_name_id_map.keys()))
 timed_stages = ('flush', 'ster')
 valve_on_stages = ('flush')
-max_burner_stages = ('flush') # Need PWM at 100% during flush
-min_burner_stages = ('cool')  # Need PWM at 0% during cool
+max_burner_stages = ('boil', 'flush') # Need PWM at 100% thru to heat
+min_burner_stages = ('cool')  # Need PWM at 0% from cool
 
 # Pin creation data
 # (name, hal_type, hal_dir, save)
@@ -59,6 +59,7 @@ pin_data = [
     ('cool-time',		hal.HAL_S32,	hal.HAL_OUT,	False),
     # Controls out
     ('temp-set',		hal.HAL_FLOAT,	hal.HAL_OUT,	False),
+    ('burner-override',         hal.HAL_FLOAT,  hal.HAL_OUT,    False),
     ('valve-on',		hal.HAL_BIT,	hal.HAL_OUT,	False),
     # Sensors in/limits out
     ('pressure',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
@@ -125,14 +126,13 @@ def enter_stage(stage_name, init=False):
         state['time-elapsed-start'] = now
         msg.info("Starting process")
 
+    # Override burner PID output for some stages
     if stage_name in max_burner_stages:
-        h['temp-set'] = h['temp-pot-max']
+        h['burner-override'] = 2.0
     elif stage_name in min_burner_stages:
-        h['temp-set'] = 0
-    elif stage_name not in timed_stages:
-        h['temp-set'] = h['%s-temp-set' % stage_name]
+        h['burner-override'] = -2.0
     else:
-        pass # keep previous setting for timed stage
+        h['burner-override'] = 0.0
 
     if stage_name in timed_stages:
         set_time = h['%s-time-set' % stage_name]
@@ -140,7 +140,7 @@ def enter_stage(stage_name, init=False):
                  % (stage_name, stage_id, set_time, h['temp-set']))
     else:
         msg.info("Entering '%s' (%d) stage; set temperature %.1f"
-                 % (stage_name, stage_id, h['temp-set']))
+                 % (stage_name, stage_id, h['%s-temp-set' % stage_name]))
 
     # Set stage ID pin
     h['stage'] = stage_id
@@ -263,11 +263,10 @@ def loop():
     elif stage_name == 'cool' and stage_temp_reached():
         enter_stage('idle')
 
-    # Update temp settings
+    # Update temp setting
     stage_name = current_stage()
     if stage_name not in timed_stages:
-        h['temp-set'] = (h['temp-pot-max'] if stage_name in max_burner_stages
-                         else h['%s-temp-set' % stage_name])
+        h['temp-set'] = h['%s-temp-set' % stage_name]
 
     # Update indicators
     # - Process elapsed time
