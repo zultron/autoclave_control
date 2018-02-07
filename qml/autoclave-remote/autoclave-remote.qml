@@ -204,7 +204,7 @@ HalApplicationWindow {
 	    height: base.indicatorSize
 	    width: base.indicatorSize
             source: "Autoclave/assets/s3-time.png"
-    }
+	}
 
 	// Burner % duty cycle
 	Autoclave.HALGraphicReadout {
@@ -218,7 +218,7 @@ HalApplicationWindow {
 	    height: base.indicatorSize
 	    width: base.indicatorSize
             source: "Autoclave/assets/s0-burner.png"
-    }
+	}
 
 	// Pressure
 	Autoclave.HALGraphicReadout {
@@ -231,7 +231,7 @@ HalApplicationWindow {
 	    height: base.indicatorSize
 	    width: base.indicatorSize
             source: "Autoclave/assets/s4-pressure.png"
-    }
+	}
 
 	// Temperature
 	Autoclave.HALGraphicReadout {
@@ -244,7 +244,7 @@ HalApplicationWindow {
 	    height: base.indicatorSize
 	    width: base.indicatorSize
             source: "Autoclave/assets/s5-temp.png"
-    }
+	}
 
 	// Steam icon appears when valve is open
 	Autoclave.HALGraphicBool {
@@ -276,8 +276,6 @@ HalApplicationWindow {
 		loops: Animation.Infinite
 	    }
 	}
-
     }
-
 }
 
