@@ -149,28 +149,29 @@ def loop():
                 "--width=600", "--height=300",
                 "--color=CANVAS#8080ff", # light blue
                 "--upper-limit=150", "--lower-limit=0", "--rigid",
-                "TEXTALIGN:left",
 
                 # Define the curve values and render them
                 # https://oss.oetiker.ch/rrdtool/doc/rrdgraph_data.en.html
                 # https://oss.oetiker.ch/rrdtool/doc/rrdgraph_graph.en.html
 
                 # Binary statuses stacked in background; scaled to ~150 deg.
+                "TEXTALIGN:left",
                 "COMMENT:Status (background)\:",
 	        # - Disable: black area
 	        "DEF:disable=%s:disable:AVERAGE" % (rrdtool_db),
-	        "CDEF:disable-curve=disable,0.01,GT,146,UNKN,IF",
-                "LINE10:disable-curve#000000:Disabled",
+	        "CDEF:disable-curve=disable,0.01,GT,150,UNKN,IF",
+                "AREA:disable-curve#000000:Disabled",
 	        # - Error:  orange area
 	        "DEF:error=%s:error:AVERAGE" % (rrdtool_db),
-	        "CDEF:error-curve=error,0.01,GT,144,UNKN,IF",
+	        "CDEF:error-curve=error,0.01,GT,150,UNKN,IF",
                 "AREA:error-curve#ff8000:Error",
                 # - Estop:  yellow area
 	        "DEF:estop=%s:estop:AVERAGE" % (rrdtool_db),
-	        "CDEF:estop-curve=estop,0.01,GT,142,UNKN,IF",
-                "AREA:estop-curve#ffff00:Estop\n",
+	        "CDEF:estop-curve=estop,0.01,GT,150,UNKN,IF",
+                "AREA:estop-curve#ffff00:Estop\\n",
 
                 # Sampled data in foreground
+                "TEXTALIGN:left",
                 "COMMENT:Curves\:",
                 # - Measured temp: red area
                 "DEF:temp=%s:temp:AVERAGE" % (rrdtool_db),
@@ -189,6 +190,10 @@ def loop():
 	        # - Burner temp:  dashed orange curve
                 "DEF:btemp=%s:btemp:AVERAGE" % (rrdtool_db),
 	        "LINE2:btemp#ff8000:dashes:Burner temp",
+                # - Burner duty:  thin green curve
+                "DEF:duty=%s:duty:AVERAGE" % (rrdtool_db),
+                "CDEF:duty-curve=duty,10,*",
+                "LINE1:duty-curve#00ff00:Duty",
                 # - Stage:  ticks for changes
                 "DEF:stage=%s:stage:AVERAGE" % (rrdtool_db),
                 "CDEF:stage-ticks=stage,PREV(stage),-,ABS,0.5,GT",
