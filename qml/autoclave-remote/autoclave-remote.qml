@@ -39,21 +39,6 @@ HalApplicationWindow {
 	property int indicatorSize: blockSize * 0.15
 	property int indicatorBorder: indicatorSize * 0.2
 
-        Text {
-            id: stage
-            x: 0
-            y: 25
-            z: 10
-	    visible: false
-
-            // Format float value with decimals in black text
-            text: progress.stage
-            color: "#000000"
-
-            // Proportional size, centered above handle, with l/r tweak
-            font.pixelSize: 20
-        }
-
 	// --------------- Background widget ------------------
 	Autoclave.Background {
 	    id: progress
