@@ -142,7 +142,7 @@ def loop():
                 rrd_image_dir, rrdtool_graph_pat % sched)
             rrdtool.graph(
                 rrdtool_graph,
-                "--start=-1%s" % period,
+                "--start=-2%s" % period,
                 "--title=%s" % sched,
                 "--vertical-label=Deg. C, PSIG",
                 # "--width=1000", "--height=500",
