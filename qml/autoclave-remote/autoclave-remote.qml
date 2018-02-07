@@ -33,7 +33,7 @@ HalApplicationWindow {
 	property int gaugeDiameter: blockSize * 0.8
 	property int borderSize: blockSize - gaugeDiameter
 	// - Size of buttons & borders
-	property int buttonSize: blockSize * 0.35
+	property int buttonSize: blockSize * 0.25
 	property int buttonBorder: buttonSize * 0.2
 	// - Size of indicators & borders
 	property int indicatorSize: blockSize * 0.15
@@ -169,7 +169,7 @@ HalApplicationWindow {
             id: enable
             name: "enable-switch"
             x: base.borderSize * 0.5
-            y: base.blockSize + base.borderSize * 0.5
+            y: base.blockSize
 	    z: 1
 	    height: base.buttonSize
 	    width: base.buttonSize
@@ -189,6 +189,15 @@ HalApplicationWindow {
 	    imageChecked: "assets/c1-start-1.png"
 	    imageUnchecked: "assets/c1-start-0.png"
         }
+
+	// Charts button
+	Autoclave.ChartsButton {
+	    id: charts
+            x: base.borderSize * 0.5
+            y: start.y + base.buttonSize + base.buttonBorder
+	    height: base.buttonSize
+	    width: base.buttonSize
+	}
 
 	// --------------- Right-hand-side status ------------------
 	// - Fit on top right 1/2 block

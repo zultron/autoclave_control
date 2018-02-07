@@ -218,9 +218,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2"
-     inkscape:cx="-791.99859"
-     inkscape:cy="1627.6014"
+     inkscape:zoom="1.4142136"
+     inkscape:cx="-963.2527"
+     inkscape:cy="1695.4818"
      inkscape:document-units="px"
      inkscape:current-layer="layer18"
      showgrid="false"
@@ -7707,6 +7707,23 @@
          style="display:inline;fill:#ff0000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:9.0909996;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          id="path6437-3"
          inkscape:connector-curvature="0" />
+    </g>
+    <g
+       id="g7123">
+      <path
+         id="path7109"
+         style="fill:#ff0000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:9.091;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -719.23598,-821.62676 c 0,25.10385 -20.35069,45.45455 -45.45454,45.45455 -25.10385,0 -45.45454,-20.3507 -45.45454,-45.45455 0,-25.10385 20.35069,-45.45455 45.45454,-45.45455 25.10385,0 45.45454,20.3507 45.45454,45.45455 z"
+         inkscape:export-xdpi="89.999992"
+         inkscape:export-ydpi="89.999992"
+         inkscape:export-filename="/home/jman/git/myco/qml/autoclave-remote/Autoclave/assets/c1-start-0.png"
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="sssss" />
+      <path
+         inkscape:connector-curvature="0"
+         d="m -742.15147,-830.05163 0.35529,-7.89885 -7.8237,1.64247 m -29.54013,21.21324 14.5,-14.5 8,9.5 14.5,-17.5 m -47.625,-5.75 0,43.5 50.125,0"
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:9.04755592;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="path7119" />
     </g>
   </g>
 </svg>

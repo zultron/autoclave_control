@@ -10,6 +10,7 @@
         <file>autoclave-remote/Autoclave/assets/c1-start-0.png</file>
         <file>autoclave-remote/Autoclave/assets/c1-start-1.png</file>
         <file>autoclave-remote/Autoclave/assets/c2-close.png</file>
+        <file>autoclave-remote/Autoclave/assets/c3-charts.png</file>
         <file>autoclave-remote/Autoclave/assets/l1-heat.png</file>
         <file>autoclave-remote/Autoclave/assets/l2-cool.png</file>
         <file>autoclave-remote/Autoclave/assets/l3-timer.png</file>
@@ -38,6 +39,8 @@
         <file>autoclave-remote/Autoclave/Background.qml</file>
 	<!-- ** On/off checkbutton -->
         <file>autoclave-remote/Autoclave/CheckButton.qml</file>
+	<!-- ** Charts button -->
+        <file>autoclave-remote/Autoclave/ChartsButton.qml</file>
 	<!-- ** Time and temp readouts, with/without icon and HAL pins -->
         <file>autoclave-remote/Autoclave/Readout.qml</file>
         <file>autoclave-remote/Autoclave/HALReadout.qml</file>
