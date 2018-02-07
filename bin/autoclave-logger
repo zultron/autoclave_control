@@ -149,12 +149,14 @@ def loop():
                 "--width=600", "--height=300",
                 "--color=CANVAS#8080ff", # light blue
                 "--upper-limit=150", "--lower-limit=0", "--rigid",
+                "TEXTALIGN:left",
 
                 # Define the curve values and render them
                 # https://oss.oetiker.ch/rrdtool/doc/rrdgraph_data.en.html
                 # https://oss.oetiker.ch/rrdtool/doc/rrdgraph_graph.en.html
 
                 # Binary statuses stacked in background; scaled to ~150 deg.
+                "COMMENT:Status (background)\:",
 	        # - Disable: black area
 	        "DEF:disable=%s:disable:AVERAGE" % (rrdtool_db),
 	        "CDEF:disable-curve=disable,0.01,GT,146,UNKN,IF",
@@ -166,9 +168,10 @@ def loop():
                 # - Estop:  yellow area
 	        "DEF:estop=%s:estop:AVERAGE" % (rrdtool_db),
 	        "CDEF:estop-curve=estop,0.01,GT,142,UNKN,IF",
-                "AREA:estop-curve#ffff00:Estop",
+                "AREA:estop-curve#ffff00:Estop\n",
 
                 # Sampled data in foreground
+                "COMMENT:Curves\:",
                 # - Measured temp: red area
                 "DEF:temp=%s:temp:AVERAGE" % (rrdtool_db),
 	        "AREA:temp#ff0000:Temperature",
@@ -182,11 +185,14 @@ def loop():
 	        "LINE3:pres-curve#ff8000:Pressure",
                 # - Set temp:  dark grey curve
                 "DEF:set=%s:set:AVERAGE" % (rrdtool_db),
-	        #"LINE4:set#404040:Set temp",
                 "AREA:set#00000040:Set temp",
 	        # - Burner temp:  dashed orange curve
                 "DEF:btemp=%s:btemp:AVERAGE" % (rrdtool_db),
 	        "LINE2:btemp#ff8000:dashes:Burner temp",
+                # - Stage:  ticks for changes
+                "DEF:stage=%s:stage:AVERAGE" % (rrdtool_db),
+                "CDEF:stage-ticks=stage,PREV(stage),-,ABS,0.5,GT",
+                "TICK:stage-ticks#000000:1",
             )
         #msg.info("Updated RRD DB %s" % rrdtool_db)
         # - Reset state for next sample
