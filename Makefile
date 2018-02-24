@@ -145,7 +145,7 @@ ifneq ($(HAVE_DTC),)
 /lib/firmware/bb_autoclave-00A0.dtbo: etc/bb_autoclave.dts
 	dtc -O dtb -o $@ -b 0 -@ $<
 	if ! grep -q $@ /boot/uEnv.txt; then \
-	    echo dtb_overlay=$@ > /boot/uEnv.txt; \
+	    echo dtb_overlay=$@ >> /boot/uEnv.txt; \
 	fi
 ALL_FILES += /lib/firmware/bb_autoclave-00A0.dtbo
 endif
