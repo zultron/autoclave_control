@@ -15,13 +15,13 @@
     fragment@0 {
 	target = <&ocp>;
 	__overlay__ {
-	    P9_18_pinmux { /* Burner SSR */
+	    P9_18_pinmux {
 		mode = "gpio_pd";
 	    };
-	    P9_20_pinmux { /* Valve SSR */
+	    P9_22_pinmux {
 		mode = "gpio_pd";
 	    };
-	    P9_42_pinmux { /* E-stop in */
+	    P9_42_pinmux {
 		mode = "gpio_pd";
 	    };
 	};

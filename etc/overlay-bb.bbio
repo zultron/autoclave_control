@@ -3,7 +3,7 @@
 # - Burner
 	P9.18	low	# GPIO-4	Burner SSR on/off
 # - Valve
-	P9.20	low	# GPIO-2	Pressure relief valve SSR on/off
+	P9.22	low	# GPIO-2	Pressure relief valve SSR on/off
 # - E-stop
 	P9.42	low	# GPIO-7	E-stop input
 
