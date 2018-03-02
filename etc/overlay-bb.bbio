@@ -1,20 +1,20 @@
 # Autoclave pin config for BeagleBone (Black or White)
+# - Load universal cape
+	overlay	cape-universala
 
-# - Burner
-	P9.18	low	# GPIO-4	Burner SSR on/off
-# - Valve
-	P9.22	low	# GPIO-2	Pressure relief valve SSR on/off
-# - E-stop
+# - Controls
+	P9.18	low	# GPIO-4	Pressure relief valve SSR on/off
+	P9.22	low	# GPIO-2	Burner SSR on/off
 	P9.42	low	# GPIO-7	E-stop input
 
 # - Thermistors
-#	P9.32		VREFN		AIN/thermistor ground
-#	P9.34		VREFP		AIN/thermistor 1.8V REF+
-#	P9.36		AIN5		Pressure sensor input
-#	P9.38		AIN3		Pot thermistor input
-#	P9.40		AIN1		Burner thermistor input
+#	P9.32	VREFN			AIN/thermistor ground
+#	P9.34	VREFP			AIN/thermistor 1.8V REF+
+#	P9.36	AIN5			Pressure sensor input
+#	P9.38	AIN3			Pot thermistor input
+#	P9.40	AIN1			Burner thermistor input
 
 
 # - BeagleBone power
-#       P9.2		DGND		Ground
-#	P9.6		VDD_5V		Power in, 5VDC
+#       P9.2	DGND			Ground
+#	P9.6	VDD_5V			Power in, 5VDC
