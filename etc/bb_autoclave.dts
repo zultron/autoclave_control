@@ -90,7 +90,7 @@
             P9_92_pruin_pin: pinmux_P9_92_pruin_pin {
                 pinctrl-single,pins = <0x1a0  0x26>; };     /* Mode 6, Pull-Down, RxActive */
 
-	}
+	};
     };
 
     fragment@1 {
