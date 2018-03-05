@@ -2,7 +2,7 @@
  * Autoclave BeagleBone overlay:  configure output pins
 
  * sudo dtc -O dtb -o /lib/firmware/bb_autoclave-00A0.dtbo -b 0 -@ bb_autoclave.dts
- * - Ignore 3x "Warning (unit_address_vs_reg)"
+ * - Ignore "Warning (unit_address_vs_reg)" messages
  * echo dtb_overlay=/lib/firmware/bb_autoclave-00A0.dtbo | sudo tee -a /boot/uEnv.txt
  * for i in 18 22; do config-pin -q P9.$i; done
 
@@ -90,7 +90,7 @@
             P9_92_pruin_pin: pinmux_P9_92_pruin_pin {
                 pinctrl-single,pins = <0x1a0  0x26>; };     /* Mode 6, Pull-Down, RxActive */
 
-	}
+	};
     };
 
     fragment@1 {
@@ -108,6 +108,7 @@
                 pinctrl-5 = <&P9_18_i2c_pin>;
                 pinctrl-6 = <&P9_18_pwm_pin>;
                 pinctrl-7 = <&P9_18_pru_uart_pin>;
+		mode = "gpio_pd";
             };
 
             P9_22_pinmux {
@@ -123,6 +124,7 @@
                 pinctrl-6 = <&P9_22_i2c_pin>;
                 pinctrl-7 = <&P9_22_pwm_pin>;
                 pinctrl-8 = <&P9_22_pru_uart_pin>;
+		mode = "gpio_pd";
 	    };
 
             P9_42_pinmux {
@@ -138,6 +140,7 @@
                 pinctrl-6 = <&P9_42_spics_pin>;
                 pinctrl-7 = <&P9_42_pru_ecap_pin>;
                 pinctrl-8 = <&P9_42_spiclk_pin>;
+		mode = "gpio_pd";
             };
 
             P9_92_pinmux {
@@ -151,24 +154,6 @@
                 pinctrl-4 = <&P9_92_qep_pin>;
                 pinctrl-5 = <&P9_92_pruout_pin>;
                 pinctrl-6 = <&P9_92_pruin_pin>;
-	    };
-
-/*  Joining two sections here
-	};
-    };
-
-    fragment@1 {
-	target = <&ocp>;
-	__overlay__ {
-*/
-	    P9_18_pinmux { /* Valve SSR */
-		mode = "gpio_pd";
-	    };
-	    P9_22_pinmux { /* Burner SSR */
-		mode = "gpio_pd";
-	    };
-	    P9_42_pinmux { /* Estop in */
-		mode = "gpio_pd";
 	    };
 	};
     };
