@@ -60,9 +60,6 @@ SHARE_FILES = \
 	qml/main.qml \
 	qml/qml.qrc
 
-# Overlay
-HAVE_DTC = $(shell test -f /usr/bin/dtc && echo 1)
-
 .PHONY: default
 default:
 	@echo "Please specify a target; choices:" 1>&2
@@ -140,15 +137,6 @@ $(ETC_DIR)/config.yaml: templates/config.yaml
 	    -e 's,@BIN_DIR@,$(BIN_DIR),' \
 	    -e 's,@SHARE_DIR@,$(SHARE_DIR),'
 	@chown $(ROOT_USER) $@
-
-ifneq ($(HAVE_DTC),)
-/lib/firmware/bb_autoclave-00A0.dtbo: etc/bb_autoclave.dts
-	dtc -O dtb -o $@ -b 0 -@ $<
-	if ! grep -q $@ /boot/uEnv.txt; then \
-	    echo dtb_overlay=$@ >> /boot/uEnv.txt; \
-	fi
-ALL_FILES += /lib/firmware/bb_autoclave-00A0.dtbo
-endif
 
 /etc/systemd/system/autoclave.service: templates/autoclave.service
 	sed < $< > $@ \
