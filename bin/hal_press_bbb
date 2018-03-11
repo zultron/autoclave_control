@@ -1,0 +1,195 @@
+#!/usr/bin/python2
+# encoding: utf-8
+
+########################################################################
+# Description: hal_press_bbb                                           #
+# This code reads an ADC input on the BeagleBone and converts the      #
+# resulting value into a pressure according to the pressure sensor     #
+# type, accounting for the analog input circuty                        #
+#                                                                      #
+# Author(s): Charles Steinkuehler                                      #
+# License: GNU GPL Version 2.0 or (at your option) any later version.  #
+#                                                                      #
+# Major Changes:                                                       #
+# 2013-June   Charles Steinkuehler                                     #
+#             Initial version                                          #
+# 2014-July   Alexander Roessler                                       #
+#             Port to the R2Temp component                             #
+# 2018-March  John Morris                                              #
+#             Adapt temp comp to pressure                              #
+########################################################################
+# Copyright (C) 2013  Charles Steinkuehler                             #
+#                     <charles AT steinkuehler DOT net>                #
+#                                                                      #
+# This program is free software; you can redistribute it and/or        #
+# modify it under the terms of the GNU General Public License          #
+# as published by the Free Software Foundation; either version 2       #
+# of the License, or (at your option) any later version.               #
+#                                                                      #
+# This program is distributed in the hope that it will be useful,      #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of       #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        #
+# GNU General Public License for more details.                         #
+#                                                                      #
+# You should have received a copy of the GNU General Public License    #
+# along with this program; if not, write to the Free Software          #
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA        #
+# 02110-1301, USA.                                                     #
+#                                                                      #
+# THE AUTHORS OF THIS PROGRAM ACCEPT ABSOLUTELY NO LIABILITY FOR       #
+# ANY HARM OR LOSS RESULTING FROM ITS USE.  IT IS _EXTREMELY_ UNWISE   #
+# TO RELY ON SOFTWARE ALONE FOR SAFETY.  Any machinery capable of      #
+# harming persons must have provisions for completely removing power   #
+# from all motors, etc, before persons enter any danger area.  All     #
+# machinery must be designed to comply with local and national safety  #
+# codes, and the authors of this software can not, and do not, take    #
+# any responsibility for such compliance.                              #
+########################################################################
+
+import argparse
+import time
+import hal
+import os
+
+# Autoclave pressure sensor circuit:
+# 
+# The pressure sensor signal ranges from 0.5V (0.0 PSI) to 4.5V (30.0
+# PSI).  This output is fed to a voltage divider with 3.3k and 1.5k
+# Ohm resistors on top and bottom, respectively, to reduce the voltage
+# under the safe 1.8V ADC input maximum.
+
+adc_max_raw = 4095 # Max possible reading
+adc_max_inv = 1.8 # V
+# Voltage divider resistor values
+vdiv_top = 3300. # Ohms; top resistor
+vdiv_bot = 1500. # Ohms; bottom resistor
+# Pressure range:  voltage to pressure in PSI
+vin_min = 0.50; press_min =  0.0
+vin_max = 4.50; press_max = 30.0
+
+def adc_raw_to_adc_v(adc_raw):
+    '''Given raw ADC reading (0..4095), return input voltage (0V..1.8V)'''
+    return adc_raw * adc_max_inv / adc_max_raw
+
+def adc_v_to_sensor_v(adc_v):
+    '''Given ADC input voltage from divider, return sensor output voltage'''
+    return adc_v * (vdiv_top/vdiv_bot + 1)
+
+def sensor_v_to_sensor_press(sensor_v):
+    '''Given pressure sensor out voltage, return pressure in PSI'''
+    return (sensor_v - vin_min) / (vin_max - vin_min) * (press_max - press_min)
+
+def adc_raw_to_pressure(adc_raw):
+    '''Given raw adc input, return pressure in PSI'''
+    return sensor_v_to_sensor_press(
+        adc_v_to_sensor_v(
+            adc_raw_to_adc_v(adc_raw)))
+
+def adc2Press(pin):
+    return round(adc_raw_to_pressure(pin.rawValue),1)
+
+
+class Pin:
+    def __init__(self, pin, conv_func, filterSize=10):
+        self.pin = pin
+        self.conv_func = conv_func
+        self.halValuePin = None
+        self.halRawPin = None
+        self.filterSamples = []
+        self.filterSize = filterSize
+        self.rawValue = 0.0
+
+        # Set and check file name
+        self.filename = (
+            '/sys/bus/iio/devices/iio:device0/in_voltage{0}_raw'.format(str(self.pin)))
+        if not os.path.exists(self.filename):
+            raise UserWarning('Bad Filename')
+
+    def addSample(self, value):
+        self.filterSamples.append(value)
+        if (len(self.filterSamples) > self.filterSize):
+            self.filterSamples.pop(0)
+        sampleSum = 0.0
+        for sample in self.filterSamples:
+            sampleSum += sample
+        self.rawValue = sampleSum / len(self.filterSamples)
+
+    def getHalName(self):
+        return 'ch-{0:02d}'.format(self.pin)
+
+    def initHALPins(self, comp):
+        self.halRawPin = comp.newpin(
+            self.getHalName() + ".raw", hal.HAL_FLOAT, hal.HAL_OUT)
+        self.halValuePin = comp.newpin(
+            self.getHalName() + ".value", hal.HAL_FLOAT, hal.HAL_OUT)
+
+    def getRawValue(self):
+        f = open(self.filename, 'r')
+        value = float(f.readline())
+        self.addSample(value)
+        return self.rawValue
+
+    def getCookedValue(self):
+        self.getRawValue()
+        return self.conv_func(self)
+
+    def setHALPins(self):
+        self.halValuePin.value = self.getCookedValue()
+        self.halRawPin.value = self.rawValue
+
+
+parser = argparse.ArgumentParser(
+    description='HAL component to read ADC values and convert to pressure')
+parser.add_argument('-n','--name', default='hal_press_bbb',
+                    help='HAL component name')
+parser.add_argument('-i', '--interval', default=0.05,
+                    help='Adc update interval')
+parser.add_argument('-c', '--channels', required=True,
+                    help='Comma separated list of channels to use e.g. 01,02')
+parser.add_argument('-f', '--filter_size', default=10,
+                    help='Size of the low pass filter to use')
+args = parser.parse_args()
+
+updateInterval = float(args.interval)
+filterSize = int(args.filter_size)
+error = False
+watchdog = True
+
+# Initialize HAL and pins
+h = hal.component(args.name)
+pins = []
+
+if (args.channels != ""):
+    pin_numbers = args.channels.split(',')
+    for pin_number in pin_numbers:
+        pin = Pin(int(pin_number), adc2Press, filterSize=filterSize)
+        pin.initHALPins(h)
+        pins.append(pin)
+
+halErrorPin = h.newpin("error", hal.HAL_BIT, hal.HAL_OUT)
+halNoErrorPin = h.newpin("no-error", hal.HAL_BIT, hal.HAL_OUT)
+halWatchdogPin = h.newpin("watchdog", hal.HAL_BIT, hal.HAL_OUT)
+h.ready()
+
+halErrorPin.value = error
+halNoErrorPin.value = not error
+halWatchdogPin.value = watchdog
+
+try:
+    while (True):
+        try:
+            for pin in pins:
+                pin.setHALPins()
+            error = False
+        except IOError:
+            error = True
+
+        halErrorPin.value = error
+        halNoErrorPin.value = not error
+        watchdog = not watchdog
+        halWatchdogPin.value = watchdog
+        time.sleep(updateInterval)
+except Exception, e:
+    print("exiting HAL component {0}: {1}".format(args.name,e))
+    h.exit()
+

@@ -23,9 +23,10 @@ net temp-burner                     <= therm.ch-01.value
 net temp-pot                        <= therm.ch-03.value
 
 # ################
-# Pressure sensore
-# - 5V pressure sensore on AIN5
-#   FIXME
+# Pressure sensor
+# - 5V pressure sensor on AIN5
+loadusr -W hal_press_bbb -c 05
+net pressure                        <= hal_press_bbb.ch-05.value
 
 # ################
 # Threads
