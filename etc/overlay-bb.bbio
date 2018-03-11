@@ -1,6 +1,4 @@
 # Autoclave pin config for BeagleBone (Black or White)
-# - Load universal cape
-	overlay	cape-universala
 
 # - Controls
 	P9.18	low	# GPIO-4	Pressure relief valve SSR on/off
