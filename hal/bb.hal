@@ -16,7 +16,7 @@
 #     https://github.com/machinekit/machinekit/blob/master/src/hal/user_comps/hal_temp_bbb.py
 
 # - Load thermistor comp
-loadusr -Wn therm hal_temp_bbb -n therm -c 01:TR91,03:TR91 -b CRAMPS -r 1000
+loadusr -Wn therm hal_temp_bbb -n therm -c 01:epcos_B57560G1104,03:epcos_B57560G1104 -b CRAMPS -r 1000
 # - Burner temp signal
 net temp-burner                     <= therm.ch-01.value
 # - Pot temp signal
