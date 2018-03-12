@@ -60,11 +60,17 @@ FIXME:  configuration?
 
 # Running
 
-Follow the instructions at [machinekit.io][machinekit] to download
-and install a mini-SD card image with Machinekit.
+Follow the instructions at [machinekit.io][machinekit] to download and
+install a mini-SD card image with Machinekit.  Log into the BeagleBone.
 
-Log into the BeagleBone, clone this repository, and `cd` into the
-repository directory.
+On the BeagleBone, install the `python-yaml` package.
+
+     sudo apt-get install -y python-yaml
+
+Clone this repository, and `cd` into the repository directory.
+
+     git clone https://github.com/zultron/autoclave_control
+     cd autoclave_control
 
 On the BeagleBone, start the Autoclave control from the command line
 (load the overlay file for non-system installs):
