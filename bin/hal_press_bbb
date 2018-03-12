@@ -95,6 +95,8 @@ class Pin:
         self.conv_func = conv_func
         self.halValuePin = None
         self.halRawPin = None
+        self.halBiasPin = None
+        self.halGainPin = None
         self.filterSamples = []
         self.filterSize = filterSize
         self.rawValue = 0.0
@@ -122,6 +124,11 @@ class Pin:
             self.getHalName() + ".raw", hal.HAL_FLOAT, hal.HAL_OUT)
         self.halValuePin = comp.newpin(
             self.getHalName() + ".value", hal.HAL_FLOAT, hal.HAL_OUT)
+        self.halBiasPin = comp.newpin(
+            self.getHalName() + ".bias", hal.HAL_FLOAT, hal.HAL_IN)
+        self.halGainPin = comp.newpin(
+            self.getHalName() + ".gain", hal.HAL_FLOAT, hal.HAL_IN)
+        self.halGainPin.value = 1.0
 
     def getRawValue(self):
         f = open(self.filename, 'r')
@@ -129,9 +136,23 @@ class Pin:
         self.addSample(value)
         return self.rawValue
 
+    @property
+    def gain(self):
+        if self.halGainPin is not None:
+            return self.halGainPin.value
+        else:
+            return 1.0
+
+    @property
+    def bias(self):
+        if self.halBiasPin is not None:
+            return self.halBiasPin.value
+        else:
+            return 0.0
+
     def getCookedValue(self):
         self.getRawValue()
-        return self.conv_func(self)
+        return self.conv_func(self) * self.gain + self.bias
 
     def setHALPins(self):
         self.halValuePin.value = self.getCookedValue()
