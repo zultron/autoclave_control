@@ -23,17 +23,17 @@ USER = $(SUDO_USER)
 # System user ID
 ROOT_USER = $(SUDO_USER)
 # For saved state
-VAR_DIR = $(PWD)/rrd
+VAR_DIR = $(CURDIR)/rrd
 # For configuration
-ETC_DIR = $(PWD)/etc
+ETC_DIR = $(CURDIR)/etc
 # HAL configs
-HAL_DIR = $(PWD)/hal
+HAL_DIR = $(CURDIR)/hal
 # Executables
-BIN_DIR = $(PWD)/bin
+BIN_DIR = $(CURDIR)/bin
 # Python lib
-PYTHON_DIR = $(PWD)/lib/python
+PYTHON_DIR = $(CURDIR)/lib/python
 # QML files
-SHARE_DIR = $(PWD)
+SHARE_DIR = $(CURDIR)
 endif
 
 
