@@ -18,6 +18,7 @@ class Config(object):
             os.environ.get('AUTOCLAVE_CONFIG',None),
             os.path.join(os.path.dirname(__file__),'..','..','etc'),
             '/etc/autoclave')
+        paths = [os.path.abspath(i) for i in paths if i is not None]
         for path in paths:
             if path is None:
                 continue
