@@ -148,7 +148,7 @@ def loop():
                 # "--width=1000", "--height=500",
                 "--width=600", "--height=300",
                 "--color=CANVAS#8080ff", # light blue
-                "--upper-limit=150", "--lower-limit=0", "--rigid",
+                "--upper-limit=170", "--lower-limit=0", "--rigid",
 
                 # Define the curve values and render them
                 # https://oss.oetiker.ch/rrdtool/doc/rrdgraph_data.en.html
