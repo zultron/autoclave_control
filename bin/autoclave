@@ -154,6 +154,8 @@ try:
 except subprocess.CalledProcessError as e:
     sys.stderr.write("Subprocess error:  %s\n" % e)
     exit_status = 1
+except Exception as e:
+    print e
 finally:
     if not args.run:
         time.sleep(1) # Let other comps do their stuff & exit
