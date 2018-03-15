@@ -134,6 +134,31 @@ net shutdown                        => autoclave-control.shutdown
 
 
 # ################################################
+# Temp signal filters
+# ################################################
+
+# Lowpass filter comps:  filter out <10s. lambda noise (main-thread 10 Hz)
+# https://www.embeddedrelated.com/showarticle/779.php
+# delta_t = 0.1; tau = 10; gain = alpha = 0.1/10 = 0.01
+# In simulation, this leads to 0.5 deg. error when heating up
+#
+# - Pot
+newinst lowpass temp-pot
+net temp-pot-raw                    => temp-pot.in
+net temp-pot                        <= temp-pot.out
+setp temp-pot.gain                  0.01
+setp temp-pot.load                  1
+addf temp-pot                       main-thread
+#
+# - Burner
+newinst lowpass temp-burner
+net temp-burner-raw                 => temp-burner.in
+net temp-burner                     <= temp-burner.out
+setp temp-burner.gain               0.01
+setp temp-burner.load               1
+addf temp-burner                    main-thread
+
+# ################################################
 # Burner duty cycle PID
 # ################################################
 
@@ -289,6 +314,11 @@ loadusr -W autoclave-remote
 
 # Start threads
 start
+
+# Unload low-pass filters after a pause
+loadusr -w sleep 1
+setp temp-pot.load                  0
+setp temp-burner.load               0
 
 # Start haltalk server after everything is initialized or binding the
 # remote components on the UI might fail

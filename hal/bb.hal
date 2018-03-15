@@ -18,9 +18,9 @@
 # - Load thermistor comp
 loadusr -Wn therm hal_temp_bbb -n therm -c 01:epcos_B57560G1104,03:epcos_B57560G1104 -b CRAMPS -r 1000 -f 40
 # - Burner temp signal
-net temp-burner                     <= therm.ch-01.value
+net temp-burner-raw                 <= therm.ch-01.value
 # - Pot temp signal
-net temp-pot                        <= therm.ch-03.value
+net temp-pot-raw                    <= therm.ch-03.value
 
 # ################
 # Pressure sensor
@@ -31,7 +31,7 @@ net pressure                        <= hal_press_bbb.ch-05.value
 # ################
 # Threads
 
-# - One slow thread
+# - One slow thread, 10 Hz
 loadrt threads name1=main-thread period1=100000000
 
 # ################

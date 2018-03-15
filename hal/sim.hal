@@ -13,9 +13,9 @@
 # Simulator comp
 loadusr -W autoclave-sim-temp
 # - Burner temp in signal
-net temp-burner                     <= autoclave-sim-temp.temp-burner
+net temp-burner-raw                 <= autoclave-sim-temp.temp-burner
 # - Pot temp in signal
-net temp-pot                        <= autoclave-sim-temp.temp-pot
+net temp-pot-raw                    <= autoclave-sim-temp.temp-pot
 # - Pressure in signal
 net pressure                        <= autoclave-sim-temp.pressure
 # - Burner SSR on/off
@@ -31,5 +31,5 @@ net shutdown                        => autoclave-sim-temp.shutdown
 # ################
 # Threads
 
-# - One slow thread
+# - One slow thread, 10 Hz
 loadrt threads name1=main-thread period1=100000000
