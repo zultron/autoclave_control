@@ -146,16 +146,16 @@ net shutdown                        => autoclave-control.shutdown
 newinst lowpass temp-pot
 net temp-pot-raw                    => temp-pot.in
 net temp-pot                        <= temp-pot.out
+net load                            => temp-pot.load
 setp temp-pot.gain                  0.01
-setp temp-pot.load                  1
 addf temp-pot                       main-thread
 #
 # - Burner
 newinst lowpass temp-burner
 net temp-burner-raw                 => temp-burner.in
 net temp-burner                     <= temp-burner.out
+net load                            => temp-burner.load
 setp temp-burner.gain               0.01
-setp temp-burner.load               1
 addf temp-burner                    main-thread
 
 # ################################################
@@ -315,10 +315,10 @@ loadusr -W autoclave-remote
 # Start threads
 start
 
-# Unload low-pass filters after a pause
+# Load/unload low-pass filters after a pause
+sets load                           1
 loadusr -w sleep 1
-setp temp-pot.load                  0
-setp temp-burner.load               0
+sets load                           0
 
 # Start haltalk server after everything is initialized or binding the
 # remote components on the UI might fail
