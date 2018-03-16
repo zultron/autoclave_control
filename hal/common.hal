@@ -180,9 +180,9 @@ net temp-pot-ddt                    => burner.feedback-deriv
 #   - If I is too high, will have to go back to zero and start over
 # - Set D so that overshoot is minimal, but doesn't slow down too early
 # - Test going downward
-setp burner.Pgain                   15.00
-setp burner.Igain                    0.44
-setp burner.Dgain                   75.00
+setp burner.Pgain                    1.00
+setp burner.Igain                    0.10
+setp burner.Dgain                    80.00
 setp burner.maxerrorI                2.00
 setp burner.maxoutput                1.00
 net enable                          => burner.enable
