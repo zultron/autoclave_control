@@ -190,6 +190,17 @@ net burner-duty-raw                 <= burner.output
 
 
 # ################################################
+# Burner low-pass filter
+# ################################################
+
+newinst lowpass burner-duty
+net burner-duty-raw                 => burner-duty.in
+net burner-duty-filtered            <= burner-duty.out
+net load                            => burner-duty.load
+setp burner-duty.gain               0.1
+addf burner-duty                    main-thread
+
+# ################################################
 # Burner PID feedback derivative
 # ################################################
 
@@ -207,7 +218,7 @@ net temp-pot-ddt                    <= temp-ddt.out
 # Allow control to force duty cycle on or off
 newinst sum2 burner-override
 addf burner-override                main-thread
-net burner-duty-raw                 => burner-override.in0
+net burner-duty-filtered            => burner-override.in0
 net burner-override                 => burner-override.in1
 net burner-duty-plus-override       <= burner-override.out
 
