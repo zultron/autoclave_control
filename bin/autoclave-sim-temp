@@ -53,11 +53,11 @@ pot_heat_transfer_weights = [
 # - pot water volume
 water_volume_qts = 3.00 # qts.
 # - burner power
-burner_power_watts = 1500 # W
+burner_power_watts = 1200 # W; measured 10.3A on meter
 # - burner heat capacity (totally arbitrary)
-burner_heat_cap = 500.0 # Cal./degree C
+burner_heat_cap = 1450.0 # Cal./degree C
 # - pot heat leakage
-leakage_factor = 0.05/100 # % heat loss (to ambient) per second
+leakage_factor = 0.04/100 # % heat loss (to ambient) per second
 # - Thermagon k
 thermagon_k = 3.0 # W/(mK)
 # - burner diameter
@@ -84,6 +84,8 @@ burner_A = math.pi * (burner_dia)**2 # m^2
 thermagon_L = thermagon_L_inches * m_per_in # m
 # - Burner heat transfer factor:  heat_transfer * temp_delta = transfer in W
 transfer_factor = thermagon_k * burner_A / thermagon_L
+# - FIXME fudge this
+transfer_factor *= 0.13
 
 # Other calculations
 # - Burner power
