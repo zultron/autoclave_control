@@ -197,7 +197,7 @@ newinst lowpass burner-duty
 net burner-duty-raw                 => burner-duty.in
 net burner-duty-filtered            <= burner-duty.out
 net load                            => burner-duty.load
-setp burner-duty.gain               0.01
+setp burner-duty.gain               0.1
 addf burner-duty                    main-thread
 
 # ################################################
