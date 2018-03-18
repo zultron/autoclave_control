@@ -116,12 +116,14 @@ net pressure-bias                   <= autoclave-control.pressure-bias
 net pressure-gain                   <= autoclave-control.pressure-gain
 net pressure-max                    <= autoclave-control.pressure-max
 # - Pot temperature, deg. C
-net temp-pot                        => autoclave-control.temp-pot
+net temperature                     => autoclave-control.temperature
+# - Pot thermistor
+net temp-pot-therm                  => autoclave-control.temp-pot
 net temp-pot-bias                   <= autoclave-control.temp-pot-bias
 net temp-pot-gain                   <= autoclave-control.temp-pot-gain
 net temp-pot-max                    <= autoclave-control.temp-pot-max
-# - Burner temperature, deg. C
-net temp-burner                     => autoclave-control.temp-burner
+# - Burner thermistor
+net temp-burner-therm               => autoclave-control.temp-burner
 net temp-burner-bias                <= autoclave-control.temp-burner-bias
 net temp-burner-gain                <= autoclave-control.temp-burner-gain
 net temp-burner-max                 <= autoclave-control.temp-burner-max
@@ -150,7 +152,7 @@ net shutdown                        => autoclave-control.shutdown
 #
 # - Pot
 newinst lowpass temp-pot
-net temp-pot-raw                    => temp-pot.in
+net temp-pot-therm                  => temp-pot.in
 net temp-pot                        <= temp-pot.out
 net load                            => temp-pot.load
 setp temp-pot.gain                  0.05
@@ -158,11 +160,60 @@ addf temp-pot                       main-thread
 #
 # - Burner
 newinst lowpass temp-burner
-net temp-burner-raw                 => temp-burner.in
+net temp-burner-therm               => temp-burner.in
 net temp-burner                     <= temp-burner.out
 net load                            => temp-burner.load
 setp temp-burner.gain               0.05
 addf temp-burner                    main-thread
+
+# ################################################
+# Pressure to temp conversion
+# ################################################
+
+# Boiling point of water at 1 atm. (14.7 PSIA) is about 100 deg.;
+# at 14.7 + 15.0 PSIA (at sea level) is 121 deg;
+# use 21.0 deg. / 15.0 PSIG = 1.4 deg./PSI as conversion factor, so:
+# deg = PSIG * 1.4 deg/PSIG + 100 deg
+
+newinst sum2 press-to-temp
+net pressure                        => press-to-temp.in0
+setp press-to-temp.gain0            1.4
+setp press-to-temp.in1              100
+net temp-pressure                   <= press-to-temp.out
+addf press-to-temp                  main-thread
+
+# ################################################
+# Temp switch
+# ################################################
+
+# The pressure sensor is much more stable than the thermistors, but
+# can only be used above 100 deg.  Feedback signal stability allows
+# better control, and this is important esp. at high pressures.  The
+# following creates a blended temperature signal from the thermistor
+# and pressure sensors.
+
+# Base signal on:
+# - temp-pot below 5 PSI
+# - temp-pressure above 10 PSI
+# - fade from temp-pot to temp-pressure between 5 and 10 PSI
+
+# The select signal:  convert the 5-10 PSI range into 0.0-1.0 with
+# pressure/5.0 - 1.0 (values outside that range are clipped)
+newinst sum2 temp-blend-select
+net pressure                        => temp-blend-select.in0
+setp temp-blend-select.gain0        0.2
+setp temp-blend-select.in1          -1.0
+net temp-blend-select               <= temp-blend-select.out
+addf temp-blend-select              main-thread
+
+# The blended signal
+newinst blend temp-blend
+net temp-pressure                   => temp-blend.in1
+net temp-pot                        => temp-blend.in2
+net temp-blend-select               => temp-blend.select
+net temperature                     <= temp-blend.out
+setp temp-blend.open                0
+addf temp-blend                     main-thread
 
 # ################################################
 # Burner duty cycle PID
@@ -176,8 +227,8 @@ addf burner.do-pid-calcs            main-thread
 # PID input
 net temp-set                        => burner.command
 # PID feedback
-net temp-pot                        => burner.feedback
-net temp-pot-ddt                    => burner.feedback-deriv
+net temperature                     => burner.feedback
+net temp-ddt                        => burner.feedback-deriv
 # PID parameters; see http://linuxcnc.org/docs/html/motion/pid-theory.html
 # Tuning:
 # - Set I + D to zero
@@ -214,12 +265,12 @@ addf burner-duty                    main-thread
 # MK PID comp seems to have dropped internal derivative code
 newinst ddt temp-ddt
 addf temp-ddt                       main-thread
-net temp-pot-raw                    => temp-ddt.in
-net temp-pot-ddt-raw                <= temp-ddt.out
+net temperature                     => temp-ddt.in
+net temp-ddt-raw                    <= temp-ddt.out
 
 newinst lowpass temp-ddt-filter
-net temp-pot-ddt-raw                => temp-ddt-filter.in
-net temp-pot-ddt                    <= temp-ddt-filter.out
+net temp-ddt-raw                    => temp-ddt-filter.in
+net temp-ddt                        <= temp-ddt-filter.out
 net load                            => temp-ddt-filter.load
 setp temp-ddt-filter.gain           0.003
 addf temp-ddt-filter                main-thread
@@ -300,6 +351,7 @@ net temp-set                        => autoclave-logger.temp-set
 net burner-duty                     => autoclave-logger.burner-duty
 net valve-on                        => autoclave-logger.valve-on
 # - Temperatures & pressure inputs
+net temperature                     => autoclave-logger.temperature
 net temp-burner                     => autoclave-logger.temp-burner
 net temp-pot                        => autoclave-logger.temp-pot
 net pressure                        => autoclave-logger.pressure

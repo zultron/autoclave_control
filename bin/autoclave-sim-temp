@@ -24,10 +24,10 @@ h.newpin("shutdown", hal.HAL_BIT, hal.HAL_IN)
 
 # Outputs:  
 # - Simulated burner temp
-h.newpin("temp-burner", hal.HAL_FLOAT, hal.HAL_OUT)
+h.newpin("temp-burner-therm", hal.HAL_FLOAT, hal.HAL_OUT)
 h.newpin("temp-burner-real", hal.HAL_FLOAT, hal.HAL_OUT)
 # - Simulated pot temp
-h.newpin("temp-pot", hal.HAL_FLOAT, hal.HAL_OUT)
+h.newpin("temp-pot-therm", hal.HAL_FLOAT, hal.HAL_OUT)
 h.newpin("temp-pot-real", hal.HAL_FLOAT, hal.HAL_OUT)
 # - Simulated pot pressure
 h.newpin("pressure", hal.HAL_FLOAT, hal.HAL_OUT)
@@ -102,8 +102,8 @@ h.ready()
 
 # State variables
 elapsed = 0.0
-temp_burner = h['temp-burner']
-temp_pot = h['temp-pot']
+temp_burner = h['temp-burner-therm']
+temp_pot = h['temp-pot-therm']
 burner_heat_transfer_ary = [0.0] * len(burner_heat_transfer_weights)
 pot_heat_transfer_ary = [0.0] * len(pot_heat_transfer_weights)
 burner_heat = 0.0
@@ -191,9 +191,9 @@ try:
         # Output values
         # - Add +/- 0.2 deg. sensor error on temp sensors
         h['temp-pot-real'] = temp_pot
-        h['temp-pot'] = temp_pot + random.triangular(-0.2,0.2,0)
+        h['temp-pot-therm'] = temp_pot + random.triangular(-0.2,0.2,0)
         h['temp-burner-real'] = temp_burner
-        h['temp-burner'] = temp_burner + random.triangular(-0.2,0.2,0)
+        h['temp-burner-therm'] = temp_burner + random.triangular(-0.2,0.2,0)
         h['pressure'] = pressure
 
         # Periodically print updates

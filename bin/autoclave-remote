@@ -43,6 +43,7 @@ pin_data = [
     # Sensors in/limits out
     ('pressure',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
     ('pressure-max',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
+    ('temperature',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
     ('temp-pot',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
     ('temp-pot-max',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
     ('temp-burner',		hal.HAL_FLOAT,	hal.HAL_IN,	False),

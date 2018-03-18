@@ -245,7 +245,7 @@ HalApplicationWindow {
 	// Temperature
 	Autoclave.HALGraphicReadout {
 	    id: temp_pot
-	    name: "temp-pot"
+	    name: "temperature"
 	    suffix: "°C"
             x: base.width - base.indicatorSize - base.borderSize * 0.5
             y: base.borderSize * 0.5 + (base.indicatorSize + base.indicatorBorder) * 3.0

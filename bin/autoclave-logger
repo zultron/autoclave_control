@@ -18,6 +18,7 @@ h.newpin("temp-set", hal.HAL_FLOAT, hal.HAL_IN)
 h.newpin("burner-duty", hal.HAL_FLOAT, hal.HAL_IN)
 h.newpin("valve-on", hal.HAL_BIT, hal.HAL_IN)
 # - Temperatures and pressure
+h.newpin("temperature", hal.HAL_FLOAT, hal.HAL_IN)
 h.newpin("temp-burner", hal.HAL_FLOAT, hal.HAL_IN)
 h.newpin("temp-pot", hal.HAL_FLOAT, hal.HAL_IN)
 h.newpin("pressure", hal.HAL_FLOAT, hal.HAL_IN)
@@ -65,6 +66,7 @@ if not os.path.exists(rrdtool_db):
         "DS:pres:GAUGE:%d:U:U" % (rrdtool_period*2),
         "DS:duty:GAUGE:%d:U:U" % (rrdtool_period*2),
         "DS:btemp:GAUGE:%d:U:U" % (rrdtool_period*2),
+        "DS:ptemp:GAUGE:%d:U:U" % (rrdtool_period*2),
         "DS:valve:GAUGE:%d:U:U" % (rrdtool_period*2),
         "DS:estop:GAUGE:%d:U:U" % (rrdtool_period*2),
         "DS:error:GAUGE:%d:U:U" % (rrdtool_period*2),
@@ -103,6 +105,7 @@ def loop():
     stage = h['stage']
     temp_set = h['temp-set']
     # - Readings
+    temperature = h['temperature']
     temp_pot = h['temp-pot']
     pressure = h['pressure']
     valve_on += h['valve-on']
@@ -124,11 +127,12 @@ def loop():
     if (now - last_sample) > rrdtool_period and sample_periods > 1:
         # Time for new sample
         # - Update RRD database
-        u1 = '--template=stage:set:temp:pres:duty:btemp:valve:estop:error:disable'
-        u2 = 'N:%d:%.1f:%.1f:%.1f:%.2f:%.2f:%.1f:%.2f:%.2f:%.2f' % tuple(
+        u1 = '--template=stage:set:temp:pres:duty:btemp:ptemp:valve:estop:error:disable'
+        u2 = 'N:%d:%.1f:%.1f:%.1f:%.2f:%.1f:%.1f:%.2f:%.2f:%.2f:%.2f' % tuple(
             [max (j,0) for j in # Sometimes random values on stop/start
              # Temperatures
-             [stage, temp_set, temp_pot, pressure, burner_duty, temp_burner] +
+             [stage, temp_set, temperature, pressure, burner_duty, temp_burner,
+              temp_pot] +
              # Cumulative vars scaled to percentages
              [float(i)/sample_periods for i in (
                  valve_on, estop, error, disable)]])
@@ -176,7 +180,7 @@ def loop():
                 "COMMENT:Curves\:",
                 # - Measured temp: red area
                 "DEF:temp=%s:temp:AVERAGE" % (rrdtool_db),
-	        "AREA:temp#ff0000:Temperature",
+	        "AREA:temp#ff0000:Temperature (blended)",
                 # - Valve-on: blue curve following temp
 	        "DEF:valve=%s:valve:AVERAGE" % (rrdtool_db),
 	        "CDEF:valve-curve=valve,0.01,GT,temp,UNKN,IF",
@@ -185,12 +189,15 @@ def loop():
                 "DEF:pres=%s:pres:AVERAGE" % (rrdtool_db),
 	        "CDEF:pres-curve=pres,0.2,GT,pres,100,+,UNKN,IF",
 	        "LINE3:pres-curve#ff8000:Pressure",
-                # - Set temp:  dark grey curve
+                # - Set temp:  dark grey area
                 "DEF:set=%s:set:AVERAGE" % (rrdtool_db),
                 "AREA:set#00000040:Set temp",
 	        # - Burner temp:  dashed orange curve
                 "DEF:btemp=%s:btemp:AVERAGE" % (rrdtool_db),
 	        "LINE2:btemp#ff8000:dashes:Burner temp",
+                # - Pot thermistor temp: translucent grey curve
+                "DEF:ptemp=%s:ptemp:AVERAGE" % (rrdtool_db),
+	        "LINE2:ptemp#00000080:Pot temp",
                 # - Burner duty:  thin green curve
                 "DEF:duty=%s:duty:AVERAGE" % (rrdtool_db),
                 "CDEF:duty-curve=duty,10,*,100,+",

@@ -13,9 +13,9 @@
 # Simulator comp
 loadusr -W autoclave-sim-temp
 # - Burner temp in signal
-net temp-burner-raw                 <= autoclave-sim-temp.temp-burner
+net temp-burner-therm               <= autoclave-sim-temp.temp-burner-therm
 # - Pot temp in signal
-net temp-pot-raw                    <= autoclave-sim-temp.temp-pot
+net temp-pot-therm                  <= autoclave-sim-temp.temp-pot-therm
 # - Pressure in signal
 net pressure                        <= autoclave-sim-temp.pressure
 # - Burner SSR on/off

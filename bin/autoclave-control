@@ -66,6 +66,7 @@ pin_data = [
     ('pressure-max',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
     ('pressure-bias',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
     ('pressure-gain',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
+    ('temperature',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
     ('temp-pot',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
     ('temp-pot-max',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
     ('temp-pot-bias',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
@@ -101,7 +102,7 @@ def stage_temp_reached():
         return False # Not a temp stage
     # msg.info("stage %s:  temp-pot %.1f; %s-temp-set %.1f" %
     #          (s, h['temp-pot'], s, h['%s-temp-set' % s]))
-    return abs(h['%s-temp-set' % s] - h['temp-pot']) <= set_sense_delta
+    return abs(h['%s-temp-set' % s] - h['temperature']) <= set_sense_delta
 
 def enter_stage(stage_name, init=False):
     now = time.time()
@@ -170,12 +171,13 @@ def loop():
     
     now = time.time()
     if state['elapsed'] % status_interval < time_incr:
-        msg.info("Status:  %s %s/%s; stage time %.1f; temp %.1f (burner %.1f)" % (
-            current_stage(),
-            'enabled' if h['enable'] else 'disabled',
-            'started' if h['start'] else 'stopped',
-            h['%s-time' % current_stage()],
-            h['temp-pot'], h['temp-burner']))
+        msg.info("Status:  %s %s/%s; stage time %.1f; temp %.1f "
+                 "(therm %.1f, burner %.1f)" % (
+                     current_stage(),
+                     'enabled' if h['enable'] else 'disabled',
+                     'started' if h['start'] else 'stopped',
+                     h['%s-time' % current_stage()],
+                     h['temperature'], h['temp-pot'], h['temp-burner']))
 
     # Save settings
     if state['elapsed'] % save_interval < time_incr:
@@ -282,7 +284,7 @@ def loop():
         now - state.get('%s-time-start' % stage_name, now))
     # - Stage temperature
     if stage_name not in timed_stages:
-        h['%s-temp' % stage_name] = h['temp-pot']
+        h['%s-temp' % stage_name] = h['temperature']
 
     return True
 

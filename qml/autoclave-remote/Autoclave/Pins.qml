@@ -72,6 +72,31 @@ Item {
     }
 
     Item {
+	id: temp_pot
+	property double value
+	property bool synced
+
+	HalPin {
+            id: temp_pot_pin
+            name: "temp-pot"
+            type: HalPin.Float
+            direction: HalPin.In
+	}
+
+	Binding {
+	    target: temp_pot;
+	    property: "value";
+	    value: temp_pot_pin.value;
+	}
+
+	Binding {
+	    target: temp_pot;
+	    property: "synced";
+	    value: temp_pot_pin.synced;
+	}
+    }
+
+    Item {
 	id: temp_pot_max
 	property double value
 	property bool synced
