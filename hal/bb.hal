@@ -19,14 +19,20 @@
 loadusr -Wn therm hal_temp_bbb -n therm -c 01:epcos_B57560G1104,03:epcos_B57560G1104 -b CRAMPS -r 1000 -f 40
 # - Burner temp signal
 net temp-burner-raw                 <= therm.ch-01.value
+net temp-burner-bias                => therm.ch-01.bias
+net temp-burner-gain                => therm.ch-01.gain
 # - Pot temp signal
 net temp-pot-raw                    <= therm.ch-03.value
+net temp-pot-bias                   => therm.ch-03.bias
+net temp-pot-gain                   => therm.ch-03.gain
 
 # ################
 # Pressure sensor
 # - 5V pressure sensor on AIN5
 loadusr -W hal_press_bbb -c 05
 net pressure                        <= hal_press_bbb.ch-05.value
+net pressure-bias                   => hal_press_bbb.ch-05.bias
+net pressure-gain                   => hal_press_bbb.ch-05.gain
 
 # ################
 # Threads

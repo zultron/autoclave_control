@@ -112,12 +112,18 @@ net valve-on-input                  <= autoclave-control.valve-on
 # Sensors in/limits out
 # - Pressure
 net pressure                        => autoclave-control.pressure
+net pressure-bias                   <= autoclave-control.pressure-bias
+net pressure-gain                   <= autoclave-control.pressure-gain
 net pressure-max                    <= autoclave-control.pressure-max
 # - Pot temperature, deg. C
 net temp-pot                        => autoclave-control.temp-pot
+net temp-pot-bias                   <= autoclave-control.temp-pot-bias
+net temp-pot-gain                   <= autoclave-control.temp-pot-gain
 net temp-pot-max                    <= autoclave-control.temp-pot-max
 # - Burner temperature, deg. C
 net temp-burner                     => autoclave-control.temp-burner
+net temp-burner-bias                <= autoclave-control.temp-burner-bias
+net temp-burner-gain                <= autoclave-control.temp-burner-gain
 net temp-burner-max                 <= autoclave-control.temp-burner-max
 
 # Other status

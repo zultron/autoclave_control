@@ -7,8 +7,8 @@ bb_bbio_file: @ETC_DIR@/overlay-bb.bbio
 share_dir: @SHARE_DIR@
 limits:
   pressure-max: 15.1
-  temp-burner-max: 200.0
   temp-pot-max: 121.1
+  temp-burner-max: 200.0
 defaults:
   idle-temp-set: 80.0
   boil-temp-set: 100.0
@@ -16,3 +16,9 @@ defaults:
   heat-temp-set: 121.0
   ster-time-set: 1800
   cool-temp-set: 99.0
+  pressure-bias: 0.0
+  pressure-gain: 1.0
+  temp-pot-bias: 0.0
+  temp-pot-gain: 1.0
+  temp-burner-bias: 0.0
+  temp-burner-gain: 1.0

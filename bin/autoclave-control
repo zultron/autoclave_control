@@ -64,10 +64,16 @@ pin_data = [
     # Sensors in/limits out
     ('pressure',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
     ('pressure-max',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
+    ('pressure-bias',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
+    ('pressure-gain',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
     ('temp-pot',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
     ('temp-pot-max',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
+    ('temp-pot-bias',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
+    ('temp-pot-gain',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
     ('temp-burner',		hal.HAL_FLOAT,	hal.HAL_IN,	False),
     ('temp-burner-max',		hal.HAL_FLOAT,	hal.HAL_OUT,	True),
+    ('temp-burner-bias',	hal.HAL_FLOAT,	hal.HAL_OUT,	True),
+    ('temp-burner-gain',	hal.HAL_FLOAT,	hal.HAL_OUT,	True),
     # Other status
     ('time-elapsed',		hal.HAL_S32,	hal.HAL_OUT,	False),
     ('enable',			hal.HAL_BIT,	hal.HAL_IN,	False),
