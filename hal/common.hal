@@ -207,14 +207,14 @@ addf burner-duty                    main-thread
 # MK PID comp seems to have dropped internal derivative code
 newinst ddt temp-ddt
 addf temp-ddt                       main-thread
-net temp-pot                        => temp-ddt.in
+net temp-pot-raw                    => temp-ddt.in
 net temp-pot-ddt-raw                <= temp-ddt.out
 
 newinst lowpass temp-ddt-filter
 net temp-pot-ddt-raw                => temp-ddt-filter.in
 net temp-pot-ddt                    <= temp-ddt-filter.out
 net load                            => temp-ddt-filter.load
-setp temp-ddt-filter.gain           0.01
+setp temp-ddt-filter.gain           0.003
 addf temp-ddt-filter                main-thread
 
 # ################################################
