@@ -86,7 +86,8 @@ class Config(object):
             new_config[param] = comp[param]
         if old_config != new_config:
             changed_list = ["%s=%s" % (k,v) for k,v in new_config.items()
-                            if old_config[k] != new_config[k]]
+                            if old_config.get(k,None) is None or
+                            old_config[k] != new_config[k]]
             Messages.info("Updating saved state:  %s" % ";".join(changed_list))
             tmp = "%s.tmp" % self.state_file
             with open(tmp, 'w') as f:
