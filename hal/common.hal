@@ -182,8 +182,8 @@ net temp-pot-ddt                    => burner.feedback-deriv
 # - Set I to take out any chronic error
 # - Test going downward
 setp burner.Pgain                     8.00
-setp burner.Igain                     0.50
-setp burner.Dgain                   650.00
+setp burner.Igain                     0.40
+setp burner.Dgain                   700.00
 setp burner.maxerrorI                 1.00
 setp burner.maxoutput                 1.00
 net enable                          => burner.enable
