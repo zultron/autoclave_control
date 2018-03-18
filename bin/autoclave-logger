@@ -192,7 +192,7 @@ def loop():
 	        "LINE2:btemp#ff8000:dashes:Burner temp",
                 # - Burner duty:  thin green curve
                 "DEF:duty=%s:duty:AVERAGE" % (rrdtool_db),
-                "CDEF:duty-curve=duty,10,*",
+                "CDEF:duty-curve=duty,10,*,100,+",
                 "LINE1:duty-curve#00ff00:Duty",
                 # - Stage:  ticks for changes
                 "DEF:stage=%s:stage:AVERAGE" % (rrdtool_db),
