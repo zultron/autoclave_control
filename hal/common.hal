@@ -147,7 +147,7 @@ newinst lowpass temp-pot
 net temp-pot-raw                    => temp-pot.in
 net temp-pot                        <= temp-pot.out
 net load                            => temp-pot.load
-setp temp-pot.gain                  0.001
+setp temp-pot.gain                  0.05
 addf temp-pot                       main-thread
 #
 # - Burner
@@ -155,7 +155,7 @@ newinst lowpass temp-burner
 net temp-burner-raw                 => temp-burner.in
 net temp-burner                     <= temp-burner.out
 net load                            => temp-burner.load
-setp temp-burner.gain               0.001
+setp temp-burner.gain               0.05
 addf temp-burner                    main-thread
 
 # ################################################
