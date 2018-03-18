@@ -79,6 +79,7 @@ estop = error = disable = valve_on = 0
 last_sample = time.time()
 sample_periods = 0
 start_time = time.time()
+graph_height = 170
 
 # Mark the component as 'ready'
 msg.info("Initialized")
@@ -148,26 +149,26 @@ def loop():
                 # "--width=1000", "--height=500",
                 "--width=600", "--height=300",
                 "--color=CANVAS#8080ff", # light blue
-                "--upper-limit=170", "--lower-limit=0", "--rigid",
+                "--upper-limit=%d" % graph_height, "--lower-limit=0", "--rigid",
 
                 # Define the curve values and render them
                 # https://oss.oetiker.ch/rrdtool/doc/rrdgraph_data.en.html
                 # https://oss.oetiker.ch/rrdtool/doc/rrdgraph_graph.en.html
 
-                # Binary statuses stacked in background; scaled to ~150 deg.
+                # Binary statuses stacked in background; scaled to ~170 deg.
                 "TEXTALIGN:left",
                 "COMMENT:Status (background)\:",
 	        # - Disable: black area
 	        "DEF:disable=%s:disable:AVERAGE" % (rrdtool_db),
-	        "CDEF:disable-curve=disable,0.01,GT,150,UNKN,IF",
+	        "CDEF:disable-curve=disable,0.01,GT,%d,UNKN,IF" % graph_height,
                 "AREA:disable-curve#000000:Disabled",
 	        # - Error:  orange area
 	        "DEF:error=%s:error:AVERAGE" % (rrdtool_db),
-	        "CDEF:error-curve=error,0.01,GT,150,UNKN,IF",
+	        "CDEF:error-curve=error,0.01,GT,%d,UNKN,IF" % graph_height,
                 "AREA:error-curve#ff8000:Error",
                 # - Estop:  yellow area
 	        "DEF:estop=%s:estop:AVERAGE" % (rrdtool_db),
-	        "CDEF:estop-curve=estop,0.01,GT,150,UNKN,IF",
+	        "CDEF:estop-curve=estop,0.01,GT,%d,UNKN,IF" % graph_height,
                 "AREA:estop-curve#ffff00:Estop\\n",
 
                 # Sampled data in foreground
