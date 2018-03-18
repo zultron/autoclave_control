@@ -301,16 +301,9 @@ saved_state = config.read_state()
 # Set up component
 h = hal.component("autoclave-control")
 
-# Init pins and pin values
+# Init pins
 for name, hal_type, hal_dir, save in pin_data:
     h.newpin(name, hal_type, hal_dir)
-    if hal_dir == hal.HAL_IN:
-        # input pins don't need init
-        continue
-    if name in saved_state:
-        # init from config file
-        h[name] = saved_state.get(name)
-        msg.info("Restored setting %s = %s" % (name,h[name]))
 
 # Dict to persist state across cycles
 state = dict()
@@ -321,6 +314,21 @@ enter_stage('idle', init=True)
 # Mark the component as 'ready'
 msg.info("Initialized")
 h.ready()
+
+# Init pin values
+#
+# FIXME: This can't be done above at pin init time because when the
+# pin is netted to a signal, the pin value is set to the signal value,
+# even though it's an output pin!
+time.sleep(1.0)
+for name, hal_type, hal_dir, save in pin_data:
+    if hal_dir == hal.HAL_IN:
+        # input pins don't need init
+        continue
+    if name in saved_state:
+        # init from config file
+        h[name] = saved_state.get(name)
+        msg.info("Restored setting %s = %s" % (name,h[name]))
 
 ##################################################################
 # Run
