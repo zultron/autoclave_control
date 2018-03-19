@@ -238,12 +238,16 @@ net temp-ddt                        => burner.feedback-deriv
 #   - Test that overshoot is minimal, but doesn't slow down too early
 # - Set I to take out any chronic error
 # - Test going downward
-setp burner.Pgain                     8.00
-setp burner.Igain                     0.55
-setp burner.Dgain                   800.00
-setp burner.maxerrorI                 1.00
-setp burner.maxoutput                 1.00
+setp burner.Pgain                   8.00
+setp burner.Igain                   0.3
+setp burner.Dgain                   5000.00
+#setp burner.maxerrorI               1.00
+setp burner.maxerrorI               0.00
+setp burner.maxoutput               1.00
 net enable                          => burner.enable
+# - No low-pass filter
+net burner-duty                     <= burner.output
+# - W/ low-pass filter
 net burner-duty-raw                 <= burner.output
 
 
@@ -251,12 +255,13 @@ net burner-duty-raw                 <= burner.output
 # Burner low-pass filter
 # ################################################
 
-newinst lowpass burner-duty
-net burner-duty-raw                 => burner-duty.in
-net burner-duty-filtered            <= burner-duty.out
-net load                            => burner-duty.load
-setp burner-duty.gain               0.1
-addf burner-duty                    main-thread
+# - W/ low-pass filter
+# newinst lowpass burner-duty
+# net burner-duty-raw                 => burner-duty.in
+# net burner-duty-filtered            <= burner-duty.out
+# net load                            => burner-duty.load
+# setp burner-duty.gain               0.1
+# addf burner-duty                    main-thread
 
 # ################################################
 # Burner PID feedback derivative w/low-pass
@@ -266,14 +271,17 @@ addf burner-duty                    main-thread
 newinst ddt temp-ddt
 addf temp-ddt                       main-thread
 net temperature                     => temp-ddt.in
-net temp-ddt-raw                    <= temp-ddt.out
+# - No lowpass filter
+net temp-ddt                        <= temp-ddt.out
 
-newinst lowpass temp-ddt-filter
-net temp-ddt-raw                    => temp-ddt-filter.in
-net temp-ddt                        <= temp-ddt-filter.out
-net load                            => temp-ddt-filter.load
-setp temp-ddt-filter.gain           0.001
-addf temp-ddt-filter                main-thread
+# - W/ low-pass filter
+# net temp-ddt-raw                    <= temp-ddt.out
+# newinst lowpass temp-ddt-filter
+# net temp-ddt-raw                    => temp-ddt-filter.in
+# net temp-ddt                        <= temp-ddt-filter.out
+# net load                            => temp-ddt-filter.load
+# setp temp-ddt-filter.gain           0.01
+# addf temp-ddt-filter                main-thread
 
 # ################################################
 # Burner PID override
