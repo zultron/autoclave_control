@@ -245,23 +245,10 @@ setp burner.Dgain                   5000.00
 setp burner.maxerrorI               0.00
 setp burner.maxoutput               1.00
 net enable                          => burner.enable
-# - No low-pass filter
-net burner-duty                     <= burner.output
-# - W/ low-pass filter
 net burner-duty-raw                 <= burner.output
 
-
-# ################################################
-# Burner low-pass filter
-# ################################################
-
-# - W/ low-pass filter
-# newinst lowpass burner-duty
-# net burner-duty-raw                 => burner-duty.in
-# net burner-duty-filtered            <= burner-duty.out
-# net load                            => burner-duty.load
-# setp burner-duty.gain               0.1
-# addf burner-duty                    main-thread
+# Debugging
+#newinst 
 
 # ################################################
 # Burner PID feedback derivative w/low-pass
@@ -283,21 +270,18 @@ net temp-ddt                        <= temp-ddt.out
 # setp temp-ddt-filter.gain           0.01
 # addf temp-ddt-filter                main-thread
 
-# ################################################
-# Burner PID override
-# ################################################
-
-# Allow control to force duty cycle on or off
-newinst sum2 burner-override
-addf burner-override                main-thread
-net burner-duty-filtered            => burner-override.in0
-net burner-override                 => burner-override.in1
-net burner-duty-plus-override       <= burner-override.out
-
 
 # ################################################
-# Burner duty cycle limited
+# Burner duty cycle filtering
 # ################################################
+
+# - W/ low-pass filter
+# newinst lowpass burner-duty
+# net burner-duty-raw                 => burner-duty.in
+# net burner-duty-filtered            <= burner-duty.out
+# net load                            => burner-duty.load
+# setp burner-duty.gain               0.1
+# addf burner-duty                    main-thread
 
 # Limit PID output to non-negative values
 # - Load limit1 comp
@@ -307,9 +291,20 @@ addf burner-limit                   main-thread
 setp burner-limit.min               0.0
 setp burner-limit.max               1.0
 # - Input
-net burner-duty-plus-override       => burner-limit.in
+net burner-duty-raw                 => burner-limit.in
 # - Output
-net burner-duty                     <= burner-limit.out
+net burner-duty-filtered            <= burner-limit.out
+
+# ################################################
+# Burner PID override
+# ################################################
+
+# Allow control to force duty cycle on or off
+newinst sum2 burner-override
+addf burner-override                main-thread
+net burner-duty-filtered            => burner-override.in0
+net burner-override                 => burner-override.in1
+net burner-duty                     <= burner-override.out
 
 
 # ################################################
