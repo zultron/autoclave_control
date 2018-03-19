@@ -283,17 +283,17 @@ addf burner-d                       main-thread
 newinst ddt temp-ddt
 addf temp-ddt                       main-thread
 net temperature                     => temp-ddt.in
-# - No lowpass filter
-net temp-ddt                        <= temp-ddt.out
+# # - No lowpass filter
+# net temp-ddt                        <= temp-ddt.out
 
 # - W/ low-pass filter
-# net temp-ddt-raw                    <= temp-ddt.out
-# newinst lowpass temp-ddt-filter
-# net temp-ddt-raw                    => temp-ddt-filter.in
-# net temp-ddt                        <= temp-ddt-filter.out
-# net load                            => temp-ddt-filter.load
-# setp temp-ddt-filter.gain           0.01
-# addf temp-ddt-filter                main-thread
+net temp-ddt-raw                    <= temp-ddt.out
+newinst lowpass temp-ddt-filter
+net temp-ddt-raw                    => temp-ddt-filter.in
+net temp-ddt                        <= temp-ddt-filter.out
+net load                            => temp-ddt-filter.load
+setp temp-ddt-filter.gain           0.05
+addf temp-ddt-filter                main-thread
 
 
 # ################################################
