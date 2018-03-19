@@ -8,25 +8,38 @@ loop_interval = 1 # Seconds per loop
 import rrdtool, hal, time, sys, os, datetime
 from autoclave import Config, Messages
 
-# Set up component
-h = hal.component("autoclave-logger")
 
-# Inputs:
-# - Process settings and outputs
-h.newpin("stage", hal.HAL_S32, hal.HAL_IN)
-h.newpin("temp-set", hal.HAL_FLOAT, hal.HAL_IN)
-h.newpin("burner-duty", hal.HAL_FLOAT, hal.HAL_IN)
-h.newpin("valve-on", hal.HAL_BIT, hal.HAL_IN)
-# - Temperatures and pressure
-h.newpin("temperature", hal.HAL_FLOAT, hal.HAL_IN)
-h.newpin("temp-burner", hal.HAL_FLOAT, hal.HAL_IN)
-h.newpin("temp-pot", hal.HAL_FLOAT, hal.HAL_IN)
-h.newpin("pressure", hal.HAL_FLOAT, hal.HAL_IN)
-# - Controls
-h.newpin("estop", hal.HAL_BIT, hal.HAL_IN)
-h.newpin("error", hal.HAL_BIT, hal.HAL_IN)
-h.newpin("enable", hal.HAL_BIT, hal.HAL_IN)
-h.newpin("shutdown", hal.HAL_BIT, hal.HAL_IN)
+# Pin creation data
+# (name, ds_name, hal_type)
+pin_data = [
+    # Process stage settings and status
+    # - Current stage ID
+    ('stage',		'stage',	hal.HAL_S32),
+    # Controls out
+    ('temp-set',	'set',          hal.HAL_FLOAT),
+    ('burner-duty',	'duty',         hal.HAL_FLOAT),
+    ('valve-on',	'valve',	hal.HAL_BIT),
+    # Sensors in/limits out
+    ('temperature',	'temp',         hal.HAL_FLOAT),
+    ('temp-burner',	'btemp',	hal.HAL_FLOAT),
+    ('temp-pot',	'ptemp',	hal.HAL_FLOAT),
+    ('pressure',	'pres', 	hal.HAL_FLOAT),
+    # Other status
+    ('estop',		'estop',	hal.HAL_BIT),
+    ('error',		'error',	hal.HAL_BIT),
+    ('enable',		'enable',	hal.HAL_BIT),
+    # Debugging
+    ('burner-p',	'burnp',	hal.HAL_FLOAT),
+    ('burner-i',	'burni',	hal.HAL_FLOAT),
+    ('burner-d',	'burnd',	hal.HAL_FLOAT),
+    # Shutdown
+    ('shutdown',	None,           hal.HAL_BIT),
+]
+
+# Set up component and pins
+h = hal.component("autoclave-logger")
+for name, ds_name, hal_type in pin_data:
+    h.newpin(name, hal_type, hal.HAL_IN)
 
 msg = Messages('Autoclave logger')
 config = Config()
@@ -60,24 +73,17 @@ if not os.path.exists(rrdtool_db):
         "--start=0",
         "--step=%s" % rrdtool_period,
         "--no-overwrite", # Don't clobber existing file
-        "DS:stage:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:set:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:temp:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:pres:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:duty:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:btemp:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:ptemp:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:valve:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:estop:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:error:GAUGE:%d:U:U" % (rrdtool_period*2),
-        "DS:disable:GAUGE:%d:U:U" % (rrdtool_period*2)] + \
-        [("RRA:AVERAGE:0.5:%(steps)s:%(rows)s" % i) for i in archives.values() ]
+        ]
+    for (name, ds_name, hal_type) in pin_data:
+        if ds_name is None:  continue
+        args.append("DS:%s:GAUGE:%d:U:U" % (ds_name, rrdtool_period*2))
+    args += [("RRA:AVERAGE:0.5:%(steps)s:%(rows)s" % i)
+             for i in archives.values() ]
     # for i in args:
     #     msg.info("Create arg:  %s" % i)
     rrdtool.create( *args )
 
 # Init vars
-estop = error = disable = valve_on = 0
 last_sample = time.time()
 sample_periods = 0
 start_time = time.time()
@@ -87,39 +93,32 @@ graph_height = 170
 msg.info("Initialized")
 h.ready()
 
+pid_curve_height = 60
+pid_curve_mult = 5
+def pid_curve_func(name):
+    res = "CDEF:%s-curve=" % name
+    # if name < 0 then (a) else (b)
+    res += "%s,0,LT,%%s,%%s,IF" % name
+    res %= (
+        # (a): -ln(-name+1)
+        "-1,%s,*,1,+,LOG,-1,*" % name,
+        # (b): ln(name+1)
+        "%s,1,+,LOG" % name,
+    )
+    # ... * multiplier + offset
+    res += ",%d,*,%d,+" % (pid_curve_mult, pid_curve_height)
+    return res
+
 def loop():
     time.sleep(loop_interval)
 
     # Use globals to maintain state
-    # - Cumulative
-    global estop
-    global error
-    global disable
-    global valve_on
-    # - Instantaneous
     global last_sample
     global sample_periods
 
-    # Take one sample for consistency
-    # - Settings
-    stage = h['stage']
-    temp_set = h['temp-set']
-    # - Readings
-    temperature = h['temperature']
-    temp_pot = h['temp-pot']
-    pressure = h['pressure']
-    valve_on += h['valve-on']
-    burner_duty = h['burner-duty']
-    temp_burner = h['temp-burner']
-    # - Status/controls
-    estop+= h['estop']
-    error+= h['error']
-    disable += 1 - h['enable']
-    shutdown = h['shutdown']
-
     # Exit
-    if shutdown:
-        msg.info("Got shutdown signal = %s" % shutdown)
+    if h['shutdown']:
+        msg.info("Got shutdown signal")
         return False
 
     # Log
@@ -127,17 +126,18 @@ def loop():
     if (now - last_sample) > rrdtool_period and sample_periods > 1:
         # Time for new sample
         # - Update RRD database
-        u1 = '--template=stage:set:temp:pres:duty:btemp:ptemp:valve:estop:error:disable'
-        u2 = 'N:%d:%.1f:%.1f:%.1f:%.2f:%.1f:%.1f:%.2f:%.2f:%.2f:%.2f' % tuple(
-            [max (j,0) for j in # Sometimes random values on stop/start
-             # Temperatures
-             [stage, temp_set, temperature, pressure, burner_duty, temp_burner,
-              temp_pot] +
-             # Cumulative vars scaled to percentages
-             [float(i)/sample_periods for i in (
-                 valve_on, estop, error, disable)]])
-        #msg.info("u1: %s" % u1) # Debugging
-        #msg.info("u2: %s" % u2)
+        u1 = '--template=' + ':'.join([i[1] for i in pin_data if i[1]])
+        u2 = 'N' # now
+        for name, ds_name, hal_type in pin_data:
+            if ds_name is None:  continue
+            if hal_type == hal.HAL_S32:
+                u2 += ':%d' % (h[name])
+            elif hal_type == hal.HAL_BIT:
+                u2 += ':%.2f' % float(h[name])
+            else:
+                u2 += ":%.2f" % (h[name])
+        # msg.info("u1: %s" % u1) # Debugging
+        # msg.info("u2: %s" % u2)
         rrdtool.update(rrdtool_db, u1, u2)
         # - Build new graphs
         for sched, params in archives.items():
@@ -163,8 +163,8 @@ def loop():
                 "TEXTALIGN:left",
                 "COMMENT:Status (background)\:",
 	        # - Disable: black area
-	        "DEF:disable=%s:disable:AVERAGE" % (rrdtool_db),
-	        "CDEF:disable-curve=disable,0.01,GT,%d,UNKN,IF" % graph_height,
+	        "DEF:enable=%s:enable:AVERAGE" % (rrdtool_db),
+	        "CDEF:disable-curve=enable,0.99,LT,%d,UNKN,IF" % graph_height,
                 "AREA:disable-curve#000000:Disabled",
 	        # - Error:  orange area
 	        "DEF:error=%s:error:AVERAGE" % (rrdtool_db),
@@ -206,12 +206,27 @@ def loop():
                 "DEF:stage=%s:stage:AVERAGE" % (rrdtool_db),
                 "CDEF:stage-ticks=stage,PREV(stage),-,ABS,0.5,GT",
                 "TICK:stage-ticks#000000:1",
+                # PID components
+                # - Burner P:  blue
+                "DEF:burnp=%s:burnp:AVERAGE" % (rrdtool_db),
+                pid_curve_func('burnp'),
+                "LINE1:burnp-curve#0000ff:burner-p",
+                # - Burner I:  grey
+                "DEF:burni=%s:burni:AVERAGE" % (rrdtool_db),
+                pid_curve_func('burni'),
+                "LINE1:burni-curve#a0a0a0:burner-i",
+                # - Burner D:  green
+                "DEF:burnd=%s:burnd:AVERAGE" % (rrdtool_db),
+                pid_curve_func('burnd'),
+                "LINE1:burnd-curve#ff0000:burner-d",
+                # - PID center: black
+                "CDEF:burn-cent=duty,0,*,%d,+" % pid_curve_height,
+                "LINE1:burn-cent#000000",
             )
         #msg.info("Updated RRD DB %s" % rrdtool_db)
         # - Reset state for next sample
         last_sample = now
         sample_periods = 0
-        disable = error = estop = valve_on = 0
 
     if (now - start_time) % status_interval < loop_interval:
         msg.info("ping")

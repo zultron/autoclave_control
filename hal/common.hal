@@ -229,6 +229,14 @@ net temp-set                        => burner.command
 # PID feedback
 net temperature                     => burner.feedback
 net temp-ddt                        => burner.feedback-deriv
+# PID debugging
+net burner-pgain                    <= burner.Pgain
+net burner-perr                     <= burner.error
+net burner-igain                    <= burner.Igain
+net burner-ierr                     <= burner.errorI
+net burner-dgain                    <= burner.Dgain
+net burner-derr                     <= burner.errorD
+
 # PID parameters; see http://linuxcnc.org/docs/html/motion/pid-theory.html
 # Tuning:
 # - Set I + D to zero
@@ -238,9 +246,9 @@ net temp-ddt                        => burner.feedback-deriv
 #   - Test that overshoot is minimal, but doesn't slow down too early
 # - Set I to take out any chronic error
 # - Test going downward
-setp burner.Pgain                   8.00
-setp burner.Igain                   0.3
-setp burner.Dgain                   5000.00
+sets burner-pgain                   8.00
+sets burner-igain                   0.3
+sets burner-dgain                   2000.00
 #setp burner.maxerrorI               1.00
 setp burner.maxerrorI               0.00
 setp burner.maxoutput               1.00
@@ -248,7 +256,24 @@ net enable                          => burner.enable
 net burner-duty-raw                 <= burner.output
 
 # Debugging
-#newinst 
+# - P
+newinst mult2 burner-p
+net burner-pgain                    => burner-p.in0
+net burner-perr                     => burner-p.in1
+net burner-p                        <= burner-p.out
+addf burner-p                       main-thread
+# - I
+newinst mult2 burner-i
+net burner-igain                    => burner-i.in0
+net burner-ierr                     => burner-i.in1
+net burner-i                        <= burner-i.out
+addf burner-i                       main-thread
+# - D
+newinst mult2 burner-d
+net burner-dgain                    => burner-d.in0
+net burner-derr                     => burner-d.in1
+net burner-d                        <= burner-d.out
+addf burner-d                       main-thread
 
 # ################################################
 # Burner PID feedback derivative w/low-pass
@@ -362,6 +387,10 @@ net pressure                        => autoclave-logger.pressure
 net estop                           => autoclave-logger.estop
 net error                           => autoclave-logger.error
 net enable                          => autoclave-logger.enable
+# - Debugging
+net burner-p                        => autoclave-logger.burner-p
+net burner-i                        => autoclave-logger.burner-i
+net burner-d                        => autoclave-logger.burner-d
 # - Shut down
 net shutdown                        => autoclave-logger.shutdown
 
