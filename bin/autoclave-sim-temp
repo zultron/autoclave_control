@@ -104,10 +104,8 @@ h.ready()
 elapsed = 0.0
 temp_burner = h['temp-burner-therm']
 temp_pot = h['temp-pot-therm']
-burner_heat_transfer_ary = [0.0] * len(burner_heat_transfer_weights)
-pot_heat_transfer_ary = [0.0] * len(pot_heat_transfer_weights)
 burner_heat = 0.0
-burner_pot_transfer_calories = 0.0
+pot_heat_transfer_in = 0.0
 pot_heat = 0.0
 pot_heat_old = 0.0
 error_seen = False
@@ -151,29 +149,15 @@ try:
         update_time = time_incr * speed_up
         # - Calories added by burner
         burner_calories = burner_power * burner_duty * update_time
-        # - Update burner heat transfer array
-        burner_heat_transfer_ary.append(burner_calories)
-        burner_heat_transfer_ary.pop(0)
-        # - Burner calories for transfer + measurement after delay
-        burner_heat_transfer_in = sum(
-            [temp*weight for (temp,weight) in
-             zip(burner_heat_transfer_ary,burner_heat_transfer_weights)])
         # - Burner total heat and temperature
         burner_heat_old = burner_heat
-        burner_heat = (burner_heat_old + burner_heat_transfer_in
-                       - burner_pot_transfer_calories) # cal.
+        burner_heat = (burner_heat_old + burner_calories
+                       - pot_heat_transfer_in) # cal.
         temp_burner = temp_ext + burner_heat / burner_heat_cap # deg. C
         # - Calories added to pot by heat transfer
         t_delta = temp_burner - temp_pot # deg. C
-        burner_pot_transfer_calories = (
+        pot_heat_transfer_in = (
             t_delta * transfer_factor / cal_per_s_to_w * update_time) # cal.
-        # - Update pot heat transfer array
-        pot_heat_transfer_ary.append(burner_pot_transfer_calories)
-        pot_heat_transfer_ary.pop(0)
-        # Pot calories in for measurement after delay
-        pot_heat_transfer_in = sum(
-            [temp*weight for (temp,weight) in
-             zip(pot_heat_transfer_ary,pot_heat_transfer_weights)])
         # Heat leakage from pot to outside
         leakage = pot_heat * (leakage_factor * update_time) # cal.
         # New pot heat
@@ -204,18 +188,12 @@ try:
             # Simulation debugging
             # msg.info("   burner_calories %.1f" % (
             #     burner_calories))
-            # msg.info("   burner_heat_transfer_in %.1f" % (
-            #     burner_heat_transfer_in))
-            # msg.info("   burner_heat_transfer_ary %s" % (
-            #     burner_heat_transfer_ary,))
             # msg.info("   burner_heat %.1f" % (
             #     burner_heat))
             # msg.info("   temp_burner %.1f" % (
             #     temp_burner))
             # msg.info("   t_delta %.1f" % (
             #     t_delta))
-            # msg.info("   burner_pot_transfer_calories %.1f" % (
-            #     burner_pot_transfer_calories))
             # msg.info("   pot_heat_transfer_in %.1f" % (
             #     pot_heat_transfer_in))
             # msg.info("   leakage %.1f" % (
