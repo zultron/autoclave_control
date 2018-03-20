@@ -265,7 +265,12 @@ addf burner-dd                      main-thread
 
 # Load PID comp
 newinst pid burner
-#newinst at_pid burner
+# newinst at_pid burner
+# setp burner.tuneCycles              50
+# setp burner.tuneEffort              0.9
+# setp burner.tuneMode                1
+# #setp burner.tuneStart               1
+
 addf burner.do-pid-calcs            main-thread
 
 # PID input
@@ -291,9 +296,10 @@ net burner-derr                     <= burner.errorD
 #   - Test that overshoot is minimal, but doesn't slow down too early
 # - Set I to take out any chronic error
 # - Test going downward
-sets burner-pgain                   8.00
-sets burner-igain                   0.3
-sets burner-dgain                   2000.00
+# Auto-tuned params; ultimate-gain 1.988243; ultimate-period 2.916911
+sets burner-pgain                   1.192946
+sets burner-igain                   0.8179512
+sets burner-dgain                   0.4349646
 sets burner-ddgain                  5000
 #setp burner.maxerrorI               1.00
 setp burner.maxerrorI               0.00
