@@ -32,6 +32,7 @@ pin_data = [
     ('burner-p',	'burnp',	hal.HAL_FLOAT),
     ('burner-i',	'burni',	hal.HAL_FLOAT),
     ('burner-d',	'burnd',	hal.HAL_FLOAT),
+    ('burner-dd',	'burndd',	hal.HAL_FLOAT),
     # Shutdown
     ('shutdown',	None,           hal.HAL_BIT),
 ]
@@ -218,7 +219,11 @@ def loop():
                 # - Burner D:  green
                 "DEF:burnd=%s:burnd:AVERAGE" % (rrdtool_db),
                 pid_curve_func('burnd'),
-                "LINE1:burnd-curve#ff0000:burner-d",
+                "LINE1:burnd-curve#00ff00:burner-d",
+                # - Burner DD:  dark green
+                "DEF:burndd=%s:burndd:AVERAGE" % (rrdtool_db),
+                pid_curve_func('burndd'),
+                "LINE1:burndd-curve#800000:burner-dd",
                 # - PID center: black
                 "CDEF:burn-cent=duty,0,*,%d,+" % pid_curve_height,
                 "LINE1:burn-cent#000000",
