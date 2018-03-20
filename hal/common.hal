@@ -216,7 +216,30 @@ setp temp-blend.open                0
 addf temp-blend                     main-thread
 
 # ################################################
-# Burner duty cycle PID
+# Burner PID input signals
+# ################################################
+
+# Add feedback derivative w/low-pass
+#
+# MK PID comp seems to have dropped internal derivative code
+
+# - Derivative
+newinst ddt temp-ddt
+net temperature                     => temp-ddt.in
+net temp-ddt-raw                    <= temp-ddt.out
+addf temp-ddt                       main-thread
+
+# - Low-pass filter
+newinst lowpass temp-ddt-filter
+net temp-ddt-raw                    => temp-ddt-filter.in
+net temp-ddt                        <= temp-ddt-filter.out
+net load                            => temp-ddt-filter.load
+setp temp-ddt-filter.gain           0.05
+addf temp-ddt-filter                main-thread
+
+
+# ################################################
+# Burner PID
 # ################################################
 
 # Load PID comp
@@ -276,28 +299,7 @@ net burner-d                        <= burner-d.out
 addf burner-d                       main-thread
 
 # ################################################
-# Burner PID feedback derivative w/low-pass
-# ################################################
-
-# MK PID comp seems to have dropped internal derivative code
-newinst ddt temp-ddt
-addf temp-ddt                       main-thread
-net temperature                     => temp-ddt.in
-# # - No lowpass filter
-# net temp-ddt                        <= temp-ddt.out
-
-# - W/ low-pass filter
-net temp-ddt-raw                    <= temp-ddt.out
-newinst lowpass temp-ddt-filter
-net temp-ddt-raw                    => temp-ddt-filter.in
-net temp-ddt                        <= temp-ddt-filter.out
-net load                            => temp-ddt-filter.load
-setp temp-ddt-filter.gain           0.05
-addf temp-ddt-filter                main-thread
-
-
-# ################################################
-# Burner duty cycle filtering
+# Burner output filtering
 # ################################################
 
 # - W/ low-pass filter
