@@ -234,7 +234,7 @@ newinst lowpass temp-ddt-filter
 net temp-ddt-raw                    => temp-ddt-filter.in
 net temp-ddt                        <= temp-ddt-filter.out
 net load                            => temp-ddt-filter.load
-setp temp-ddt-filter.gain           0.05
+setp temp-ddt-filter.gain           0.005
 addf temp-ddt-filter                main-thread
 
 # - 2nd derivative
@@ -248,14 +248,14 @@ newinst lowpass temp-ddt2-filter
 net temp-ddt2-raw                   => temp-ddt2-filter.in
 net temp-ddt2                       <= temp-ddt2-filter.out
 net load                            => temp-ddt2-filter.load
-setp temp-ddt2-filter.gain          0.0033
+setp temp-ddt2-filter.gain          0.005
 addf temp-ddt2-filter               main-thread
 
 # - 2nd derivative gain for PID bias input
 newinst mult2 burner-dd
 net temp-ddt2                       => burner-dd.in0
 net burner-ddgain                   => burner-dd.in1
-net burner-dd-raw                   <= burner-dd.out
+net burner-dd                       <= burner-dd.out
 addf burner-dd                      main-thread
 
 
@@ -300,9 +300,8 @@ net burner-derr                     <= burner.errorD
 sets burner-pgain                   1.192946
 sets burner-igain                   0.8179512
 sets burner-dgain                   0.4349646
-sets burner-ddgain                  5000
-#setp burner.maxerrorI               1.00
-setp burner.maxerrorI               0.00
+sets burner-ddgain                  -1000
+setp burner.maxerrorI               5.00
 setp burner.maxoutput               1.00
 net enable                          => burner.enable
 net burner-duty-raw                 <= burner.output
