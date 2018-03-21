@@ -53,34 +53,16 @@ burner_power_watts = 1200 # W; measured 10.3A on meter
 burner_heat_cap = 1450.0 # Cal./degree C
 # - pot heat leakage
 leakage_factor = 0.04/100 # % heat loss (to ambient) per second
-# - Thermagon k
-thermagon_k = 3.0 # W/(mK)
-# - burner diameter
-burner_dia_inches = 7.4 # in.
-# - Thermagon thickness
-thermagon_L_inches = 0.1 # in.
-# - Thermagon max temperature
-thermagon_temp_max = 200.0 # deg. C
+# - max burner temp
+burner_temp_max = 200.0
+# - used to calculate rate of heat transfer from burner
+transfer_factor = 4.07
 
 # Conversions
 # - Calories/second to Watts
 cal_per_s_to_w = 4.1868
 # - milliliters per quart
 ml_per_qt = 946.353
-# - meters per inch
-m_per_in = 0.0254
-
-# Thermagon conductivity calculations
-# k = Q * L/(A * d_T); Q = k * A * d_T / L
-# - burner area
-burner_dia = burner_dia_inches * m_per_in # m
-burner_A = math.pi * (burner_dia)**2 # m^2
-# - Thermagon thickness
-thermagon_L = thermagon_L_inches * m_per_in # m
-# - Burner heat transfer factor:  heat_transfer * temp_delta = transfer in W
-transfer_factor = thermagon_k * burner_A / thermagon_L
-# - FIXME fudge this
-transfer_factor *= 0.13
 
 # Other calculations
 # - Burner power
@@ -137,9 +119,9 @@ try:
             msg.info("Error:  HAL error signal asserted")
             err = 1
             error_seen = True
-        if temp_burner > thermagon_temp_max and not error_seen:
-            msg.info("Error:  Thermagon max temp exceeded:  %.1f > %.1f" %
-                     (temp_burner, thermagon_temp_max))
+        if temp_burner > burner_temp_max and not error_seen:
+            msg.info("Error:  Burner max temp exceeded:  %.1f > %.1f" %
+                     (temp_burner, burner_temp_max))
             err = 1
             error_seen = True
         if error_seen and not error:
@@ -159,7 +141,7 @@ try:
         # - Calories added to pot by heat transfer
         t_delta = temp_burner - temp_pot # deg. C
         pot_heat_transfer_in = (
-            t_delta * transfer_factor / cal_per_s_to_w * update_time) # cal.
+            t_delta * transfer_factor * update_time) # cal.
         # Heat leakage from pot to outside
         leakage = pot_heat * (leakage_factor * update_time) # cal.
         # New pot heat
