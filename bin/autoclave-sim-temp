@@ -4,7 +4,7 @@
 #
 # See sim-model.ods
 
-import hal, time, sys, datetime, math, random
+import os, hal, time, sys, datetime, math, random
 from autoclave import Config, Messages
 
 msg = Messages('Autoclave sim-temp')
@@ -99,10 +99,17 @@ h.ready()
 elapsed = 0.0
 temp_burner = h['temp-burner-therm']
 temp_pot = h['temp-pot-therm']
-burner_heat = 0.0
-pot_heat_transfer_in = 0.0
-pot_heat = 0.0
+# - Heated pot/burner may be seeded from environment
+if os.getenv('BURNER_TEMP',False):
+    burner_heat = (float(os.getenv('BURNER_TEMP')) - temp_ext) * burner_heat_cap
+else:
+    burner_heat = 0.0
+if os.getenv('POT_TEMP',False):
+    pot_heat = (float(os.getenv('POT_TEMP')) - temp_ext) * water_volume
+else:
+    pot_heat = 0.0
 pot_heat_old = 0.0
+pot_heat_transfer_in = 0.0
 error_seen = False
 
 try:
