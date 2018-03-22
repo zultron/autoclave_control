@@ -158,7 +158,7 @@ def adc2Temp(pin):
         print("Invalid -b cape  name: %s" % args.cape_board)
         print("Valid names are: BeBoPr, CRAMPS")
         sys.exit(1)
-    return round(pin.r2temp.r2t(R) * 10.0) / 10.0
+    return pin.r2temp.r2t(R)
 
 
 def getHalName(pin):

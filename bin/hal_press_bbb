@@ -86,7 +86,7 @@ def adc_raw_to_pressure(adc_raw):
             adc_raw_to_adc_v(adc_raw)))
 
 def adc2Press(pin):
-    return round(adc_raw_to_pressure(pin.rawValue),1)
+    return adc_raw_to_pressure(pin.rawValue)
 
 
 class Pin:
