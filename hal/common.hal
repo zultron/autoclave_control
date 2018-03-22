@@ -234,7 +234,7 @@ newinst lowpass temp-ddt-filter
 net temp-ddt-raw                    => temp-ddt-filter.in
 net temp-ddt                        <= temp-ddt-filter.out
 net load                            => temp-ddt-filter.load
-setp temp-ddt-filter.gain           0.005
+setp temp-ddt-filter.gain           0.01
 addf temp-ddt-filter                main-thread
 
 # - 2nd derivative
