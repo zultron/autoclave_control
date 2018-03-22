@@ -151,8 +151,8 @@ def loop():
                 "--start=-2%s" % period,
                 "--title=%s" % sched,
                 "--vertical-label=Deg. C, PSIG",
-                # "--width=1000", "--height=500",
-                "--width=600", "--height=300",
+                "--width=1000", "--height=500",
+                #"--width=600", "--height=300",
                 "--color=CANVAS#8080ff", # light blue
                 "--upper-limit=%d" % graph_height, "--lower-limit=0", "--rigid",
 
