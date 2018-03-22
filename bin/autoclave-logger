@@ -225,8 +225,7 @@ def loop():
                 pid_curve_func('burndd'),
                 "LINE1:burndd-curve#800000:burner-dd",
                 # - PID center: black
-                "CDEF:burn-cent=duty,0,*,%d,+" % pid_curve_height,
-                "LINE1:burn-cent#000000",
+                "HRULE:%d#000000" % pid_curve_height,
             )
         #msg.info("Updated RRD DB %s" % rrdtool_db)
         # - Reset state for next sample
