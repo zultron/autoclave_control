@@ -187,10 +187,9 @@ addf press-to-temp                  main-thread
 # ################################################
 
 # The pressure sensor is much more stable than the thermistors, but
-# can only be used above 100 deg.  Feedback signal stability allows
-# better control, and this is important esp. at high pressures.  The
-# following creates a blended temperature signal from the thermistor
-# and pressure sensors.
+# can only be used above 100 deg.  The following makes it possible to
+# use a blended temperature signal from the thermistor and pressure
+# sensors.  It is disabled here.
 
 # Base signal on:
 # - temp-pot below 5 PSI
@@ -206,7 +205,7 @@ setp temp-blend-select.in1          -1.0
 net temp-blend-select               <= temp-blend-select.out
 addf temp-blend-select              main-thread
 
-# The blended signal
+# The blended signal:  1.0 for pressure, 0.0 for thermistor
 newinst blend temp-blend
 net temp-pressure                   => temp-blend.in1
 net temp-pot                        => temp-blend.in2
@@ -214,6 +213,10 @@ net temp-blend-select               => temp-blend.select
 net temperature                     <= temp-blend.out
 setp temp-blend.open                0
 addf temp-blend                     main-thread
+
+# Disable blending and use only thermistor for temperature.
+unlinkp temp-blend-select.out
+sets temp-blend-select              0.0
 
 # ################################################
 # Burner PID input signals
