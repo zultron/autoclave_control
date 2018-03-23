@@ -145,10 +145,10 @@ net shutdown                        => autoclave-control.shutdown
 # Temp signal filters
 # ################################################
 
-# Lowpass filter comps:  filter out <10s. lambda noise (main-thread 10 Hz)
+# Lowpass filter comps:  filter out <2s. lambda noise (main-thread 10 Hz)
 # https://www.embeddedrelated.com/showarticle/779.php
-# delta_t = 0.1; tau = 10; gain = alpha = 0.1/10 = 0.01
-# In simulation, this leads to 0.5 deg. error when heating up
+# delta_t = 0.1; tau = 2; gain = alpha = 0.1/2 = 0.05
+# This causes a small lag in exchange for steadier signals.
 #
 # - Pot
 newinst lowpass temp-pot
@@ -230,6 +230,7 @@ net temp-ddt-raw                    <= temp-ddt.out
 addf temp-ddt                       main-thread
 
 # - Low-pass filter
+# (See above for calculations)
 newinst lowpass temp-ddt-filter
 net temp-ddt-raw                    => temp-ddt-filter.in
 net temp-ddt                        <= temp-ddt-filter.out
@@ -266,14 +267,6 @@ net burner-dgain                    <= burner.Dgain
 net burner-derr                     <= burner.errorD
 
 # PID parameters; see http://linuxcnc.org/docs/html/motion/pid-theory.html
-# Tuning:
-# - Set I + D to zero
-# - Set P to be stable at high temp
-#   - Increase P until oscillations begin
-# - Set D so that oscillations stop
-#   - Test that overshoot is minimal, but doesn't slow down too early
-# - Set I to take out any chronic error
-# - Test going downward
 sets burner-pgain                   1.6
 sets burner-igain                   0.01
 sets burner-dgain                   140
@@ -306,14 +299,6 @@ addf burner-d                       main-thread
 # ################################################
 # Burner output filtering
 # ################################################
-
-# - W/ low-pass filter
-# newinst lowpass burner-duty
-# net burner-duty-raw                 => burner-duty.in
-# net burner-duty-filtered            <= burner-duty.out
-# net load                            => burner-duty.load
-# setp burner-duty.gain               0.1
-# addf burner-duty                    main-thread
 
 # Limit PID output to non-negative values
 # - Load limit1 comp
