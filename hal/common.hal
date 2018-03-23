@@ -237,27 +237,6 @@ net load                            => temp-ddt-filter.load
 setp temp-ddt-filter.gain           0.01
 addf temp-ddt-filter                main-thread
 
-# - 2nd derivative
-newinst ddt temp-ddt2
-net temp-ddt                        => temp-ddt2.in
-net temp-ddt2-raw                   <= temp-ddt2.out
-addf temp-ddt2                      main-thread
-
-# - 2nd derivative low-pass filter
-newinst lowpass temp-ddt2-filter
-net temp-ddt2-raw                   => temp-ddt2-filter.in
-net temp-ddt2                       <= temp-ddt2-filter.out
-net load                            => temp-ddt2-filter.load
-setp temp-ddt2-filter.gain          0.005
-addf temp-ddt2-filter               main-thread
-
-# - 2nd derivative gain for PID bias input
-newinst mult2 burner-dd
-net temp-ddt2                       => burner-dd.in0
-net burner-ddgain                   => burner-dd.in1
-net burner-dd                       <= burner-dd.out
-addf burner-dd                      main-thread
-
 
 # ################################################
 # Burner PID
@@ -278,7 +257,6 @@ net temp-set                        => burner.command
 # PID feedback
 net temperature                     => burner.feedback
 net temp-ddt                        => burner.feedback-deriv
-net burner-dd                       => burner.bias
 # PID debugging
 net burner-pgain                    <= burner.Pgain
 net burner-perr                     <= burner.error
@@ -299,7 +277,6 @@ net burner-derr                     <= burner.errorD
 sets burner-pgain                   1.6
 sets burner-igain                   0.01
 sets burner-dgain                   140
-#sets burner-ddgain                  -4000
 setp burner.maxerrorI               50.00
 setp burner.maxoutput               1.00
 net enable                          => burner.enable
@@ -420,7 +397,6 @@ net enable                          => autoclave-logger.enable
 net burner-p                        => autoclave-logger.burner-p
 net burner-i                        => autoclave-logger.burner-i
 net burner-d                        => autoclave-logger.burner-d
-net burner-dd                       => autoclave-logger.burner-dd
 # - Shut down
 net shutdown                        => autoclave-logger.shutdown
 
