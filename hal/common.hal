@@ -277,8 +277,9 @@ net burner-derr                     <= burner.errorD
 sets burner-pgain                   1.6
 sets burner-igain                   0.01
 sets burner-dgain                   140
-setp burner.maxerrorI               50.00
-setp burner.maxoutput               1.00
+setp burner.bias                    0.5
+setp burner.maxerrorI               20
+setp burner.maxoutput               0
 net enable                          => burner.enable
 net burner-duty-raw                 <= burner.output
 
