@@ -239,6 +239,20 @@ setp temp-ddt-filter.gain           0.01
 addf temp-ddt-filter                main-thread
 
 
+# Burner bias
+#
+# Compensate for heat loss with a bias that increases proportionally
+# to the difference of ambient temperature.  Assume 60% at 120
+# deg. and ambient temp is 20 deg.
+#
+# bias = (temp - 20) / (120 - 20) = temp * 0.01 + -0.2
+newinst sum2 burner-bias
+net temperature                     => burner-bias.in0
+net burner-bias                     <= burner-bias.out
+setp burner-bias.gain0               0.01
+setp burner-bias.in1                -0.20
+addf burner-bias                    main-thread
+
 # ################################################
 # Burner PID
 # ################################################
@@ -258,6 +272,7 @@ net temp-set                        => burner.command
 # PID feedback
 net temperature                     => burner.feedback
 net temp-ddt                        => burner.feedback-deriv
+net burner-bias                     => burner.bias
 # PID debugging
 net burner-pgain                    <= burner.Pgain
 net burner-perr                     <= burner.error
@@ -270,7 +285,6 @@ net burner-derr                     <= burner.errorD
 sets burner-pgain                   1.6
 sets burner-igain                   0.01
 sets burner-dgain                   140
-setp burner.bias                    0.5
 setp burner.maxerrorI               20
 setp burner.maxoutput               0
 net enable                          => burner.enable
