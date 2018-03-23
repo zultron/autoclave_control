@@ -134,9 +134,9 @@ def enter_stage(stage_name, init=False):
 
     # Override burner PID output for some stages
     if stage_name in max_burner_stages:
-        h['burner-override'] = 2.0
+        h['burner-override'] = 2000.0
     elif stage_name in min_burner_stages:
-        h['burner-override'] = -2.0
+        h['burner-override'] = -2000.0
     else:
         h['burner-override'] = 0.0
 
