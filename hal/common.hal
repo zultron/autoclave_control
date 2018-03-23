@@ -248,12 +248,12 @@ addf temp-ddt-filter                main-thread
 # to the difference of ambient temperature.  Assume 60% at 120
 # deg. and ambient temp is 20 deg.
 #
-# bias = (temp - 20) / (120 - 20) = temp * 0.01 + -0.2
+# bias = (temp - 20) / (120 - 20) * 0.6 = temp * 0.006 + -0.12
 newinst sum2 burner-bias
 net temperature                     => burner-bias.in0
 net burner-bias                     <= burner-bias.out
-setp burner-bias.gain0               0.01
-setp burner-bias.in1                -0.20
+setp burner-bias.gain0               0.006
+setp burner-bias.in1                -0.120
 addf burner-bias                    main-thread
 
 # ################################################
