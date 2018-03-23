@@ -274,7 +274,7 @@ setp burner.bias                    0.5
 setp burner.maxerrorI               20
 setp burner.maxoutput               0
 net enable                          => burner.enable
-net burner-duty-raw                 <= burner.output
+net burner-duty-pid                 <= burner.output
 
 # Debugging
 # - P
@@ -297,7 +297,19 @@ net burner-d                        <= burner-d.out
 addf burner-d                       main-thread
 
 # ################################################
-# Burner output filtering
+# Burner PID override
+# ################################################
+
+# Allow control to force duty cycle on or off
+newinst sum2 burner-override
+addf burner-override                main-thread
+net burner-duty-pid                 => burner-override.in0
+net burner-override                 => burner-override.in1
+net burner-duty-raw                 <= burner-override.out
+
+
+# ################################################
+# Burner output limiting
 # ################################################
 
 # Limit PID output to non-negative values
@@ -310,19 +322,7 @@ setp burner-limit.max               1.0
 # - Input
 net burner-duty-raw                 => burner-limit.in
 # - Output
-net burner-duty-filtered            <= burner-limit.out
-
-# ################################################
-# Burner PID override
-# ################################################
-
-# Allow control to force duty cycle on or off
-newinst sum2 burner-override
-addf burner-override                main-thread
-net burner-duty-filtered            => burner-override.in0
-net burner-override                 => burner-override.in1
-net burner-duty                     <= burner-override.out
-
+net burner-duty                     <= burner-limit.out
 
 # ################################################
 # Burner SSR PWM signal
