@@ -30,27 +30,27 @@ The `autoclave-control` component exposes a remote UI, used by the
 the Google Play store, and for Linux, Mac OS X and Windows directly
 from the [QtQuickVCP][qqvcp] project.  See the below screenshot.  The
 idle, boil, steam and heat stages in green are done.  The current
-stage is 8+ minutes into a 30 minute sterilization.  That and the
+stage is 15+ minutes into a 30 minute sterilization.  That and the
 blue-colored cool stage are not yet done.  The button controls on the
-left are enable/disable and start/stop.  The indicators on the upper
-right are process elapsed time, burner duty cycle, pressure and
-temperature.
+left are enable/disable, start/stop, and a link to the graphs.  The
+indicators on the upper right are process elapsed time, burner duty
+cycle, pressure and temperature.
 
 ![Autoclave GUI](images/autoclave-gui.png)
 
 The `autoclave-logger` component captures process data with
 [rrdtool][rrdtool] and generates graphs like the one below, which
-shows an entire cycle.  The enable button was pressed just after
-13:40, and the autoclave heated up to the idle temperature, set at 80
-degrees.  Just before 14:00, the start button was pressed.  The water
-was heated to 100 degrees in the boil stage, and the valve was opened
-(blue curve) for ten minutes with the burner at 100% (bottom yellow
-curve).  Then the valve closed and the autoclave was heated to the 121
+shows an entire cycle on a real machine.  The autoclave was already
+warmed up to 29.4 deg. from a previous run when the start button was
+pressed shortly after 03:00.  The water was heated to 100 degrees in
+the boil stage, and the valve was opened (thick blue curve) for ten
+minutes with the burner at 100% (yellow curve; 0% at 100, 100% at
+110).  Then the valve closed and the autoclave was heated to the 121
 degree sterilization temperature.  Pressure was also measured at 15
 PSIG (solid orange curve).  After 30 minutes, the burner was turned
-off and the autoclave cooled to 99 degrees, and the cycle was
-finished.  After that, the autoclave continued to cool until reaching
-the 80 degree idle temperature.
+off and the autoclave cooled to 32 degrees (not shown), and the cycle
+was finished.  After that, the autoclave switch back to idle mode at
+20 degrees.
 
 ![Autoclave logger](images/autoclave-logger.png)
 
